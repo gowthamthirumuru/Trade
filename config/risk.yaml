@@ -1,0 +1,26 @@
+# Project APEX Risk Engine & Sizing Configuration (Master Plan §17 & Appendix I.2)
+sizing:
+  base_risk_pct: 0.75                  # % of current equity per trade
+  min_risk_pct: 0.50                   # Floor when confidence reduced
+  max_risk_pct: 1.00                   # Hard ceiling, no exceptions
+  confidence_multipliers:
+    provisional: 0.75
+    validated: 1.00
+    core: 1.25                         # Validated + 100 live trades confirming
+  vol_target_ann_pct: 12               # Annualized vol targeting
+  kelly_fraction_cap: 0.25             # Quarter-Kelly ceiling cap
+
+breakers:
+  daily_loss_pct: 1.5                  # Flat + locked until next day
+  weekly_loss_pct: 4.0                 # Flat + locked until Monday
+  strategy_dd_pct: 15                  # Strategy benched → re-validation
+  portfolio_dd_halve_pct: 12           # All sizes halved
+  portfolio_dd_stop_pct: 20            # FULL STOP → manual review & audit
+  max_concurrent_positions: 5
+  max_same_direction_per_asset: 2
+
+decay:
+  watch_z: -1.5                        # Trailing 30-trade expectancy z-score warning
+  half_z: -2.0                         # Halve position size
+  bench_z: -2.5                        # Bench strategy (size 0)
+  bench_confirm_trades: 20

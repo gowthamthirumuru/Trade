@@ -1,0 +1,34 @@
+# Project APEX Universe & Data Lake Configuration (Master Plan §9.6)
+pairs:
+  - BTCUSDT
+  - ETHUSDT
+  - BNBUSDT
+  - SOLUSDT
+  - XRPUSDT
+  - ADAUSDT
+  - DOGEUSDT
+  - AVAXUSDT
+  - LINKUSDT
+  - MATICUSDT
+  - LTCUSDT
+  - DOTUSDT
+  - ATOMUSDT
+  - NEARUSDT
+  - ARBUSDT
+  - OPUSDT
+  - INJUSDT
+  - SUIUSDT
+  - APTUSDT
+  - FILUSDT
+
+base_timeframe: "1m"
+derived_timeframes:
+  - "5m"
+  - "15m"
+  - "1h"
+  - "4h"
+  - "1d"
+
+history_from: "2017-08-01"
+storage: "parquet"
+compression: "snappy"

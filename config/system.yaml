@@ -1,0 +1,25 @@
+# Project APEX Global Configuration Contract (Master Plan §8.3 & Appendix I.1)
+paths:
+  data: "data/"
+  db: "db/apex.duckdb"
+  runs: "runs/"
+
+time:
+  insample_start: "2017-08-17"  # Binance BTCUSDT listing date
+  insample_end: "2022-12-31"    # ← THE RESEARCH WALL (Miner never sees past this date)
+  oos_start: "2023-01-01"       # Reserved for Validation Lab only
+
+random_seed: 42                 # Everything reproducible byte-for-byte
+
+execution_defaults:
+  timezone: "UTC"               # Pure UTC timeline across system
+
+costs:
+  taker_fee_bps: 5              # 0.05% per side (Binance tier)
+  slippage_bps: 2               # Base assumption; stress-tested at 2-3x in Monte Carlo
+
+validation:
+  min_trades_slice: 100
+  min_trades_provisional: 50
+  mc_sims: 10000
+  pbo_threshold: 0.20

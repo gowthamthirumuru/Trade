@@ -1,0 +1,35 @@
+# Python / Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Data Lake & Storage (Gitignored as per Master Plan §8.1)
+data/raw/
+data/features/
+data/tmp/
+data/quarantine/
+
+# Trade Database
+db/*.duckdb
+db/*.duckdb.tmp
+db/*.duckdb.wal
+
+# Execution Runs & Artifacts
+runs/*
+!runs/.gitkeep
+
+# Editor & OS Files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
