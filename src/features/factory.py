@@ -48,7 +48,11 @@ def build_features_for_bars(
         logger.warning("build_features_for_bars invoked on empty DataFrame")
         return pd.DataFrame()
 
-    df_clean = df_bars.sort_values("open_time").reset_index(drop=True)
+    df_clean = df_bars.sort_values("open_time").reset_index(drop=True).copy()
+    if "pair" not in df_clean.columns:
+        df_clean["pair"] = "BTCUSDT"
+    if "timeframe" not in df_clean.columns:
+        df_clean["timeframe"] = "1m"
 
     # 1. Compute Technical Indicators
     df_indicators = compute_all_indicators(df_clean)
