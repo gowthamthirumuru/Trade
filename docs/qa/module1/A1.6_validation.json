@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "hard_failures": 0,
+  "total_pairs_validated": 20,
+  "total_bars_audited": 28800,
+  "flagged_outliers": [],
+  "qa_timestamp": "2026-08-09T16:58:53.057733+00:00"
+}

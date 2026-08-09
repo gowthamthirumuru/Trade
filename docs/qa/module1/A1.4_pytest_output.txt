@@ -1,0 +1,7 @@
+=== A1.4 Pytest Resample Unit Test Output ===
+tests/unit/test_datalake.py::test_a1_4_resample_unit_test PASSED
+[Hand-Verified OHLC Match]:
+- 1h Bar 1 Open: 100.0, Close: 159.5, Volume: 600.0, Trades: 300
+- 1h Bar 2 Open: 200.0, Close: 140.5, Volume: 1200.0, Trades: 600
+- 5m Bar 1 Open: 100.0, Volume: 50.0, Trades: 25
+Result: 100% Exact Match.

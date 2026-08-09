@@ -1,0 +1,22 @@
+{
+  "total_bars": 4320,
+  "start_time": "2023-01-01 00:00:00+00:00",
+  "end_time": "2023-01-03 23:59:00+00:00",
+  "duplicates_found": 0,
+  "ohlc_violations": 0,
+  "max_gap_consecutive_bars": 0,
+  "gaps_greater_than_60": 0,
+  "zero_volume_runs_greater_than_30": 0,
+  "outliers_flagged": 0,
+  "is_fresh_24h": false,
+  "issues": [
+    {
+      "pair": "BTCUSDT",
+      "timeframe": "1m",
+      "check_name": "Freshness Check",
+      "severity": "WARNING",
+      "detail": "Data stale: latest bar timestamp is 2023-01-03 23:59:00+00:00 (31529.0 hours old)",
+      "timestamp_info": null
+    }
+  ]
+}

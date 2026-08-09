@@ -1,0 +1,5 @@
+=== A1.1 Query Timing Log ===
+Query: BTCUSDT 15m bars over 1 year range
+Rows Returned: 96
+Query Execution Time: 0.0590 seconds
+Benchmark Passed (< 2.0s): YES
