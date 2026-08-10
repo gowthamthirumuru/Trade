@@ -1,0 +1,1852 @@
+L10: PART C — MODULE SPECIFICATIONS 9. Module 1 — Data Lake 10. Module 2 — Feature & Regime Factory 11. Module 3 — Strategy Miner (Brute-Force, Genetic, ML) 12. Module 4 — Backtest & Simulation Engine 13. Module 5 — Trade Database (The Edge Mine) 14. Module 6 — Edge Analytics Engine 15. Module 7 — Validation Lab (Anti-Overfitting Suite) 16. Module 8 — Portfolio Construction Engine 17. Module 9 — Risk Engine 18. Module 10 — Command Center (UI) 19. Module 11 — Execution & Live Loop 20. Module 12 — Monitoring, Alerts & Edge-Decay Detection
+L11: PART C-2 — BUILDER’S COOKBOOK (DETAILED REFERENCES) C2.1 Data Dictionary & Feature Catalog C2.2 Strategy Building-Block Catalog C2.3 Starter Strategy Playbook (8 Fully Specified Strategies) C2.4 Worked Example — End-to-End Walkthrough C2.5 Module Interface Contracts C2.6 Testing Cookbook C2.7 Operational Playbooks & Incident Response C2.8 Report Templates (Daily / Weekly / Monthly) C2.9 Journal & Edge Card Templates C2.10 The 90-Day Condensed Quick-Start C2.11 Code Skeletons for Core Components C2.12 Module Build Task Sequences (Step-by-Step)
+L12: PART D — DATA & MATH REFERENCE 21. Complete Database Schemas 22. Formula & Metrics Library 23. Forex Plug-In Specification (Future Market)
+L13: PART E — IMPLEMENTATION PLAN 24. Phased Build Plan (Week-by-Week) 25. Engineering Standards (Git, Testing, Review, Docs) 26. Quality Assurance & Acceptance Test Plan
+L14: PART F — OPERATIONS 27. Daily / Weekly / Monthly Runbooks 28. Strategy Lifecycle Management 29. Manual Execution & Psychology Protocol 30. Capital Plan, Costs & Risk Disclosures
+L15: PART G — FUTURE & APPENDICES 31. Future Enhancements Roadmap 32. Scaling Path & Hardware Notes A. Glossary B. Repository & Resource Directory C. SQL Query Library D. Reading List E. Master Project Sign-Off Checklist F. Common Pitfalls & Troubleshooting Guide G. Worked Mathematics & Sizing Workbook H. Failure-Mode Library (25 Ways Quant Systems Die) I. Complete Configuration Reference J. Extended SQL Query Library K. Compounding, Drawdown & Risk-of-Ruin Mathematics L. Data Quality Field Guide M. Builder’s Weekly Schedule Templates N. Expanded Glossary of Quant Terms O. Pre-Live Simulation Drill Pack P. Frequently-Used Reference Tables
+L16: PART H — TRADER’S REFERENCE LIBRARY 33. Statistics Primer for Traders 34. Crypto Market Microstructure Primer 35. KPI Definitions & Dashboard Metrics 36. First-Year Operating Calendar 37. The Learning Track (Study Plan Alongside the Build) 38. Self-Interrogation FAQ 39. Universe & Correlation Management 40. QA Quick-Reference Cards (Printable) 41. Case Studies — Anatomy of a Failure & of a Success 42. The First 100 Live Trades — What to Expect 43. Document & Template Library 44. Year-2 Detailed Roadmap (Months 13–24) 45. The Daily Boot Sequence & Operating Manifesto 46. Master Index of Gates, Checklists & Controls
+L17: PART A — FOUNDATIONS
+L18: 1. Executive Summary
+L19: Project APEX is a complete, zero-budget quantitative trading system that you will build and operate alone. Its purpose is not to “find a winning strategy” — it is to build a factory that continuously discovers, validates, filters, sizes, monitors, and retires strategies, the same loop every professional quant firm runs, rebuilt from free open-source components.
+L20: The system rests on five pillars:
+L21: A data lake of free, institutional-quality crypto market data (Binance public archive: tick-to-daily history since 2017, unlimited downloads, no account required), stored locally in Parquet + DuckDB.
+L22: A strategy miner that automatically discovers candidate strategies — first by brute-force combinatorial search over indicator/filter/exit building blocks, later by genetic programming that evolves strategy logic itself, and finally by local machine learning (no paid AI APIs anywhere).
+L23: A trade database (“the edge mine”) in which every trade from every backtest and every live session is stored with ~30 labels (strategy, parameters, pair, session, hour, day, volatility regime, trend regime, exit reason, MFE/MAE…). This database is the system’s most valuable permanent asset: it lets you mine when and where each strategy works — your original edge idea, implemented with statistical rigor.
+L24: A validation lab that kills weak strategies before they cost money: walk-forward analysis, four kinds of Monte Carlo simulation, Probability of Backtest Overfitting (PBO), Deflated Sharpe Ratio, and regime stress tests. Expect to reject 95% of what the miner finds. That rejection rate is the system working correctly.
+L25: A risk-first portfolio engine and command center: volatility-targeted position sizing, HRP/CVaR allocation across strategies, hard circuit breakers, and a Streamlit dashboard that hands you a clear “edge card” each session so manual execution becomes checklist execution.
+L26: What success looks like (12–18 months): a system holding 100,000+ labeled trades; 5–10 validated strategies with out-of-sample-confirmed session/day/regime filters; a portfolio-level risk engine with circuit breakers you actually obey; a live track record of 100+ real trades whose expectancy matches the backtest within tolerance; and a monthly re-mining loop that keeps the edge fresh as markets evolve.
+L27: Build time to first validated paper trade: ~12 weeks. To first live trade: ~5–6 months. Budget: ₹0 / $0.
+L28: 2. Vision, Objectives & Success Criteria
+L29: 2.1 Vision statement
+L30: Build a personal quant research operation whose process is institutional-grade even though its capital is retail-sized — and let disciplined process, not luck, compound both skill and capital over time.
+L31: 2.2 Objectives (SMART)
+L32: 2.3 What this system is NOT
+L33: Not a get-rich-quick bot. It is a research and decision-support machine that makes you a disciplined, evidence-driven trader.
+L34: Not HFT. We compete in timeframes (minutes to days) where speed doesn’t decide outcomes.
+L35: Not an AI magic box. Every “intelligent” component runs locally and free; statistics does the heavy lifting.
+L36: Not a one-time project. It is an operating system for your trading career, maintained weekly.
+L37: 3. Honest Constraints & Realistic Expectations
+L38: This chapter exists so that month-6-you doesn’t quit out of misplaced expectations. Read it monthly.
+L39: 3.1 You cannot beat institutions at their game. Funds have colocated servers, tick-level order flow, teams of PhDs, and billion-dollar data budgets. You will not out-speed or out-data them.
+L40: 3.2 You can win the game they refuse to play. Institutional capital cannot bother with edges worth 0.3–1% per week on $5,000 — it’s meaningless to them and often too small or capacity-limited to trade. Retail-sized, patient, well-filtered edges in liquid-but-slow timeframes are exactly the niche this system targets.
+L41: 3.3 Filtering turns break-even into profitable — it does not resurrect garbage. Day/hour/session/regime filtering (your core idea) reliably improves mediocre strategies; it rarely saves a strategy with no underlying edge. The miner’s job is to find raw material; the filter’s job is to refine it.
+L42: 3.4 Most discovered “edges” are noise. If you test 100,000 variants, thousands look brilliant by pure chance. This is the multiple-comparisons problem, and it is why Part C’s Validation Lab (PBO, Deflated Sharpe, walk-forward) is non-negotiable. The uncomfortable truth: the better the backtest looks, the more skeptical you must be.
+L43: 3.5 Edges decay. Market regimes shift; other participants arbitrage patterns away. Assume every edge has a half-life of 6–24 months. The monthly re-mining and edge-decay detector exist for this reason.
+L44: 3.6 The operator is the biggest risk. Manual execution, revenge trading after losses, overriding the system “just this once,” stopping during drawdowns — operator behavior kills more retail systems than bad math. Chapter 29 is as important as any code.
+L45: 3.7 Expectancy arithmetic (memorize):
+L46: Expectancy = (win_rate × avg_win) − (loss_rate × avg_loss) − costs
+L47: A strategy is tradeable only if Expectancy > 0 AFTER realistic
+L48: fees + slippage + spread, AND n ≥ 100 OOS trades, AND it survives
+L49: the Validation Lab.
+L50: 3.8 Timeline honesty. Month 1–3: building, zero trading income. Month 4–6: paper trading, zero income. Month 6–12: small live trading, modest income if everything works. Compounding is slow at first and then not. Anyone promising faster is selling something.
+L51: 4. Market Selection Analysis
+L52: 4.1 The decision criteria
+L53: 4.2 Candidate comparison
+L54: 4.3 Decision
+L55: Primary market: Crypto, via Binance public data archive (data.binance.vision) + CCXT for live updates.
+L56: Rationale: (1) truly unlimited free downloads — no API key, no rate-limit gymnastics, tick-level history back to 2017; (2) 24/7 operation yields ~4.5× more bars per year than forex, which directly multiplies the statistical power of your hour/day edge mining; (3) single clean UTC timeline — no DST bugs corrupting session labels; (4) free testnet for paper trading and $5 minimum live positions for cheap live validation; (5) both trend and mean-reversion regimes exist across 20+ liquid pairs.
+L57: Architecture consequence: all data flows through ONE abstract DataSource interface. Forex (Dukascopy) plugs in later as a second implementation (spec in Chapter 23) without touching any downstream module.
+L58: Universe (initial): BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, XRPUSDT, ADAUSDT, DOGEUSDT, AVAXUSDT, LINKUSDT, MATICUSDT, LTCUSDT, DOTUSDT, ATOMUSDT, NEARUSDT, ARBUSDT, OPUSDT, INJUSDT, SUIUSDT, APTUSDT, FILUSDT — all USDT-margined perpetual/spot pairs with history since ≥2020 preferred.
+L59: 5. The Twelve Core Design Principles
+L60: These principles govern every build decision. When in doubt, the principle that says “be more conservative” wins.
+L61: The database is the product. Strategies are disposable; the labeled trade database compounds in value forever. Never run a backtest whose trades aren’t logged.
+L62: Costs first, always. Every backtest models fees, spread, and slippage from day one. A backtest without costs is fiction.
+L63: In-sample is for searching, out-of-sample is for deciding. The miner never sees the test period. No exceptions, ever.
+L64: Sample size or it didn’t happen. No slice, filter, or strategy is trusted below n=100 trades (50 = provisional only).
+L65: Simple beats clever. A robust simple strategy beats a fragile complex one. Complexity must earn its place with OOS performance.
+L66: Plateaus, not peaks. Choose parameter regions where neighbors also work; a lone peak is an overfit artifact.
+L67: Kill ruthlessly. Rejecting 90–95% of candidates is the sign of a healthy pipeline, not a failure.
+L68: Everything is reproducible. Every run is config-driven, seeded, logged, and re-runnable byte-for-byte.
+L69: Local-first, zero-cost. If a component needs a paid API, it doesn’t belong in the core system.
+L70: The system advises; discipline executes. Until auto-execution is earned, the human executes the checklist — not impulses.
+L71: Risk is a budget, not an afterthought. Position size, exposure, and circuit breakers are computed by the Risk Engine, never by mood.
+L72: Document as you build. A module without a completed QA checklist and a doc page is not “done.”
+L73: PART B — SYSTEM ARCHITECTURE
+L74: 6. High-Level Architecture — The 12 Layers
+L75: ┌────────────────────────────────────────────────────────────────────┐
+L76: │ L1  DATA LAKE          Binance bulk archive → Parquet → DuckDB      │
+L77: │                        (klines 1m→1d, aggTrades, funding, calendar) │
+L78: ├────────────────────────────────────────────────────────────────────┤
+L79: │ L2  FEATURE FACTORY    indicators, regimes, session/hour labels,    │
+L80: │                        volatility & trend states → features.parquet │
+L81: ├────────────────────────────────────────────────────────────────────┤
+L82: │ L3  STRATEGY MINER     Miner-1 brute force → Miner-2 genetic →      │
+L83: │                        Miner-3 local ML; outputs candidate configs  │
+L84: ├────────────────────────────────────────────────────────────────────┤
+L85: │ L4  BACKTEST ENGINE    vectorbt (sweeps) + event-driven engine      │
+L86: │                        (NautilusTrader) for realistic validation    │
+L87: ├────────────────────────────────────────────────────────────────────┤
+L88: │ L5  TRADE DATABASE     ★ every trade from every run, 30+ labels ★   │
+L89: │                        (DuckDB: trades, runs, signals, equity)      │
+L90: ├────────────────────────────────────────────────────────────────────┤
+L91: │ L6  EDGE ANALYTICS     SQL slicing by session/day/hour/regime +     │
+L92: │                        significance testing → edge cards            │
+L93: ├────────────────────────────────────────────────────────────────────┤
+L94: │ L7  VALIDATION LAB     walk-forward, Monte Carlo ×4, PBO,           │
+L95: │                        Deflated Sharpe, regime stress, kill list    │
+L96: ├────────────────────────────────────────────────────────────────────┤
+L97: │ L8  PORTFOLIO ENGINE   skfolio: HRP / CVaR risk parity allocation   │
+L98: │                        across strategies & pairs; correlation guard │
+L99: ├────────────────────────────────────────────────────────────────────┤
+L100: │ L9  RISK ENGINE        vol targeting, VaR/CVaR (arch/GARCH),        │
+L101: │                        position sizing, circuit breakers            │
+L102: ├────────────────────────────────────────────────────────────────────┤
+L103: │ L10 COMMAND CENTER     Streamlit UI: overview, miner control,       │
+L104: │                        edge explorer, validation, portfolio,        │
+L105: │                        journal, data manager                        │
+L106: ├────────────────────────────────────────────────────────────────────┤
+L107: │ L11 EXECUTION LOOP     edge cards → alerts (Telegram) → manual /    │
+L108: │                        testnet execution → live trades logged to L5 │
+L109: ├────────────────────────────────────────────────────────────────────┤
+L110: │ L12 MONITORING         live-vs-backtest drift, edge-decay detector, │
+L111: │                        weekly reports, monthly re-mine scheduler    │
+L112: └────────────────────────────────────────────────────────────────────┘
+L113: 6.1 Data flow (the daily life of the system)
+L114: Nightly (02:00): Data Lake pulls the previous day’s candles for all pairs → validates → appends to Parquet → rebuilds DuckDB views.
+L115: Nightly (02:30): Feature Factory recomputes indicators/regimes for the new bars.
+L116: On demand / weekly: Miner launches search runs over the in-sample period; survivors are handed to the Backtest Engine for realistic replay.
+L117: Every run: all trades → Trade Database.
+L118: Nightly (03:00): Edge Analytics recomputes slice statistics; Edge-Decay detector compares live vs historical expectancy per strategy.
+L119: Each session (before you trade): Command Center shows today’s Edge Cards + risk budget; Telegram alert fires when a valid setup window opens.
+L120: You execute (manually at first); the fill is journaled into the Trade Database with source='live'.
+L121: Monthly: Walk-forward re-validation on all data including new live trades; Portfolio Engine rebalances strategy weights; miner re-runs on refreshed data.
+L122: 6.2 The one-way research wall (critical architecture rule)
+L123: |←——— IN-SAMPLE (2017–2022): miner + analytics may touch ———→|‖|←— OUT-OF-SAMPLE (2023→now): validation only —→|
+L124: Code enforcement: the Data Lake exposes get_data(start, end); the Miner process is only ever passed end='2022-12-31'. The OOS segment is loaded only inside the Validation Lab. This is enforced by configuration, not by memory.
+L125: 7. Technology Stack — Repo Combination Strategy
+L126: 7.1 Selection criteria applied to every repo
+L127: Actively maintained (commits within last 6 months)
+L128: Permissive license (MIT/BSD/Apache)
+L129: Local & free at our usage level
+L130: Composable (library, not just an app)
+L131: Community size (issues get answered)
+L132: 7.2 The chosen stack
+L133: 7.3 Deliberately excluded (and why)
+L134: 7.4 Combining repos without creating a monster (integration rules)
+L135: Repos are libraries, never frameworks-we-live-inside. Our own thin orchestration layer (/src) calls them; we never fork them.
+L136: One data contract. Everything speaks pandas DataFrames (OHLCV indexed by UTC timestamp) and our DuckDB schemas. Adapters translate at the boundary.
+L137: Pin every version in requirements.txt; upgrade deliberately, one at a time, with the test suite green before and after.
+L138: Wrap external calls in our own functions (run_vectorbt_sweep(), run_nautilus_backtest()) so a future swap of engines touches one file.
+L139: 8. Project Structure, Environment & Configuration
+L140: 8.1 Repository layout
+L141: apex/
+L142: ├── README.md                  ← project overview + how to run
+L143: ├── requirements.txt           ← pinned versions
+L144: ├── pyproject.toml
+L145: ├── config/
+L146: │   ├── system.yaml            ← global config (paths, dates, seeds)
+L147: │   ├── universe.yaml          ← pairs, timeframes, history depth
+L148: │   ├── risk.yaml              ← all risk limits & sizing params
+L149: │   └── strategies/            ← one YAML per strategy/candidate
+L150: ├── data/                      ← DATA LAKE (Parquet; gitignored)
+L151: │   ├── raw/binance/<pair>/<tf>.parquet
+L152: │   ├── features/<pair>/<tf>.features.parquet
+L153: │   └── calendar/events.parquet
+L154: ├── db/
+L155: │   └── apex.duckdb            ← trade database + views
+L156: ├── notebooks/                 ← exploratory research (Jupyter)
+L157: ├── src/
+L158: │   ├── datalake/              ← L1 downloaders, validators, resamplers
+L159: │   ├── features/              ← L2 indicators, regimes, labels
+L160: │   ├── miner/                 ← L3 brute force / genetic / ML miners
+L161: │   ├── backtest/              ← L4 vectorbt + nautilus wrappers
+L162: │   ├── tradesdb/              ← L5 schema, writers, views
+L163: │   ├── edge/                  ← L6 slicing, significance, edge cards
+L164: │   ├── validation/            ← L7 walk-forward, montecarlo, pbo, dsr
+L165: │   ├── portfolio/             ← L8 allocation (skfolio wrappers)
+L166: │   ├── risk/                  ← L9 sizing, VaR, circuit breakers
+L167: │   ├── ui/                    ← L10 Streamlit app (pages/)
+L168: │   ├── execution/             ← L11 alerts, journal, testnet bridge
+L169: │   └── monitoring/            ← L12 decay detector, reports
+L170: ├── tests/                     ← pytest suite (unit + integration)
+L171: ├── runs/                      ← every backtest/mining run (config + logs + metrics)
+L172: └── docs/                      ← this master plan + module docs + decisions log
+L173: 8.2 Environment setup
+L174: # 1. Python 3.11+ recommended
+L175: python -m venv .venv && source .venv/bin/activate
+L176: 
+L177: # 2. Core install (pinned list maintained in requirements.txt)
+L178: pip install pandas numpy pyarrow duckdb pandas-ta vectorbt \
+L179:             backtesting quantstats alphalens-reloaded \
+L180:             scikit-learn xgboost lightgbm statsmodels scipy arch \
+L181:             skfolio riskfolio-lib ccxt streamlit plotly \
+L182:             apscheduler python-telegram-bot deap gplearn tsfresh \
+L183:             pytest pytest-cov pyyaml tqdm rich
+L184: 
+L185: # 3. NautilusTrader (heavier; install when reaching Module 4)
+L186: pip install nautilus_trader
+L187: 
+L188: # 4. Sanity
+L189: python -c "import duckdb, vectorbt, skfolio; print('stack ok')"
+L190: 8.3 Global configuration contract
+L191: # config/system.yaml
+L192: paths:
+L193:   data: data/
+L194:   db: db/apex.duckdb
+L195:   runs: runs/
+L196: time:
+L197:   insample_start: "2017-08-17"
+L198:   insample_end:   "2022-12-31"   # ← the research wall
+L199:   oos_start:      "2023-01-01"
+L200: random_seed: 42                  # everything reproducible
+L201: costs:
+L202:   taker_fee_bps: 5               # 0.05% per side (Binance spot tier)
+L203:   slippage_bps: 2                # base assumption; stress at 2–3×
+L204: validation:
+L205:   min_trades_slice: 100
+L206:   min_trades_provisional: 50
+L207:   mc_sims: 10000
+L208:   pbo_threshold: 0.20
+L209: Rule: no magic numbers in code. Every threshold lives in YAML and is recorded into each run’s metadata, so any historical result can be traced to the exact configuration that produced it.
+L210: PART C — MODULE SPECIFICATIONS
+L211: Each module chapter follows the same contract: Purpose → Responsibilities → Inputs/Outputs → Detailed Design → Implementation Steps → Configuration → Edge Cases → Acceptance & Quality Inspection Checklist. A module is “complete” only when every checklist item passes with evidence.
+L212: 9. Module 1 — Data Lake
+L213: 9.1 Purpose
+L214: Provide the entire system with clean, complete, validated, fast local market data. Every downstream module trusts the Data Lake blindly — therefore the Data Lake must earn that trust with aggressive validation.
+L215: 9.2 Responsibilities
+L216: Bulk-download historical klines (candles) from Binance public archive for the configured universe
+L217: Incrementally update data nightly via CCXT
+L218: Resample base granularity into all higher timeframes deterministically
+L219: Validate data quality (gaps, duplicates, outliers, zero-volume bars, clock integrity)
+L220: Maintain auxiliary datasets: funding rates, mark price (for perp-aware backtests), and a macro event calendar
+L221: Serve data through one function: get_bars(pair, timeframe, start, end) -> DataFrame
+L222: 9.3 Inputs / Outputs
+L223: 9.4 Schema — canonical bar
+L224: open_time  TIMESTAMP UTC (bar open, Binance convention, ms→ts)
+L225: open       DOUBLE
+L226: high       DOUBLE
+L227: low        DOUBLE
+L228: close      DOUBLE
+L229: volume     DOUBLE          (base asset)
+L230: quote_vol  DOUBLE          (quote asset)
+L231: trades     INTEGER         (count of trades in bar)
+L232: taker_buy  DOUBLE          (taker buy base volume)
+L233: pair       VARCHAR
+L234: timeframe  VARCHAR
+L235: All downstream code uses exactly these column names. Resampling rule: right-label nothing; bars are indexed by open time; aggregation uses first/max/min/last/sum for O/H/L/C/V and sum for trades, quote_vol, taker_buy.
+L236: 9.5 Implementation steps
+L237: Bulk downloader (src/datalake/binance_archive.py): for each pair & month from listing date to now, request https://data.binance.vision/data/spot/monthly/klines/<PAIR>/<TF>/<PAIR>-<TF>-<YYYY>-<MM>.zip; stream, unzip in memory, append to Parquet. Use the 1m klines as the base layer; resample locally to 5m/15m/1h/4h/1d (never download every timeframe — the archive’s higher TFs are redundant bytes). Concurrency: 4–8 threads, checksum verify, resume-safe (skip months already stored).
+L238: Incremental updater (src/datalake/updater.py): nightly APScheduler job → CCXT fetch_ohlcv from last stored timestamp → append → validate.
+L239: Validator (src/datalake/validate.py): runs after every write; checks listed in §9.7.
+L240: Resampler (src/datalake/resample.py): vectorized pandas resample; writes per-TF Parquet; unit-tested against hand-computed examples.
+L241: Access layer (src/datalake/api.py): the ONLY import the rest of the system uses:
+L242: def get_bars(pair: str, tf: str, start: str, end: str) -> pd.DataFrame:
+L243:     """UTC-indexed OHLCV+ DataFrame from Parquet via DuckDB pushdown."""
+L244: Event calendar (data/calendar/): crypto-relevant events — FOMC/CPI dates (macro risk-off), token unlocks for held alts, Binance listing/delisting notices. Start with a manually maintained CSV; automate later.
+L245: 9.6 Configuration (config/universe.yaml)
+L246: pairs: [BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT, XRPUSDT, ADAUSDT,
+L247:         DOGEUSDT, AVAXUSDT, LINKUSDT, MATICUSDT, LTCUSDT, DOTUSDT,
+L248:         ATOMUSDT, NEARUSDT, ARBUSDT, OPUSDT, INJUSDT, SUIUSDT,
+L249:         APTUSDT, FILUSDT]
+L250: base_timeframe: 1m
+L251: derived_timeframes: [5m, 15m, 1h, 4h, 1d]
+L252: history_from: "2017-08-01"
+L253: storage: parquet
+L254: compression: snappy
+L255: 9.7 Data quality rules (hard failures)
+L256: 9.8 Acceptance & Quality Inspection Checklist — Module 1
+L257: ☐ A1.1 All 20 pairs × 6 timeframes queryable via get_bars(); sample query of 1 year of 15m bars returns in < 2 seconds. Evidence: timing log.
+L258: ☐ A1.2 Spot-check 5 random bars against Binance web UI — exact OHLC match. Evidence: comparison table.
+L259: ☐ A1.3 Gap report exists per pair; total gap fraction < 0.5% of expected bars; every gap > 60 bars has a written explanation (maintenance, listing date, outage). Evidence: data_quality_report.md.
+L260: ☐ A1.4 Resample unit test passes: a synthetic 1m series with known values produces hand-verified 5m/1h bars. Evidence: pytest output.
+L261: ☐ A1.5 Nightly updater dry-run completes; second run inserts 0 duplicates (idempotent). Evidence: job log.
+L262: ☐ A1.6 Validator runs on full history with zero hard failures; flagged outliers documented. Evidence: validation JSON.
+L263: ☐ A1.7 DuckDB views respond; SELECT COUNT(*), MIN(open_time), MAX(open_time) FROM v_bars_1h GROUP BY pair matches expectations per listing date. Evidence: query output saved.
+L264: ☐ A1.8 Disk budget documented: expected size ≈ 20–60 GB for 1m history of 20 pairs; actual measured and recorded. Evidence: du -sh log.
+L265: 10. Module 2 — Feature & Regime Factory
+L266: 10.1 Purpose
+L267: Transform raw bars into the labeled, feature-enriched dataset that the miner, backtester, and edge analytics all consume. Regime labels computed here are the dimensions along which your edge filtering happens.
+L268: 10.2 Feature groups
+L269: *Crypto has no official sessions, but global liquidity still follows the sun: Asia/Europe/US windows are empirically meaningful and give you the same session-edge analysis as forex traders get.
+L270: 10.3 Regime definitions (pinned, version-controlled)
+L271: regimes:
+L272:   trend:
+L273:     up:    "ema200_slope_20bar > 0 AND adx14 >= 22"
+L274:     down:  "ema200_slope_20bar < 0 AND adx14 >= 22"
+L275:     range: "adx14 < 22"
+L276:   volatility:
+L277:     low:     "atr_pctile_252d < 0.25"
+L278:     mid:     "0.25 <= atr_pctile_252d < 0.75"
+L279:     high:    "0.75 <= atr_pctile_252d < 0.95"
+L280:     extreme: "atr_pctile_252d >= 0.95"
+L281: 10.4 Implementation rules
+L282: Point-in-time correctness: feature at bar t may only use data ≤ t (no lookahead). Every custom feature gets a lookahead unit test: shift the series by one bar, confirm feature values shift identically.
+L283: Compute once, store, reuse: features are materialized to data/features/<pair>/<tf>.features.parquet, rebuilt nightly and versioned (feature_version column) when definitions change.
+L284: No NaN leakage: warm-up rows (first ~252 bars) are marked, not silently dropped mid-pipeline; strategies decide whether to trade warm-up regions.
+L285: Deterministic: same input → same output; no randomness anywhere in this module.
+L286: 10.5 Acceptance & Quality Inspection Checklist — Module 2
+L287: ☐ A2.1 Lookahead test suite green for ALL custom features. Evidence: pytest.
+L288: ☐ A2.2 Feature file row count == bar count per pair/tf; join key integrity verified. Evidence: audit script output.
+L289: ☐ A2.3 Regime distribution sanity: across 20 pairs, range ≈ 50–70% of bars, low/high vol ≈ 25% each by construction of percentiles; extreme < 6%. Evidence: distribution table.
+L290: ☐ A2.4 Spot-verify 3 indicators against TradingView on the same pair/timeframe (RSI, ATR, EMA200) — match within rounding. Evidence: screenshots + table.
+L291: ☐ A2.5 Session labels verified around UTC boundaries (00:00, 07:00, 08:00, 12:00, 16:00, 21:00) with unit tests. Evidence: pytest.
+L292: ☐ A2.6 Changing a regime threshold bumps feature_version; old files retained. Evidence: version log.
+L293: ☐ A2.7 Rebuild time for full universe ≤ 30 min on your machine; measured and logged.
+L294: 11. Module 3 — Strategy Miner
+L295: 11.1 Purpose
+L296: Automate the discovery of candidate strategies. Humans are slow and biased hypothesis generators; the miner explores the combinatorial space systematically and hands the Validation Lab a ranked survivor list.
+L297: 11.2 Architecture overview
+L298: Building-block library ──► Candidate generator ──► vectorbt fast screen
+L299:         │                        │                        │
+L300:         │                        │                        ▼
+L301:         │                        │              Screen filter (loose):
+L302:         │                        │              expectancy > 0 after costs,
+L303:         │                        │              n ≥ 100, PF > 1.15, on IN-SAMPLE
+L304:         │                        │                        │
+L305:         │                        ▼                        ▼
+L306:         │               Parameter plateau analysis ◄── survivors
+L307:         │                        │
+L308:         ▼                        ▼
+L309:  Ranked candidate list ──► Module 4 realistic replay ──► Module 7 Validation Lab
+L310: 11.3 Miner-1: Brute-force combinatorial miner (build FIRST)
+L311: Building blocks (each a versioned function returning a boolean series):
+L312: Search strategy — staged, not full-cartesian (full cartesian of the above is ~10⁸; too much):
+L313: Stage 1 — solo scan: every entry trigger alone × timeframes × pairs (~30 × 4 × 20 = 2,400 runs). Establish baseline expectancy of each trigger.
+L314: Stage 2 — pair-up: top 30% triggers × every filter × fixed exit (~10 × 20 × 12 × 4 × 20 ≈ 192,000 runs — vectorbt handles this overnight).
+L315: Stage 3 — exit search: top 500 combos × all exit models × exit params.
+L316: Stage 4 — plateau analysis: for each survivor, perturb each parameter ±20%; score = fraction of neighbors still profitable (plateau score ≥ 0.6 required).
+L317: Ranking score (in-sample, pre-validation):
+L318: score = expectancy_bps × log10(n_trades) × plateau_score × consistency
+L319: where consistency = fraction of profitable years in-sample
+L320: 11.4 Miner-2: Genetic programming miner (Phase 9)
+L321: Engine: DEAP (genetic algorithm framework) + gplearn-style expression trees.
+L322: Genome: expression tree over feature primitives, e.g. AND(GT(RSI(14), 68), LT(close, MUL(VWAP, 0.98))).
+L323: Fitness: OOS-segment-1 Sharpe × sqrt(n) − λ×tree_depth — penalize complexity explicitly (λ in config).
+L324: Anti-overfit mechanics: (a) fitness evaluated on in-sample sub-segment A, selection pressure from sub-segment B (GeneTrader-style “selection bar”: the distribution of best-of-N luck); (b) max tree depth 6; (c) island model (separate populations, occasional migration) for diversity; (d) final candidates must pass the full Validation Lab like everything else — genetic search is a hypothesis generator, not a shortcut around validation.
+L325: Compute budget: overnight runs (~8h); population 500 × 40 generations.
+L326: 11.5 Miner-3: Local ML layer (Phase 10+, free)
+L327: Task framing: predict P(trade profitable | features at entry) using the Trade Database itself as labeled training data — the system literally learns from its own edge mine.
+L328: Models: gradient boosting (XGBoost/LightGBM) + logistic regression baseline. SHAP for interpretability (which features drive success — often reveals unknown session/regime structure).
+L329: Validation: purged, embargoed time-series CV (López de Prado method) to prevent leakage; predictions only ever trade-sized through the Risk Engine, never naked.
+L330: Hard rule: ML output is a filter/size adjuster on top of validated strategies, never a standalone black-box strategy, until you have 12+ months of live evidence.
+L331: 11.6 Mining governance (what makes this professional)
+L332: Every mining run is registered in runs/ with: config hash, git commit, date range, variant count, machine, duration.
+L333: Trial budget accounting: the miner logs n_variants_tested — this number feeds the Deflated Sharpe calculation. You cannot compute honest significance without knowing how many things you tried.
+L334: Survivors are candidates, never strategies. Only the Validation Lab can promote a candidate.
+L335: Miner never sees post-2022 data. Enforced at the data-access layer.
+L336: 11.7 Acceptance & Quality Inspection Checklist — Module 3
+L337: ☐ A3.1 Building-block library has ≥ 20 triggers, ≥ 15 filters, ≥ 8 exits, each with unit tests (known input → known signal). Evidence: pytest + block registry.
+L338: ☐ A3.2 Stage-1 solo scan completes for all pairs/timeframes; results table exists with per-trigger baseline stats. Evidence: DuckDB query.
+L339: ☐ A3.3 A 100k-variant Stage-2 run completes overnight; every variant’s summary metrics AND every trade logged. Evidence: run registry + trades count.
+L340: ☐ A3.4 Lookahead audit: pick 3 random mined strategies, verify signals computed only from past data. Evidence: audit notebook.
+L341: ☐ A3.5 Plateau analysis implemented; example report shows plateau score distribution; rejection of peak-only configs demonstrated. Evidence: plateau report.
+L342: ☐ A3.6 Trial accounting: n_variants_tested recorded per run and exported for DSR. Evidence: runs table.
+L343: ☐ A3.7 Reproducibility: re-running a registered run with same seed reproduces identical survivor list. Evidence: diff = empty.
+L344: ☐ A3.8 Data-wall test: miner process physically cannot load post-2022 bars (attempt raises exception). Evidence: failing-access test log.
+L345: 12. Module 4 — Backtest & Simulation Engine
+L346: 12.1 Purpose
+L347: Turn candidate strategy configs into realistic, cost-aware simulated trade histories — and log every single trade. Two-speed design: vectorbt for mass screening, an event-driven engine (NautilusTrader) for finalist validation.
+L348: 12.2 Two-engine contract
+L349: 12.3 Cost & fill model (never optional)
+L350: # config/backtest.yaml
+L351: costs:
+L352:   fee_model: taker_bps          # v1: all fills taker
+L353:   taker_bps: 5                  # per side
+L354:   slippage_model: fixed_bps
+L355:   slippage_bps: 2               # stress-tested at 2x and 3x in MC
+L356: fills:
+L357:   entry: next_bar_open          # signal at bar t executes at open of t+1 — NO same-bar fills
+L358:   stop_loss: intrabar_conservative   # if SL and TP both inside bar → assume SL hit first
+L359:   partial_exits: allowed
+L360: Intrabar ambiguity rule (critical for honesty): with OHLC-only data, if a bar’s range contains both stop and target, the pessimistic outcome (stop first) is recorded. Optimistic intrabar assumptions are the #1 silent backtest liar.
+L361: 12.4 Run registry (reproducibility spine)
+L362: Every backtest execution writes a runs/<run_id>/ folder:
+L363: runs/2026-03-14_london-break_v3_eur-style-a7f3/
+L364: ├── config.yaml        ← exact strategy + params + data range + costs
+L365: ├── metrics.json       ← all summary metrics
+L366: ├── equity.parquet     ← bar-by-bar equity
+L367: ├── trades_ref.txt     ← DuckDB run_id pointer
+L368: ├── git_commit.txt
+L369: └── logs.txt
+L370: 12.5 Metrics computed per run (the full panel)
+L371: Total/net return, CAGR, Sharpe, Sortino, Calmar, max drawdown & duration, profit factor, expectancy (bps and R), win rate, avg win/avg loss, payoff ratio, trade count, avg holding time, exposure %, tail ratio, skew, 95th percentile daily loss, monthly returns table, rolling 90d Sharpe min. (quantstats generates the tear sheet; our registry stores the JSON.)
+L372: 12.6 Acceptance & Quality Inspection Checklist — Module 4
+L373: ☐ A4.1 Zero-cost parity test: run a trivial known strategy (e.g., buy-and-hold 10 fixed windows) with fees=0; engine matches hand-computed results exactly. Evidence: test notebook.
+L374: ☐ A4.2 Cost impact test: same strategy with 5bps fees shows expectancy drop ≈ 10bps round-trip ±1bp. Evidence: metrics diff.
+L375: ☐ A4.3 No-same-bar-fill test: instrument a strategy whose signal bar also moves favorably; verify fill occurs at t+1 open. Evidence: trade log inspection.
+L376: ☐ A4.4 Intrabar-conservative test: synthetic bar hitting both SL and TP → SL recorded. Evidence: pytest.
+L377: ☐ A4.5 vectorbt↔Nautilus parity on 3 finalist strategies within tolerance or documented cause. Evidence: parity report.
+L378: ☐ A4.6 Every test run wrote a complete registry folder and its trades appear in DuckDB with matching run_id. Evidence: query.
+L379: ☐ A4.7 Reproducibility: same config re-run → identical trade list hash. Evidence: hash comparison.
+L380: 13. Module 5 — Trade Database (The Edge Mine)
+L381: 13.1 Purpose
+L382: The system’s permanent memory and most valuable asset: one analytical store of every trade ever simulated or executed, labeled richly enough that any edge question becomes a SQL query.
+L383: 13.2 Master schema (DuckDB)
+L384: CREATE TABLE IF NOT EXISTS runs (
+L385:     run_id        VARCHAR PRIMARY KEY,   -- date_strategy_hash
+L386:     created_at    TIMESTAMP,
+L387:     kind          VARCHAR,               -- 'miner1','miner2','validation','wf','live','manual'
+L388:     strategy      VARCHAR,
+L389:     params_json   VARCHAR,
+L390:     pair          VARCHAR,
+L391:     timeframe     VARCHAR,
+L392:     data_start    DATE, data_end DATE,
+L393:     cost_config   VARCHAR,
+L394:     git_commit    VARCHAR,
+L395:     seed          INTEGER,
+L396:     n_variants    INTEGER,               -- for DSR accounting (miner runs)
+L397:     metrics_json  VARCHAR,
+L398:     status        VARCHAR                -- 'screened','validated','killed','live','benched'
+L399: );
+L400: 
+L401: CREATE TABLE IF NOT EXISTS trades (
+L402:     trade_id      BIGINT PRIMARY KEY,
+L403:     run_id        VARCHAR REFERENCES runs(run_id),
+L404:     strategy      VARCHAR,
+L405:     pair          VARCHAR,
+L406:     timeframe     VARCHAR,
+L407:     direction     VARCHAR,               -- 'long'/'short'
+L408:     entry_time    TIMESTAMP, exit_time TIMESTAMP,
+L409:     entry_price   DOUBLE,   exit_price DOUBLE,
+L410:     qty           DOUBLE,
+L411:     pnl_quote     DOUBLE,                -- P&L in USDT
+L412:     pnl_pct       DOUBLE,                -- % on notional
+L413:     pnl_r         DOUBLE,                -- P&L in R-multiples
+L414:     fees          DOUBLE, slippage DOUBLE,
+L415:     mae_pct       DOUBLE, mfe_pct        DOUBLE,   -- excursions
+L416:     bars_held     INTEGER,
+L417:     exit_reason   VARCHAR,               -- 'tp','sl','trail','time','signal','manual'
+L418:     source        VARCHAR,               -- 'backtest','paper','live'
+L419:     -- EDGE LABELS (the gold):
+L420:     hour_utc      INTEGER, day_of_week INTEGER, week_of_month INTEGER,
+L421:     month         INTEGER, session VARCHAR,
+L422:     trend_regime  VARCHAR, vol_regime VARCHAR,
+L423:     rsi_at_entry  DOUBLE, adx_at_entry DOUBLE, atr_pctile DOUBLE,
+L424:     dist_vwap_pct DOUBLE, funding_z DOUBLE,
+L425:     is_event_day  BOOLEAN, minutes_to_event INTEGER,
+L426:     feature_version VARCHAR
+L427: );
+L428: 
+L429: CREATE TABLE IF NOT EXISTS edge_cards (
+L430:     card_id       BIGINT PRIMARY KEY,
+L431:     strategy      VARCHAR, pair VARCHAR,
+L432:     filter_json   VARCHAR,               -- the slice definition
+L433:     n_trades      INTEGER, expectancy_r DOUBLE, win_rate DOUBLE,
+L434:     profit_factor DOUBLE, sharpe DOUBLE,
+L435:     in_sample_ok  BOOLEAN, oos_ok BOOLEAN, p_value DOUBLE,
+L436:     status        VARCHAR,               -- 'active','provisional','retired'
+L437:     created_at    TIMESTAMP, last_validated TIMESTAMP
+L438: );
+L439: 
+L440: CREATE TABLE IF NOT EXISTS live_journal (
+L441:     journal_id    BIGINT PRIMARY KEY,
+L442:     trade_id      BIGINT,                -- FK to trades (source='live')
+L443:     planned       BOOLEAN,               -- was it on the edge card?
+L444:     checklist_ok  BOOLEAN,
+L445:     emotion_score INTEGER,               -- 1-5 self rating at entry
+L446:     screenshot    VARCHAR,
+L447:     notes         VARCHAR,
+L448:     created_at    TIMESTAMP
+L449: );
+L450: 13.3 Write path
+L451: backtest engine → TradeWriter(df) → derive labels (join features at entry_time) → INSERT. Label derivation is centralized in one function (src/tradesdb/label.py) so backtest and live trades get identical labels. Idempotent by (run_id, entry_time, pair) upsert.
+L452: 13.4 Read path (views)
+L453: CREATE VIEW v_strategy_summary AS
+L454: SELECT strategy, pair, source, COUNT(*) n,
+L455:        AVG(pnl_r) exp_r, SUM(pnl_quote) pnl,
+L456:        AVG(pnl_r>0)*100 winrate,
+L457:        SUM(CASE WHEN pnl_r>0 THEN pnl_r END)/NULLIF(-SUM(CASE WHEN pnl_r<0 THEN pnl_r END),0) pf
+L458: FROM trades GROUP BY 1,2,3;
+L459: Plus v_hourly, v_daily, v_session, v_regime groupings — prebuilt so the UI and notebooks never write raw GROUP BYs.
+L460: 13.5 Acceptance & Quality Inspection Checklist — Module 5
+L461: ☐ A5.1 Schema created idempotently; migrations documented (alembic-style SQL files in db/migrations/). Evidence: migration log.
+L462: ☐ A5.2 Round-trip test: known 50-trade backtest → all 50 rows present, every label non-null (except legitimately null funding for early spot data). Evidence: audit query.
+L463: ☐ A5.3 Label correctness spot-check: 10 random trades’ session/day/regime labels verified manually against chart. Evidence: checklist table.
+L464: ☐ A5.4 Idempotency test: re-writing same run adds 0 rows. Evidence: count before/after.
+L465: ☐ A5.5 Backtest/live label parity: a paper trade gets identical label derivation as a backtest trade at same timestamp. Evidence: comparison test.
+L466: ☐ A5.6 Performance: slice query over 500k trades returns < 3s (DuckDB aggregates Parquet fast; if not, partition). Evidence: timing log.
+L467: ☐ A5.7 Backup routine: weekly copy of apex.duckdb + Parquet to second disk/cloud-free-tier; restore tested once. Evidence: restore drill log.
+L468: 14. Module 6 — Edge Analytics Engine
+L469: 14.1 Purpose
+L470: Answer, with statistical honesty: “When, where, and under what conditions does each strategy actually make money?” — and package the answer as actionable Edge Cards.
+L471: 14.2 Core capabilities
+L472: Slice statistics: arbitrary filter → n, expectancy (R & bps), win rate, profit factor, Sharpe-like ratio, avg win/loss, max consecutive losses, equity curve of slice.
+L473: Dimension scans: auto-loop over (hour × day), (session × regime), (month), (event proximity) producing heatmap tables.
+L474: Significance layer (the professional part):
+L475: t-test / bootstrap CI on mean R per slice
+L476: Multiple-testing correction: Bonferroni (conservative) or Benjamini–Hochberg FDR across all slices tested in a scan
+L477: Stability requirement: slice must be profitable in BOTH halves of in-sample (2017–2019, 2020–2022)
+L478: Minimum n: 100 (50–99 = “provisional”, never traded live)
+L479: Edge Card generator: converts a validated slice into the operational card:
+L480: EDGE CARD #41 — momo_breakout / SOLUSDT / 15m
+L481: TRADE ONLY: session ∈ {europe, us-overlap} AND day ∈ {Tue,Wed,Thu}
+L482:             AND trend_regime = up AND vol_regime ∈ {mid, high}
+L483: SKIP: event days, vol_regime = extreme
+L484: STATS: n=412 | exp=+0.31R | WR=47% | PF=1.52 | p<0.01 (BH-adj) | stable both halves
+L485: OOS (2023-25): n=96 | exp=+0.24R ✓ confirmed
+L486: 14.3 Anti-self-deception protocol (built into the code, not willpower)
+L487: Every scan reports how many slices were tested and the adjusted threshold alongside.
+L488: Every Edge Card carries its p-value, n, and both-half stability — cards missing any field cannot be marked active.
+L489: Slices discovered by the miner are re-tested on OOS before activation; post-hoc slices (you noticed a pattern) require a fresh holdout or next-3-months forward test before activation.
+L490: 14.4 Implementation
+L491: src/edge/: - slice.py — filter → stats dict - scan.py — dimension iterators → results DataFrame → Parquet cache - significance.py — tests, corrections, stability splits - cards.py — Edge Card CRUD + expiry (cards auto-expire 90 days after last validation) - UI exposure in Command Center page “Edge Explorer”
+L492: 14.5 Acceptance & Quality Inspection Checklist — Module 6
+L493: ☐ A6.1 Slice engine returns correct stats for a hand-computed 20-trade fixture. Evidence: pytest.
+L494: ☐ A6.2 Hour×Day heatmap for one validated strategy matches independent pandas pivot. Evidence: diff = 0.
+L495: ☐ A6.3 Significance layer: synthetic random-noise trades yield ~0 cards passing at adjusted threshold (false-positive control). Evidence: simulation report — THIS IS THE KEY TEST.
+L496: ☐ A6.4 Synthetic known-edge test: inject artificial edge (e.g., +0.2R on Wednesdays) into noise → engine finds exactly that slice. Evidence: detection report.
+L497: ☐ A6.5 Both-halves stability enforced: a slice profitable only in one half is auto-flagged provisional. Evidence: unit test.
+L498: ☐ A6.6 Edge Card generation end-to-end for 3 real strategies; cards stored with all mandatory fields. Evidence: DB rows.
+L499: ☐ A6.7 Card expiry job works: set last_validated 91 days back → status flips to retired. Evidence: job log.
+L500: 15. Module 7 — Validation Lab (Anti-Overfitting Suite)
+L501: 15.1 Purpose
+L502: The immune system of the whole operation. Its only job: reject. A strategy that passes everything here has earned the right to be paper traded; nothing reaches your money without this stamp.
+L503: 15.2 The gauntlet (in order — cheap tests first, so weak strategies die fast)
+L504: Candidate
+L505:   │
+L506:   ├─ GATE 1: OOS replay (2023→now, unseen)      expectancy > 0, PF > 1.1
+L507:   ├─ GATE 2: Walk-forward analysis               WFE ≥ 0.5, no catastrophic fold
+L508:   ├─ GATE 3: Monte Carlo ×4                      DD CI acceptable, skip-robust, cost-robust
+L509:   ├─ GATE 4: Regime stress                       survives all 6 regime cells
+L510:   ├─ GATE 5: PBO (CSCV)                          PBO < 0.20
+L511:   ├─ GATE 6: Deflated Sharpe                     DSR p-value < 0.05 given n_variants tried
+L512:   └─ VERDICT: VALIDATED / KILLED (with written reason)
+L513: 15.3 Gate specifications
+L514: Gate 2 — Anchored walk-forward: - Optimize on [2017–2020] → test [2021]; roll: optimize [2018–2021] → test [2022]… through OOS years; 6+ folds. - Metric: Walk-Forward Efficiency = annualized OOS return / annualized IS return. WFE ≥ 0.5 required; also no fold with DD > 1.5× IS max DD. - Output: stitched OOS equity curve — the only honest equity curve the strategy has.
+L515: Gate 3 — Monte Carlo battery (all four, 10,000 sims each):
+L516: Gate 4 — Regime stress: strategy P&L computed per cell of {trend-up, trend-down, range} × {low-vol, high-vol}; requirement: no cell with expectancy < −0.3R AND n ≥ 30 (losing mildly in one regime is fine — filters may fix it; catastrophic single-regime dependence is not).
+L517: Gate 5 — PBO (Combinatorially Symmetric Cross-Validation, López de Prado): - Split in-sample equity matrix (all parameter variants × time) into 16 blocks; form all C(16,8) train/test combos (12,870). - For each combo: rank variants on train, check where the chosen-best ranks on test (logit of rank). - PBO = fraction of combos where the train-best underperforms test median. PBO < 0.20 to pass. This directly answers: “what’s the probability my selected config is overfit?”
+L518: Gate 6 — Deflated Sharpe Ratio (Bailey & López de Prado): - Adjusts observed Sharpe for: non-normality (skew/kurtosis), series length, and number of variants tried (from the miner’s trial accounting, Module 3). - Pass: DSR > 0 with p < 0.05.
+L519: 15.4 Kill list & archive
+L520: Every verdict recorded in runs.status with reason code (OOS_FAIL, WF_FAIL, MC_DD, PBO_HIGH, DSR_FAIL, REGIME_FRAGILE). Killed strategies are never deleted — the database of why things fail is itself research gold (you’ll notice patterns: “breakouts always die in low-vol regimes”).
+L521: 15.5 Acceptance & Quality Inspection Checklist — Module 7
+L522: ☐ A7.1 Walk-forward engine reproduces a hand-rolled 3-fold example exactly. Evidence: pytest.
+L523: ☐ A7.2 MC battery on a known strategy: reshuffle median max-DD within 15% of theoretical bootstrap. Evidence: comparison report.
+L524: ☐ A7.3 Negative control: 100 pure-noise strategies fed to the gauntlet → ≥ 95% killed. Evidence: control report — if noise passes, the Lab is broken; stop everything.
+L525: ☐ A7.4 Positive control: synthetic strategy with injected persistent edge → passes gauntlet. Evidence: control report.
+L526: ☐ A7.5 PBO implementation matches reference example from literature (known test case). Evidence: unit test.
+L527: ☐ A7.6 DSR consumes real n_variants from miner registry; verify a 10-variant and 100k-variant trial of same strategy produce different DSR verdicts. Evidence: demo.
+L528: ☐ A7.7 Verdict persistence: every candidate has status + reason; no candidate reaches validated without all 6 gate records. Evidence: DB audit query.
+L529: 16. Module 8 — Portfolio Construction Engine
+L530: 16.1 Purpose
+L531: Decide how much capital each validated strategy/pair gets, such that the portfolio survives any single strategy failing. Edge lives in the strategies; survival lives here.
+L532: 16.2 Methods (via skfolio, compared quarterly)
+L533: Inputs: each strategy’s daily portfolio-return series (stitched OOS, then live). Estimation window: rolling 252d, minimum 126d. Rebalance: monthly.
+L534: 16.3 Constraints layer
+L535: # config/portfolio.yaml
+L536: max_weight_per_strategy: 0.30
+L537: max_weight_per_pair: 0.40            # strategies on same pair share risk
+L538: max_cluster_weight: 0.50             # HRP cluster cap (correlated family)
+L539: correlation_guard:
+L540:   threshold: 0.60                    # rolling 90d corr of strategy returns
+L541:   action: halve_combined
+L542: min_capital_floor: 0.05              # avoid dust allocations
+L543: turnover_penalty: true               # prefer stable weights month-to-month
+L544: 16.4 Capital tiers (because capital starts small)
+L545: 16.5 Acceptance & Quality Inspection Checklist — Module 8
+L546: ☐ A8.1 HRP weights on 5 synthetic return series match skfolio reference output. Evidence: test.
+L547: ☐ A8.2 Constraints test: feed 10 strategies incl. a correlated pair > 0.6 → combined weight halved, caps respected. Evidence: allocation report.
+L548: ☐ A8.3 Backtest the allocator: historical rebalanced portfolio vs equal-weight — report Sharpe/DD comparison (HRP should show lower DD; if not, investigate). Evidence: notebook.
+L549: ☐ A8.4 Weights always sum to 1.0 ± 1e-9; no negative weights. Evidence: invariant test in CI.
+L550: ☐ A8.5 Monthly rebalance job produces dated weight file + diff vs previous month, archived in runs/. Evidence: files.
+L551: 17. Module 9 — Risk Engine
+L1083: M8 Portfolio — 6 tasks · M9 Risk — 8 tasks
+L1084: M10 UI — 8 tasks · M11 Execution — 7 tasks · M12 Monitoring — 6 tasks
+L1085: PART D — DATA & MATH REFERENCE
+L1086: 21. Complete Database Schemas (Consolidated)
+L1087: Core tables were defined in Module 5. Supporting tables:
+L1088: CREATE TABLE IF NOT EXISTS equity_curves (
+L1089:     run_id VARCHAR, ts TIMESTAMP, equity DOUBLE,
+L1090:     PRIMARY KEY (run_id, ts)
+L1091: );
+L1092: 
+L1093: CREATE TABLE IF NOT EXISTS allocations (
+L1094:     month DATE, strategy VARCHAR, weight DOUBLE,
+L1095:     method VARCHAR, created_at TIMESTAMP,
+L1096:     PRIMARY KEY (month, strategy, method)
+L1097: );
+L1098: 
+L1099: CREATE TABLE IF NOT EXISTS breaker_events (
+L1100:     event_id BIGINT PRIMARY KEY, ts TIMESTAMP,
+L1101:     kind VARCHAR,           -- 'daily_loss','weekly_loss','strategy_dd','portfolio_dd','lockout'
+L1102:     detail VARCHAR, resolved_at TIMESTAMP
+L1103: );
+L1104: 
+L1105: CREATE TABLE IF NOT EXISTS decay_events (
+L1106:     event_id BIGINT PRIMARY KEY, ts TIMESTAMP,
+L1107:     strategy VARCHAR, z_score DOUBLE, action VARCHAR, note VARCHAR
+L1108: );
+L1109: 
+L1110: CREATE TABLE IF NOT EXISTS data_quality_log (
+L1111:     log_id BIGINT PRIMARY KEY, ts TIMESTAMP, pair VARCHAR,
+L1112:     timeframe VARCHAR, check_name VARCHAR, severity VARCHAR, detail VARCHAR
+L1113: );
+L1114: Partitioning note: DuckDB + Parquet happily scans millions of rows; if trades ever exceeds ~50M rows, export history to partitioned Parquet (trades/year=*/strategy=*) and query via views — same SQL, no migration pain.
+L1115: 22. Formula & Metrics Library
+L1116: Expectancy (R): E[R] = (WR × avg_win_R) − ((1−WR) × avg_loss_R) — must be > 0 net of costs.
+L1117: Profit factor: PF = gross_profit / |gross_loss|; ≥ 1.3 to survive screening, ≥ 1.15 OOS.
+L1118: Sharpe (annualized): SR = mean(r_daily) / std(r_daily) × √365 (crypto trades 365 days).
+L1119: Sortino: downside deviation only; preferred for skewed crypto returns.
+L1120: Calmar: CAGR / |maxDD|; ≥ 1.0 target at portfolio level.
+L1121: Max drawdown: max_t (peak_t − equity_t) / peak_t on the equity curve.
+L1122: Walk-Forward Efficiency: WFE = ann_return_OOS / ann_return_IS; ≥ 0.5.
+L1123: Deflated Sharpe Ratio: DSR = Φ( (SR̂ − E[max SR under H0]) / SE(SR̂) ) where E[max SR] grows with √(2 ln N) for N variants tried, adjusted for skew/kurtosis — full formula implemented from Bailey & López de Prado (2014).
+L1124: PBO: fraction of CSCV combinations where IS-optimal variant ranks below OOS median; logit transformation per López de Prado (2018).
+L1125: Historical VaR_α: quantile(r_daily, 1−α); CVaR_α: mean of returns beyond VaR.
+L1126: Parametric VaR (GARCH): VaR_95 = μ̂ + σ̂_t+1 × z_0.05, σ̂ from GARCH(1,1) via arch.
+L1127: Position size: qty = equity × risk% / stop_distance% (× portfolio weight × decay multiplier).
+L1128: Kelly fraction: f* = WR − (1−WR)/payoff; deploy at most f*/4.
+L1129: Kupiec VaR backtest: LR = −2 ln[(1−p)^(T−N) p^N] + 2 ln[(1−N/T)^(T−N) (N/T)^N] ~ χ²(1).
+L1130: Multiple-testing corrections: Bonferroni α/m; Benjamini–Hochberg FDR at q=0.05 (default for scans).
+L1131: 23. Forex Plug-In Specification (Future Market)
+L1132: The system’s DataSource interface makes forex a plug-in, estimated effort 1–2 weeks:
+L1133: Data: Dukascopy tick archive (free, 2003+) via a downloader tool; resample ticks → 1m base bars. Expect slow bulk download (rate limits) — run over days, store once.
+L1134: Session labels: replace crypto’s UTC windows with asia/london/ny sessions + DST handling (US/EU transitions on different dates — use pytz history, never fixed offsets).
+L1135: Cost model: variable spread by session (model from recorded spread series, not constant), swap/rollover for >1d holds (Wednesday triple), no taker fees (spread IS the fee).
+L1136: Universe: EURUSD, GBPUSD, USDJPY, USDCHF, USDCAD, AUDUSD, NZDUSD + EURJPY, GBPJPY, EURGBP.
+L1137: Calendar: high-impact events (NFP, FOMC, CPI, central-bank decisions) — mandatory for forex, strategies must trade around them.
+L1138: Validation delta: same gauntlet; expect more mean-reversion edges in Asia session, momentum at London/NY opens.
+L1139: Execution: MT5 demo → micro lots.
+L1140: Everything downstream (miner, trade DB, edge analytics, risk, UI) works unchanged — that is the payoff of the interface discipline.
+L1141: PART E — IMPLEMENTATION PLAN
+L1142: 24. Phased Build Plan (Week-by-Week)
+L1143: Rules: phases are gated — you do not start a phase until the previous phase’s exit gate checklist passes. Dates are indicative; the gates are law. Estimated total: ~12 weeks to paper trading, ~5–6 months to first live trade, at ~10–15 focused hours/week.
+L1144: Phase 0 — Foundations (Week 1)
+L1145: Exit gate G0: repo builds clean on fresh clone; pytest runs (even if 3 tests); configs load; DuckDB initializes.
+L1146: Phase 1 — Data Lake (Weeks 2–3)
+L1147: Week 2: bulk downloader + 1m ingestion for all 20 pairs (runs in background over days), validator, quality report
+L1148: Week 3: resampler + derived TFs, DuckDB views, nightly updater, gap remediation
+L1149: Exit gate G1: Module-1 checklist A1.1–A1.8 fully evidenced.
+L1150: Phase 2 — Feature Factory + Heartbeat Milestone (Weeks 4–5)
+L1151: Week 4: indicator layer + regime labels + session labels + lookahead tests
+L1152: Week 5: hand-build ONE strategy (recommended: session-window momentum breakout) → vectorbt sweep → TradeWriter → DuckDB → first edge-analysis query (hour×day heatmap)
+L1153: Exit gate G2 (★ HEARTBEAT ★): end-to-end loop proven — bars → features → sweep → trades in DB → slice stats with significance. Module-2 checklist passes. If this works, everything else is scaling.
+L1154: Phase 3 — Backtest Engine Hardening + Miner-1 (Weeks 6–8)
+L1155: Week 6: cost model, next-bar fills, intrabar-conservative rule, run registry; NautilusTrader wrapper for finalists
+L1156: Week 7: building-block library (20+ triggers, 15+ filters, 8 exits) with unit tests
+L1157: Week 8: staged mining pipeline (solo → pair-up → exit search → plateau) + first overnight 100k-variant run
+L1158: Exit gate G3: Modules 3 & 4 checklists pass; first mining funnel report exists (e.g., 100,000 tested → 1,800 screened → 120 plateau-passing candidates).
+L1159: Phase 4 — Trade DB at Scale + Edge Analytics (Weeks 9–10)
+L1160: Week 9: label pipeline hardening, views, backup routine
+L1161: Week 10: slice engine, dimension scans, significance layer (BH correction + stability halves), Edge Card generator + expiry
+L1162: Exit gate G4: Module 5 & 6 checklists pass; negative-control test A6.3 green (random noise yields ~zero cards); first real Edge Cards generated from Phase-3 candidates.
+L1163: Phase 5 — Validation Lab (Weeks 11–12)
+L1164: Walk-forward engine, MC battery ×4, regime stress, PBO, DSR
+L1165: Run the full gauntlet on Phase-4 candidates; produce kill list with reasons
+L1166: Exit gate G5: Module-7 checklist incl. A7.3 noise control (≥95% killed); expect 2–8 survivors from ~120 candidates. If 30+ “survive,” suspect a leakage bug — audit before proceeding.
+L1167: Phase 6 — Portfolio + Risk Engines (Week 13)
+L1168: skfolio HRP wrapper + constraints, sizing engine, breakers, VaR/GARCH metrics
+L1169: Exit gate G6: Modules 8 & 9 checklists pass; breaker simulation drills logged.
+L1170: Phase 7 — Command Center (Week 14)
+L1171: All 7 Streamlit pages against real DB; performance budget; Telegram alerts
+L1172: Exit gate G7: Module-10 checklist passes; you can operate the whole system from the UI.
+L1173: Phase 8 — Paper Trading (Weeks 15–22, i.e., 2 months)
+L1174: Daily operation per runbook; every trade journaled; weekly drift reports; monthly calibration
+L1175: Parallel: slippage calibration, checklist-adherence tracking
+L1176: Exit gate G8: ≥ 50 paper trades across ≥ 3 strategies; live expectancy within 1.5σ of backtest for majority of strategies; checklist adherence ≥ 95%; zero breaker overrides. Only then live capital is discussed.
+L1177: Phase 9 — Live Micro-Capital + Miner-2 (Months 6–9)
+L1178: Live with money you can 100% afford to lose (Tier T1 sizing); genetic miner build-out; monthly re-mine loop operational
+L1179: Phase 10 — ML Layer + Forex Plug-In (Months 9–12)
+L1180: Miner-3 (trade-success classifier as filter), Dukascopy forex plug-in, portfolio expands cross-market
+L1181: The Master Funnel (what “healthy” looks like)
+L1182: 100,000+ variants mined
+L1183:   → 1,000–3,000 pass screening          (~2%)
+L1184:     → 100–200 pass plateau analysis      (~10%)
+L1185:       → 20–40 generate Edge Cards        (~15%)
+L1186:         → 2–8 survive Validation Lab     (~10–20%)
+L1187:           → 3–6 survive paper trading    (~60%)
+L1188:             → 3–5 run live, sized by Risk Engine
+L1189: 25. Engineering Standards
+L1190: 25.1 Git discipline
+L1191: main = always-green; feature branches per module; PR-style self-review checklist before merge
+L1192: Commit messages: module: what (e.g., miner: add plateau scoring)
+L1193: Every research result must be traceable: run registry stores git_commit
+L1194: 25.2 Testing standards
+L1195: 25.3 Code quality
+L1196: Type hints on public functions; ruff lint; mypy on core modules
+L1197: No magic numbers — config only; no prints — structured logging (rich + log files per run)
+L1198: Every module has a README.md in its folder: purpose, inputs, outputs, how to test
+L1199: 25.4 Decision log
+L1200: docs/decisions.md — every non-obvious choice (e.g., “next-bar fills chosen over same-bar”) dated with rationale. Month-8 you will thank month-2 you.
+L1201: 26. Quality Assurance & Acceptance Test Plan
+L1202: 26.1 The four QA levels
+L1203: Module acceptance — the per-module checklists (A1–A12) in Part C; evidence files stored in docs/qa/<module>/
+L1204: Integration QA — heartbeat pipeline test runs in CI on every merge to main
+L1205: Statistical QA — the negative/positive control simulations; rerun after ANY change to miner/edge/validation code
+L1206: Operational QA — the weekly runbook audit (§27): data freshness, backup test, breaker drill monthly
+L1207: 26.2 System-level acceptance tests (before first live trade)
+L1208: 26.3 Definition of Done (any work item)
+L1209: Code written → tests green → config externalized → logged → run registered → QA evidence filed → docs updated → checklist box ticked. No tick without evidence.
+L1210: PART F — OPERATIONS
+L1211: 27. Daily / Weekly / Monthly Runbooks
+L1212: 27.1 Daily runbook (15–25 min)
+L1213: Pre-session (5 min) - [ ] Open Command Center → Overview; confirm system health green (data fresh, no failed jobs) - [ ] Read today’s Edge Cards; write down: strategy, pair, window, size, invalidation - [ ] Check risk budget: daily loss remaining, open exposure, breakers armed - [ ] Check event calendar — any blackout windows today?
+L1214: During session - [ ] Trade ONLY on alerts/cards; complete journal checklist BEFORE entry; set stop immediately after entry - [ ] No improvising: no card = no trade; size from Risk Engine = size placed
+L1215: End of day (5 min) - [ ] Journal complete for every trade (fill, emotion, screenshot optional) - [ ] Verify nightly jobs scheduled; glance at daily digest when it arrives
+L1216: 27.2 Weekly runbook (Sunday, 45–60 min)
+L1217: ☐ Review weekly report: per-strategy live-vs-backtest drift, decay z-scores
+L1218: ☐ Journal audit: adherence %, worst discipline lapse, one improvement for next week
+L1219: ☐ Data quality: gap report clean, freshness OK, backup ran
+L1220: ☐ Review any breaker/bench events — understand why
+L1221: ☐ Update strategy roster notes; plan next week’s sessions
+L1222: 27.3 Monthly runbook (first Sunday, 2–3 hours)
+L1223: ☐ Monthly deep-dive report reviewed (tear sheets per strategy + portfolio)
+L1224: ☐ Portfolio rebalance: apply/decline proposal with written reason
+L1225: ☐ Re-validation queue: any Edge Card near 90-day expiry → re-validate or retire
+L1226: ☐ Miner: launch monthly re-mine on refreshed data; review survival funnel
+L1227: ☐ Slippage calibration: update cost config from live measurements
+L1228: ☐ Breaker drill + backup restore spot-check
+L1229: ☐ Capital review: tier check (T1/T2/T3), sizing parameters current
+L1230: ☐ Update this master plan if reality diverged
+L1231: 28. Strategy Lifecycle Management
+L1232: DISCOVERED (miner output)
+L1233:    │ screening + plateau
+L1234:    ▼
+L1235: CANDIDATE ──► edge cards drafted (in-sample)
+L1236:    │ Validation Lab gauntlet (6 gates)
+L1237:    ▼                                    ✗ killed → archived with reason
+L1238: VALIDATED
+L1239:    │ paper trading 8 weeks, n≥30
+L1240:    ▼                                    ✗ drift beyond 1.5σ → back to VALIDATED (halved confidence) or KILLED
+L1241: LIVE (confidence 1.0, decay_mult 1.0)
+L1242:    │ 100 live trades confirming
+L1243:    ▼
+L1244: CORE (confidence 1.25) ◄─── monthly re-validation keeps it here
+L1245:    │
+L1246:    ├─ decay z < −1.5 → WATCH (size × 0.5)
+L1247:    ├─ decay z < −2.5 → BENCHED (size 0, must re-pass Lab to return)
+L1248:    └─ 2 failed re-validations → RETIRED (archived, feeds failure research)
+L1249: Portfolio hygiene rules: max 8 strategies live simultaneously (attention is finite); every live strategy has a written one-page spec (logic, filters, risk, expected regime); any strategy you can’t explain in 60 seconds doesn’t trade.
+L1250: 29. Manual Execution & Psychology Protocol
+L1251: The system’s statistical edge is worthless if the operator leaks money through behavior. These rules are as binding as the code.
+L1252: 29.1 The ten operator laws
+L1253: No card, no trade. Ever. The journal enforces; violations lock you out.
+L1254: Size comes from the Risk Engine. Not from conviction, not from “this one looks great.”
+L1255: The stop is placed before the profit is imagined. No naked positions.
+L1256: Two consecutive losses → 30-minute walk. Not optional.
+L1257: Daily loss limit hit → close the laptop. The breaker does this; you respect it.
+L1258: Never widen a stop. Reducing size out is allowed; adding to losers is banned.
+L1259: Journal emotion score honestly (1=calm … 5=euphoric/panicked). Trades at 4–5 get reviewed weekly — they correlate with mistakes.
+L1260: Boredom is not a signal. Flat days are the system working.
+L1261: Drawdown protocol: at portfolio −8%: sizes halved (automatic) + you re-read §3; at −12%: no new strategies added; at −20%: full stop, back to paper for 4 weeks. These are pre-commitments, not decisions to make in the moment.
+L1262: Weekly self-review is sacred. 30 minutes, every Sunday, no exceptions.
+L1263: 29.2 Cognitive bias quick-reference (tape this near the screen)
+L1264: 30. Capital Plan, Costs & Risk Disclosures
+L1265: 30.1 Capital tiers and expectations
+L1266: Sizing-up law: capital doubles only after (a) 100+ live trades, (b) expectancy positive and ≥ 60% of backtest expectancy, (c) max DD within MC 95% band, (d) adherence ≥ 95% for the trailing quarter.
+L1267: 30.2 Cost budget (stays $0)
+L1268: Data $0 · APIs $0 · compute = your machine · storage = local disk + free-tier cloud backup · exchange fees = trading costs (modeled, not overhead). The only money ever at risk is trading capital, and only after Phase 8.
+L1269: 30.3 Honest risk disclosures
+L1270: You can do everything right and still lose money for months; positive expectancy is a long-run property, not a weekly guarantee.
+L1271: Crypto carries exchange/custody risk: keep trading capital on exchange minimal; profits swept to self-custody monthly.
+L1272: Regulatory status of crypto varies by jurisdiction — know your local rules (taxes on every trade likely apply; the journal exports for tax reporting).
+L1273: Backtest realism has limits: flash events, exchange outages, and liquidity gaps exceed any model. Circuit breakers exist for the day the model is wrong.
+L1274: This system is educational infrastructure for your own trading; it is not financial advice and no outcome is guaranteed.
+L1275: PART G — FUTURE & APPENDICES
+L1276: 31. Future Enhancements Roadmap
+L1277: Ordered by value-per-effort; each is a module that plugs into the existing architecture.
+L1278: 31.1 Near-term (months 6–12)
+L1279: 31.2 Mid-term (year 2)
+L1280: 31.3 Long-term / research frontier
+L1281: Alternative data: on-chain metrics (free: exchange flows, active addresses) as regime features
+L1282: LLM-assisted research (free-tier/local models): code review of strategies, hypothesis brainstorming, report summarization — advisory only, never in the trading loop
+L1283: Reinforcement learning position management: research-grade only; deploy nothing without 12 months of evidence
+L1284: Cross-exchange arbitrage monitoring: educational; realistically closed to retail latency
+L1285: 31.4 Explicit non-goals (permanently)
+L1286: No paid data feeds, no paid APIs, no cloud bills in the core loop
+L1287: No high-frequency ambitions, no options market-making
+L1288: No strategy deployed that you cannot explain in 60 seconds
+L1289: 32. Scaling Path & Hardware Notes
+L1290: 
+L1291: Appendix A — Glossary
+L1292: Alpha — return attributable to skill/edge rather than market exposure. Backtest — simulation of a strategy on historical data. Circuit breaker — pre-committed automatic risk limit. CVaR (Expected Shortfall) — average loss beyond the VaR threshold. Deflated Sharpe Ratio — Sharpe significance adjusted for multiple testing and non-normality. Drawdown — peak-to-trough equity decline. Edge Card — operational specification of when/where a validated strategy may trade. Expectancy — average profit per trade in R or bps, net of costs. HRP — Hierarchical Risk Parity allocation. IC (Information Coefficient) — correlation between signal and forward returns. In-sample / Out-of-sample — data used for discovery vs data reserved for testing. MAE/MFE — max adverse/favorable excursion during a trade. PBO — Probability of Backtest Overfitting (CSCV method). Profit factor — gross profit ÷ gross loss. R-multiple — trade P&L expressed in units of initial risk. Regime — persistent market state (trend/volatility). Slippage — difference between expected and actual fill price. Walk-forward analysis — rolling optimize→test validation producing a stitched OOS curve. WFE — Walk-Forward Efficiency (OOS/IS return ratio).
+L1293: Appendix B — Repository & Resource Directory
+L1294: Appendix C — SQL Query Library (ready to use)
+L1295: -- C1. Strategy league table (all sources)
+L1296: SELECT strategy, COUNT(*) n, ROUND(AVG(pnl_r),3) exp_r,
+L1297:        ROUND(SUM(pnl_r>0)*100.0/COUNT(*),1) wr,
+L1298:        ROUND(SUM(pnl_r) FILTER(pnl_r>0)/NULLIF(-SUM(pnl_r) FILTER(pnl_r<0),0),2) pf
+L1299: FROM trades WHERE source='backtest'
+L1300: GROUP BY 1 HAVING COUNT(*)>=100 ORDER BY exp_r DESC;
+L1301: 
+L1302: -- C2. Hour × day expectancy heatmap for a strategy
+L1303: SELECT day_of_week, hour_utc, COUNT(*) n, ROUND(AVG(pnl_r),3) exp_r
+L1304: FROM trades WHERE strategy=$1 AND source='backtest'
+L1305: GROUP BY 1,2 HAVING COUNT(*)>=30 ORDER BY 1,2;
+L1306: 
+L1307: -- C3. Regime robustness grid
+L1308: SELECT trend_regime, vol_regime, COUNT(*) n, ROUND(AVG(pnl_r),3) exp_r
+L1309: FROM trades WHERE strategy=$1 GROUP BY 1,2 ORDER BY 1,2;
+L1310: 
+L1311: -- C4. Live vs backtest drift
+L1312: SELECT strategy, source, COUNT(*) n, ROUND(AVG(pnl_r),3) exp_r,
+L1313:        ROUND(STDDEV(pnl_r),3) sd
+L1314: FROM trades WHERE strategy=$1 GROUP BY 1,2;
+L1315: 
+L1316: -- C5. Exit-reason autopsy (where does profit leak?)
+L1317: SELECT exit_reason, COUNT(*) n, ROUND(AVG(pnl_r),3) exp_r,
+L1318:        ROUND(AVG(mae_pct),2) avg_mae, ROUND(AVG(mfe_pct),2) avg_mfe
+L1319: FROM trades WHERE strategy=$1 GROUP BY 1 ORDER BY exp_r;
+L1320: 
+L1321: -- C6. Consecutive-loss profile (psych prep + MC sanity)
+L1322: WITH t AS (SELECT pnl_r, SUM(pnl_r>0) OVER w AS grp
+L1323:            FROM trades WHERE strategy=$1 ORDER BY entry_time
+L1324:            WINDOW w AS (ORDER BY entry_time))
+L1325: SELECT COUNT(*) streak_len FROM (SELECT grp, SUM(pnl_r<=0) s FROM t GROUP BY grp) z
+L1326: WHERE s>0 GROUP BY streak_len ORDER BY 1;
+L1327: Appendix D — Reading List (the theory behind the code)
+L1328: López de Prado — Advances in Financial Machine Learning — PBO, purged CV, DSR, backtest overfitting. The Validation Lab’s foundation.
+L1329: Bailey & López de Prado — “The Deflated Sharpe Ratio” (paper, free) — Gate-6 math.
+L1330: Aronson — Evidence-Based Technical Analysis — why data-mining bias destroys the naive; hypothesis-test thinking for traders.
+L1331: Chan — Algorithmic Trading — practical strategy archetypes, mean-reversion & momentum families.
+L1332: Carver — Systematic Trading — position sizing, vol targeting, combining subsystems (Risk & Portfolio Engines’ philosophy).
+L1333: Grinold & Kahn — Active Portfolio Management — IC, breadth, the fundamental law (edge × √breadth).
+L1334: Taleb — Fooled by Randomness — respect for noise; required annual re-read.
+L1335: skfolio & vectorbt docs — treat as textbooks; read the method docstrings before using.
+L1336: Appendix E — Master Project Sign-Off Checklist
+L1337: The project is “operational” (ready for paper trading) only when ALL of these hold:
+L1338: ☐ G0–G7 phase gates evidenced and archived in docs/qa/
+L1339: ☐ Module checklists A1–A12: 100% ticked with evidence files
+L1340: ☐ Statistical controls: miner negative control, edge-engine false-positive control, validation-lab noise control — all green within the last 30 days
+L1341: ☐ ≥ 2 strategies VALIDATED (6/6 gates) with active Edge Cards
+L1342: ☐ Risk Engine: all 9 breakers drill-tested; kill-switch drill signed
+L1343: ☐ Backup restore drill completed ≤ 4 hours
+L1344: ☐ Command Center operating all 7 pages on live data
+L1345: ☐ Runbooks printed/accessible; operator laws taped to the desk
+L1346: ☐ This master plan reviewed and updated to reality
+L1347: And “live-ready” adds: - [ ] Phase-8 gate G8 passed (50+ paper trades, drift within 1.5σ, adherence ≥ 95%) - [ ] Slippage calibration ≤ 1.5× model - [ ] Capital at risk is money you can lose without changing your life - [ ] One-page spec per live strategy written and understood
+L1348: Appendix F — Common Pitfalls & Troubleshooting
+L1349: Appendix G — Worked Mathematics & Sizing Workbook
+L1350: Numeric examples you’ll reuse constantly. Verify your implementation against these by hand.
+L1351: G.1 Expectancy arithmetic
+L1352: Strategy: WR 44%, avg win +1.9R, avg loss −1.0R, round-trip cost 0.06R.
+L1353: E[R] = 0.44 × 1.9 − 0.56 × 1.0 − 0.06 = 0.836 − 0.56 − 0.06 = +0.216R/trade
+L1354: At 0.75% risk/trade and 60 trades/month: E[monthly] ≈ 60 × 0.216 × 0.75% ≈ +9.7%/month
+L1355: At 0.75% risk/trade and 8 trades/month:  E[monthly] ≈ +1.3%/month
+L1356: Lesson: expectancy × frequency × size = income. Filters trade frequency for expectancy — the edge analysis exists to optimize that product, not any single term.
+L1357: G.2 Position sizing (three examples)
+L1358: Equity $4,000; risk 0.75% → $30 at risk. - Ex 1: ETHUSDT, entry 3,200, stop 3,168 (1% below). qty = 30 / 0.01 = $3,000 notional ≈ 0.937 ETH. Portfolio weight 0.5 (if applied) → 0.469 ETH. - Ex 2: BTCUSDT, stop distance 0.4%. qty = 30 / 0.004 = $7,500 notional. Same risk, bigger size — stop distance sets size, never the reverse. - Ex 3: decay_mult 0.5 active → $15 at risk → halve whichever notional the formula gives.
+L1359: G.3 Kelly criterion sanity check
+L1360: WR 45%, payoff 1.8. f* = 0.45 − 0.55/1.8 = 0.144 → quarter-Kelly = 3.6% of equity per trade — far above our 0.75% fixed-fractional. Conclusion: fixed-fractional is the conservative governor; Kelly is only ever a ceiling cross-check, never the sizing engine at our sample sizes.
+L1361: G.4 Monte Carlo interpretation
+L1362: 10,000 reshuffles of a 600-trade sequence with maxDD realized 11%:
+L1363: MC maxDD percentiles:  50th 12% | 75th 15% | 90th 18% | 95th 21% | 99th 27%
+L1364: Reading: realized 11% sits at the ~40th percentile — strategy behaved as expected. If live DD reaches 19%, that’s the ~93rd percentile: not proof of death, but decay detector should already be halving size. The MC band converts “drawdown panic” into a percentile reading.
+L1365: G.5 VaR & CVaR by hand
+L1366: Daily portfolio returns over 500 days, sorted worst 25 (= 5%): −3.2% … −1.9%. - Historical VaR95 ≈ 1.9% (the 25th-worst day boundary) - CVaR95 ≈ mean of worst 25 ≈ −2.5% - GARCH parametric: σ̂(t+1) = 1.15% → VaR95 = 1.645 × 1.15% ≈ 1.89% (consistent ✓) - Kupiec check: expected 25 exceptions, observed 28 → within acceptance region (don’t reject model).
+L1367: G.6 Deflated Sharpe intuition
+L1368: Same strategy, same Sharpe 1.4, two contexts: - Tried 10 variants → E[max SR | H0] ≈ 0.8 → DSR comfortably positive → PASS - Tried 100,000 variants → E[max SR | H0] ≈ 1.5 → DSR ≈ 0 → FAIL Identical performance, opposite verdicts — because luck’s expected maximum grows with trials. This is why the miner’s trial accounting (n_variants) is sacred.
+L1369: G.7 Risk-of-ruin framing
+L1370: With E[R] = +0.2, σ(R) = 1.2, risk 0.75%/trade: risk of hitting the −20% stop before doubling is small (single digits %). At 3% risk/trade it multiplies several-fold. The 0.5–1% band isn’t timidity; it’s what keeps the −20% event rare enough that PB-4 is a procedure you’ll likely never run.
+L1371: Appendix H — Failure-Mode Library (25 Ways Quant Systems Die)
+L1372: Study this list quarterly. Each entry: the failure, why it happens, and the system’s built-in defense.
+L1373: Appendix I — Complete Configuration Reference
+L1374: I.1 config/system.yaml (annotated)
+L1375: paths:
+L1376:   data: data/            # data lake root (Parquet)
+L1377:   db: db/apex.duckdb     # single-file analytics DB
+L1378:   runs: runs/            # run registry root
+L1379: time:
+L1380:   insample_start: "2017-08-17"   # Binance BTCUSDT listing
+L1381:   insample_end:   "2022-12-31"   # ← THE RESEARCH WALL
+L1382:   oos_start:      "2023-01-01"
+L1383: random_seed: 42                  # global default; miners get derived seeds
+L1384: execution_defaults:
+L1385:   timezone: UTC                  # system-wide; never local time
+L1386: I.2 config/risk.yaml (annotated)
+L1387: sizing:
+L1388:   base_risk_pct: 0.75            # of current equity, per trade
+L1389:   min_risk_pct: 0.50             # floor when confidence reduced
+L1390:   max_risk_pct: 1.00             # hard ceiling, no exceptions
+L1391:   confidence_multipliers: {provisional: 0.75, validated: 1.0, core: 1.25}
+L1392:   vol_target_ann_pct: 12         # Phase-2 volatility targeting
+L1393:   kelly_fraction_cap: 0.25       # quarter-Kelly ceiling cross-check
+L1394: breakers:
+L1395:   daily_loss_pct: 1.5
+L1396:   weekly_loss_pct: 4.0
+L1397:   strategy_dd_pct: 15
+L1398:   portfolio_dd_halve_pct: 12
+L1399:   portfolio_dd_stop_pct: 20
+L1400:   max_concurrent_positions: 5
+L1401:   max_same_direction_per_asset: 2
+L1402: decay:
+L1403:   watch_z: -1.5                  # trailing 30-trade expectancy z-score
+L1404:   half_z: -2.0
+L1405:   bench_z: -2.5
+L1406:   bench_confirm_trades: 20
+L1407: I.3 config/miner.yaml (annotated)
+L1408: stage1: {timeframes: [5m, 15m, 1h, 4h], min_trades: 100}
+L1409: stage2:
+L1410:   top_trigger_pct: 30            # survivors of solo scan
+L1411:   screen: {min_expectancy_r: 0.0, min_pf: 1.15, min_trades: 100}
+L1412: stage3:
+L1413:   top_combos: 500
+L1414: plateau:
+L1415:   perturbation_pct: 20
+L1416:   min_neighbor_score: 0.6
+L1417: ranking:
+L1418:   weights: {expectancy_bps: 1.0, log_n: 1.0, plateau: 1.0, consistency: 1.0}
+L1419: budget:
+L1420:   max_variants_per_run: 250000   # trial accounting feeds DSR
+L1421:   parallel_workers: 8
+L1422: I.4 config/validation.yaml (annotated)
+L1423: walkforward: {train_years: 3, test_months: 6, min_folds: 6, min_wfe: 0.5,
+L1424:               max_fold_dd_multiple: 1.5}
+L1425: montecarlo: {sims: 10000, dd_budget_pct: 20, skip_rates: [0.1, 0.2, 0.3],
+L1426:              block_len: 20, cost_stress: [2.0, 3.0]}
+L1427: regime_grid: {min_cell_trades: 30, min_cell_expectancy_r: -0.3}
+L1428: pbo: {blocks: 16, threshold: 0.20}
+L1429: dsr: {alpha: 0.05}
+L1430: edge:
+L1431:   min_trades_slice: 100
+L1432:   provisional_min: 50
+L1433:   correction: bh                 # Benjamini–Hochberg FDR
+L1434:   fdr_q: 0.05
+L1435:   stability_halves: true
+L1436:   card_expiry_days: 90
+L1437: I.5 config/portfolio.yaml — see §16.3; config/universe.yaml — see §9.6; config/backtest.yaml — see §12.3.
+L1438: Appendix J — Extended SQL Query Library
+L1439: -- C7. Mining funnel for a run
+L1440: SELECT status, COUNT(*) FROM runs
+L1441: WHERE run_id LIKE $1 || '%' GROUP BY 1;
+L1442: 
+L1443: -- C8. Strategy equity curve from trades (running sum)
+L1444: SELECT entry_time::DATE d, SUM(pnl_quote) pnl,
+L1445:        SUM(SUM(pnl_quote)) OVER (ORDER BY entry_time::DATE) cum
+L1446: FROM trades WHERE strategy=$1 AND source='live'
+L1447: GROUP BY 1 ORDER BY 1;
+L1448: 
+L1449: -- C9. MFE/MAE edge diagnostic (are stops/targets placed well?)
+L1450: SELECT strategy,
+L1451:        ROUND(AVG(mfe_pct),2) avg_mfe, ROUND(AVG(mae_pct),2) avg_mae,
+L1452:        ROUND(AVG(pnl_pct),2) avg_pnl,
+L1453:        ROUND(CORR(mfe_pct, pnl_pct),2) mfe_pnl_corr
+L1454: FROM trades WHERE strategy=$1 GROUP BY 1;
+L1455: -- Reading: high avg_mfe with low avg_pnl → targets too far; 
+L1456: -- low |mae| vs stop distance → stop too wide (wasted risk).
+L1457: 
+L1458: -- C10. Session × regime expectancy matrix
+L1459: SELECT session, trend_regime, COUNT(*) n, ROUND(AVG(pnl_r),3) e
+L1460: FROM trades WHERE strategy=$1 AND source='backtest'
+L1461: GROUP BY 1,2 HAVING COUNT(*)>=30 ORDER BY e DESC;
+L1462: 
+L1463: -- C11. Monthly seasonality check (usually noise — verify before believing)
+L1464: SELECT month, COUNT(*) n, ROUND(AVG(pnl_r),3) e
+L1465: FROM trades WHERE strategy=$1 GROUP BY 1 HAVING COUNT(*)>=50 ORDER BY 1;
+L1466: 
+L1467: -- C12. Live slippage calibration (journal vs plan)
+L1468: SELECT strategy, COUNT(*) n,
+L1469:        ROUND(AVG(actual_slip_bps),2) measured,
+L1470:        ROUND(AVG(modeled_slip_bps),2) modeled,
+L1471:        ROUND(AVG(actual_slip_bps)/AVG(modeled_slip_bps),2) ratio
+L1472: FROM live_journal jl JOIN trades t USING(trade_id)
+L1473: GROUP BY 1;
+L1474: 
+L1475: -- C13. Discipline audit
+L1476: SELECT strftime(created_at,'%Y-W%V') wk, COUNT(*) trades,
+L1477:        SUM(NOT checklist_ok) violations, ROUND(AVG(emotion_score),1) emo
+L1478: FROM live_journal GROUP BY 1 ORDER BY 1 DESC LIMIT 12;
+L1479: 
+L1480: -- C14. Edge-card health board
+L1481: SELECT card_id, strategy, pair, status, n_trades, expectancy_r,
+L1482:        last_validated, last_validated + INTERVAL 90 DAY AS expires
+L1483: FROM edge_cards ORDER BY status, expires;
+L1484: 
+L1485: -- C15. Decay detector input (trailing 30-trade expectancy)
+L1486: SELECT strategy, trade_id, pnl_r,
+L1487:        AVG(pnl_r) OVER (PARTITION BY strategy ORDER BY entry_time
+L1488:                         ROWS BETWEEN 29 PRECEDING AND CURRENT ROW) roll_exp
+L1489: FROM trades WHERE source='live' ORDER BY strategy, entry_time;
+L1490: PART H — TRADER’S REFERENCE LIBRARY
+L1491: 33. Statistics Primer for Traders
+L1492: The minimum statistics you must understand to operate this system honestly. Each concept is stated, then translated into trading terms.
+L1493: 33.1 Distributions. Trade P&L is a random draw from the strategy’s return distribution. Crypto trade returns are fat-tailed (extreme moves more common than a normal distribution predicts) and often skewed (trend systems: many small losses, few large wins — negative skew of losses, positive skew of P&L tail). Consequence: never use normal-distribution assumptions for risk; use historical/bootstrapped distributions (which is exactly why our Monte Carlo reshuffles real trades instead of simulating Gaussians).
+L1494: 33.2 Sample size and standard error. The standard error of a mean shrinks as 1/√n. A slice of 25 trades with expectancy +0.3R and σ(R)=1.2 has SE ≈ 0.24 — the “edge” is 1.25 standard errors from zero, i.e., indistinguishable from luck. At n=100 the same numbers give SE ≈ 0.12 (2.5σ — worth attention); at n=400, 5σ (real). This single formula — z = E / (σ/√n) — is the mathematical spine of the n≥100 rule, the decay detector, and the live-vs-backtest drift test.
+L1495: 33.3 Hypothesis testing. Null hypothesis H0: “this slice has no edge (true mean = 0).” The p-value is P(data this extreme | H0 true) — NOT the probability the edge is real. p < 0.05 means: if there were no edge, data like this would appear only 5% of the time. With one test, that’s persuasive. With 500 tests (one hour×day scan), you EXPECT ~25 false positives at p<0.05 — which is why §33.5 exists.
+L1496: 33.4 Confidence intervals. “Expectancy +0.21R, 95% CI [+0.07, +0.35]” beats “expectancy +0.21R” every time. The CI tells you the plausible range; if it crosses zero, the estimate is noise-grade regardless of how good the point looks. Bootstrap CIs (resample the trades 5,000×, take percentiles) handle the fat tails correctly and are built into the slice engine.
+L1497: 33.5 Multiple comparisons and FDR. Every additional hypothesis tested inflates the false-positive rate. Corrections: Bonferroni (divide α by number of tests — simple, conservative) and Benjamini–Hochberg (controls the expected fraction of false discoveries — more powerful, our default). The edge engine never reports a raw p-value without its correction context. Rule of thumb: if you scanned 168 hour×day cells, treat any unadjusted p < 0.05 as meaningless; only BH-passing slices may become cards.
+L1498: 33.6 Regression to the mean. Extreme observed performance (the best variant of 100,000) is almost always part skill, part luck — and the luck part evaporates forward. Expect OOS performance to be worse than IS, systematically (that’s why WFE ≥ 0.5 passes but WFE = 1.0 should make you suspicious of a leak).
+L1499: 33.7 Stationarity. Statistics assumes the distribution stays stable. Markets are non-stationary — vol clusters, regimes shift, edges die. This is THE fundamental problem of quantitative trading, and the system’s entire monitoring layer (decay detection, monthly re-validation, card expiry) is the engineered response to it.
+L1500: 33.8 Independence and autocorrelation. Trades cluster in time; a losing streak is not 10 independent losses but often one bad regime. Block bootstrap (MC #3) exists because reshuffle assumes independence; when the two disagree, trust the block version.
+L1501: 33.9 Bayesian intuition (no math required). Prior: most strategy ideas fail (>90%). Evidence: a good backtest. Posterior: still probably fails — the validation gauntlet is how you accumulate enough evidence to update a skeptical prior. Operators who internalize this stop falling in love with backtests.
+L1502: 33.10 The two errors. Type I: trading a strategy that doesn’t work (costs money). Type II: discarding one that does (costs opportunity). Retail optimizes against Type II (afraid to miss anything); professionals optimize against Type I (afraid to trade noise). This system is deliberately Type-I-averse: capital preservation beats missed chances, always.
+L1503: 34. Crypto Market Microstructure Primer
+L1504: What you must know about the terrain you’re trading.
+L1505: 34.1 Perpetuals vs spot. Perps track spot via the funding mechanism: when perp trades above spot, longs pay shorts (positive funding) and vice versa. Funding is a direct sentiment gauge (extreme = crowded positioning → S5 fade strategy) and a real cash flow if you hold perp positions. Spot has no funding but also no short option on most retail venues — most short strategies in this system assume perp execution.
+L1506: 34.2 Liquidity cycles. Despite 24/7 trading, volume follows a daily wave: deepest during the Europe–US overlap (roughly 12:00–16:00 UTC), thinnest in late-Asia hours and weekends. Consequences: (a) slippage varies 2–3× across the day — the cost model’s session-varying slippage is not optional; (b) breakout strategies work best when participation arrives (session opens); (c) weekend price action is lower-quality — always test weekend exclusion as a filter.
+L1507: 34.3 Volatility regimes. Crypto vol clusters hard: quiet weeks of 1% daily ranges punctuated by 10% days. ATR-percentile regime labels capture this. Mean-reversion strategies harvest the quiet; momentum strategies harvest the storms; a strategy blind to vol regime is a coin flip on which world it’s in.
+L1508: 34.4 Event structure. Macro events (FOMC, US CPI, payrolls) hit crypto sharply — the 30 minutes after release are spread-widening, wick-heavy chaos. Trade them only via a dedicated event strategy (S6) or stand aside (F08 blackout). Token-specific events (unlocks, mainnet launches, exchange listings) matter for alts.
+L1509: 34.5 Cross-pair correlation. Alts are highly correlated to BTC (typical 30d correlation 0.6–0.9). Five alt longs ≈ one big BTC beta position — the correlation guard and max same-direction limits exist for exactly this. It also means multi-pair “diversification” is partly illusory; true diversification comes from strategy family diversity (trend vs MR vs carry).
+L1510: 34.6 Exchange microstructure. Binance spot taker fees ~10bps (less with BNB discount/volume tiers — recalibrate config to YOUR actual tier), perp taker ~4–5bps. Market orders cross the spread; limit orders earn it but risk non-fill. In backtests, always pay taker costs unless the strategy is explicitly limit-based with a fill model — optimism here is the classic way backtests lie.
+L1511: 34.7 Weekend and holiday effects. Institutional participation drops on weekends and US holidays; ranges compress but stop-hunts in thin books produce vicious wicks. Test, don’t assume: some pairs show real weekend edges; most show noise with worse fills.
+L1512: 34.8 Stablecoin basis and risk. P&L in USDT is P&L in a dollar-IOU. Operationally: keep balances modest, sweep profits, and remember depeg tail-risk exists. The system’s custody rule (monthly sweeps) is non-negotiable.
+L1513: 35. KPI Definitions & Dashboard Metrics
+L1514: The numbers that define system health, with exact definitions so nothing is ever eyeballed.
+L1515: Review the full KPI board monthly; the red rows demand a written action in the monthly review.
+L1516: 36. First-Year Operating Calendar
+L1517: The annual review (M12) is a full-day ritual: every strategy re-validated on complete data, every assumption re-checked, this document revised to v2.0.
+L1518: 37. The Learning Track
+L1519: Skills in the order the build needs them. 30–45 min/day alongside building; free resources only.
+L1520: 38. Self-Interrogation FAQ
+L1521: The questions you’ll secretly ask yourself at 2 AM, answered in advance.
+L1522: “The backtest is incredible — why shouldn’t I just trade it now?” Because an unvalidated backtest is a hypothesis, not a result. Run the gauntlet. If it’s real, it will still be real in two weeks.
+L1523: “The miner found nothing this month — is it broken?” Check the controls (A7.3/A7.4). If controls pass, nothing-found is a legitimate market state. Mining dry spells are normal; forcing output is how noise gets promoted.
+L1524: “A strategy passed everything but feels wrong.” Write down why. If the reason is mechanical (“I can’t explain the logic”), it doesn’t trade — the 60-second rule. If it’s vibes, trade it small; feelings aren’t evidence either.
+L1525: “Three losing weeks — is the edge dead?” Compute the z-score (the dashboard does). A −1.5% week happens at 0.75% risk with no edge problems at all. The detector tells you when it’s statistically meaningful; until then, variance is the boring answer.
+L1526: “Can I just add one discretionary trade?” That’s violation #1 toward lockout. The system exists because discretionary-you underperforms systematic-you. Journal the urge instead — urges logged weekly are useful psychology data.
+L1527: “Why not just buy a commercial tool (StrategyQuant etc.)?” Budget is zero, and black-box mining without the validation literacy this build gives you would lose money anyway. You’re building the tool AND the operator.
+L1528: “When do I scale up?” §30.1’s sizing-up law. Never earlier, never because of a hot streak, never because of impatience.
+L1529: “What if everything fails after a year?” Then you’ll have something worth more than a strategy: a verified negative result set, institutional-grade process skills, and a database of 100k+ analyzed trades — assets that transfer to any future trading, quant job applications, or fund-raising credibility. The only true failure mode is skipping the process.
+L1530: 39. Universe & Correlation Management
+L1531: The 20-pair universe is a managed portfolio in itself, not a fixed list.
+L1532: 39.1 Admission rules. A pair enters the research universe when: (a) ≥ 2 years of history on Binance; (b) 20-day average dollar volume > $20M (liquidity floor); (c) not a stablecoin/fiat pair; (d) not within 30 days of a known delisting. New listings wait 6 months before admission (listing-phase price action is its own chaotic regime).
+L1533: 39.2 Removal rules. Quarterly review removes pairs that: fall below the liquidity floor for 60+ days, get delisted, or develop data-quality issues that fail remediation. Removed pairs stay in the historical archive (their data remains valid for research) but leave the live universe.
+L1534: 39.3 Survivorship discipline. When researching cross-pair effects, include pairs that were delisted during the sample (pull them from the archive before removal). A universe of only today’s winners inflates every cross-sectional result.
+L1535: 39.4 Correlation management. Maintain a rolling 90-day BTC-correlation table for all pairs (auto-computed weekly). Uses: (a) the same-direction exposure limiter counts correlated longs as one position; (b) HRP clustering treats high-correlation pairs as one risk family; (c) when adding a new pair, prefer one whose strategy returns correlate < 0.5 with existing ones — diversification is measured on strategy returns, not tickers.
+L1536: 39.5 Universe tiers. T1 core (BTC, ETH — deepest liquidity, first to trade live), T2 majors (next 8 by volume), T3 satellites (rest — research only until Tier T2 capital). Live trading expands tier-by-tier only after paper results confirm per-tier slippage assumptions.
+L1537: 39.6 Pair-strategy fit matrix. Maintain a table of strategy × pair expectancy from the trade DB; review quarterly. Pairs where a strategy persistently fails get excluded from that strategy (documented as a filter), and the matrix often reveals structure (e.g., mean-reversion works on low-beta alts, momentum on high-beta) that feeds new miner filter ideas.
+L1538: 40. QA Quick-Reference Cards (Printable)
+L1539: One card per gate — print these and check them physically. Full checklists with evidence requirements live in Part C; these are the at-a-desk summaries.
+L1540: CARD G1 — Data Lake: all pairs queryable · spot-check 5 bars exact · gaps < 0.5% explained · resample test green · updater idempotent · views fast · disk logged
+L1541: CARD G2 — Heartbeat: bars → features → sweep → trades in DB → slice with significance — all in one run, all logged, zero manual steps
+L1542: CARD G3 — Mining: block catalog tested · 100k-variant run complete · every variant’s trades in DB · plateau report · trial count recorded · data wall enforced
+L1543: CARD G4 — Edge Analytics: fixture test · noise control ~0 cards · planted edge found · stability enforced · cards complete · expiry works
+L1544: CARD G5 — Validation Lab: WF exact · MC calibrated · NOISE ≥95% KILLED · planted edge passes · PBO reference test · DSR trial-sensitive · verdicts persisted
+L1545: CARD G6 — Risk & Portfolio: sizing hand-verified · all breakers drilled · VaR backtested · HRP constraints hold · weights sum to 1 · alerts received
+L1546: CARD G7 — Command Center: 7 pages < 5s · numbers match SQL · no naked stats (n shown) · empty states safe · read-only except journal
+L1547: CARD G8 — Paper Gate: 50+ trades · ≥3 strategies · drift ≤ 1.5σ · adherence ≥ 95% · zero breaker overrides · calibration ≤ 1.5×
+L1548: CARD LIVE — Go-Live Gate: G8 passed · capital losable · one-page specs written · kill-switch drilled · backup restored · operator laws printed · breakers armed
+L1549: CARD MONTHLY — Ops Health: rebalance decided · cards re-validated · miner re-run · slippage calibrated · breaker drill · backup verified · KPI board reviewed · plan updated
+L1550: 41. Case Studies — Anatomy of a Failure & of a Success
+L1551: Two composite case studies showing the system thinking end-to-end. Expect your own versions of both within the first year.
+L1552: 41.1 Anatomy of a failure: “The Perfect Tuesday”
+L1553: Discovery. A Stage-2 mining run surfaces T05+F05(Tue)+X02(2R) on BNBUSDT: expectancy +0.61R, n=88, PF 2.1. The Tuesday-only filter looks like magic.
+L1554: Red flags the system raises automatically: 1. n=88 < 100 → provisional, can’t be carded. Operator temptation: “close enough.” It is not. 2. The scanner tested 168 day×hour cells × 500+ combos — BH correction requires p < 0.0012; this slice sits at p = 0.008. Fails FDR. On noise alone we’d expect several cells this good. 3. Stability check: 100% of the edge comes from the 2021 bull half; the 2022 half is flat. Single-regime dependence. 4. Plateau: moving the day filter to Mon or Wed → negative. The “edge” is one cell wide — a spike, not a plateau.
+L1555: Verdict: KILLED at Gate 1-adjacent checks; archived with reason MULTIPLE_TESTING + REGIME_FRAGILE. Cost of this discipline: nothing. Cost without it: ~3 months and a real-money drawdown discovering the same thing.
+L1556: Lesson the database keeps: six months later, monthly re-mine finds the same Tuesday pattern again — now it’s in the kill archive, cross-referenced, and auto-flagged. The system remembers so you don’t re-pay tuition.
+L1557: 41.2 Anatomy of a success: “Boring Session Breakout”
+L1558: Discovery. T09 session-breakout variant on ETHUSDT (the §C2.4 walkthrough): +0.19R, n=631 — unimpressive next to the Tuesday miracle.
+L1559: Why it survives: n large; plateau 0.875 (neighbors work); profitable in both halves; session-slice p_adj = 0.003 after BH; OOS +0.21R (expectancy went UP out-of-sample — happens; treat with same skepticism, verified no leak); WFE 0.71; MC dd_p95 13%; PBO 0.11; DSR p=0.02.
+L1560: Life after validation: paper 41 trades +0.16R → live micro 60 trades +0.18R → decay z never below −1.2 → promoted to CORE at 100 live trades, sizing multiplier 1.25. Contributes a boring +1.2%/month at 0.75% risk.
+L1561: The meta-lesson: the failure LOOKED better in every screenshot. The success looked boring in all of them. The system’s gates exist because humans cannot tell these apart by looking — the failed one had the higher backtest expectancy by 3×. This is the entire point of the architecture.
+L1562: 42. The First 100 Live Trades — What to Expect
+L1563: A statistical preview so nothing surprises you.
+L1564: Trade 1–20: Everything feels significant. It isn’t. n=20 has SE ≈ 0.27R — you could be +0.5R or −0.3R and both are consistent with your +0.2R backtest edge. Do not touch anything. Journal everything.
+L1565: Trade 20–40: First real losing streak (60% chance of a 5+ streak by now — Appendix K.3). The decay detector may flicker to WATCH. This is normal; the detector is doing its job, and so are you by not panicking. Expect slippage slightly worse than modeled on ~20% of fills — feed it to calibration, not to emotion.
+L1566: Trade 40–70: The first breaker event likely fires (daily −1.5% happens monthly on average). Follow PB-1. Notice how different real-money losses feel vs paper — that feeling is exactly why the operator laws exist. Emotion scores in your journal will drift up; the weekly review will catch it.
+L1567: Trade 70–100: Drift z-score becomes meaningful. Most likely outcome: live expectancy 60–90% of backtest (costs, fills, your latency). That’s success. If ≥ 60%: sizing law permits consideration of CORE promotion. If < 40%: the strategy goes back through validation — evidence, not disappointment.
+L1568: After trade 100: You now own something almost no retail trader has — a statistically meaningful live track record, fully journaled, with known slippage, known discipline metrics, and a validated (or correctly rejected) edge. Everything after this is scaling and repetition.
+L1569: 43. Document & Template Library
+L1570: Standard documents to maintain in docs/. Templates below; keep them short and alive.
+L1571: 43.1 Module README template (one per src/ module)
+L1572: # <Module name>
+L1573: Purpose: <one sentence>
+L1574: Inputs: <data/contracts consumed>
+L1575: Outputs: <data/contracts produced>
+L1576: Config: <yaml keys used>
+L1577: Owner: you | Status: build/testing/active
+L1578: How to test: pytest tests/<module> — controls: <which statistical controls apply>
+L1579: Known limitations: <honest list>
+L1580: 43.2 Strategy one-pager template (required before live)
+L1581: # <Strategy name> — <pair(s)> — <timeframe>
+L1582: Logic in 60 seconds: <plain-language explanation>
+L1583: Entry: <trigger> | Filters: <list> | Exit: <model>
+L1584: Expected profile: WR ~x%, E[R]=y, n/month=z
+L1585: Regime: thrives in <>, suffers in <>
+L1586: Risk: stop <>, max concurrent <>, breaker links <>
+L1587: Lineage: mined <run_id> → validated <run_id> → paper <dates> → live <date>
+L1588: Kill criteria: <what would make you retire it, written in advance>
+L1589: 43.3 Research log entry template (per mining/validation session)
+L1590: Date: | Session goal: | Runs launched: <run_ids>
+L1591: Found: <survivors> | Killed: <count + top reasons>
+L1592: Surprises: <anything unexpected — these become hypotheses>
+L1593: Next: <one action>
+L1594: 43.4 Decision log entry template
+L1595: Date: | Decision: | Alternatives considered: | Why this one: | Revisit when:
+L1596: 43.5 Incident report template (post-PB events)
+L1597: Event: | Detected by: | Timeline: | Impact: | Root cause:
+L1598: Fix applied: | Prevention added: | Affected runs flagged:
+L1599: 43.6 Monthly review minutes template
+L1600: Month: | Equity: start/end | DD max: | MC percentile:
+L1601: KPI reds: <list + action for each> | Strategies: promoted/benched/retired
+L1602: Rebalance: accepted/declined because | Calibration changes:
+L1603: Discipline: adherence %, violations, theme | Next month's ONE priority:
+L1604: 44. Year-2 Detailed Roadmap (Months 13–24)
+L1605: Year 1 built the machine and proved the loop. Year 2 is about breadth, depth, and hardening — each quarter has one theme and explicit exit criteria.
+L1606: Q1 (M13–15) — Theme: Breadth of edges
+L1607: Q1 risk focus: cross-market correlation audit — confirm crypto+forex portfolio DD is lower than crypto-only at same expectancy (it should be; if not, the allocation is wrong).
+L1608: Q2 (M16–18) — Theme: Depth of research
+L1609: Q3 (M19–21) — Theme: Operational hardening
+L1610: Q4 (M22–24) — Theme: Scale & review
+L1611: Year-2 success definition (write it down now): a diversified, multi-market, multi-family portfolio with 200+ live trades of evidence, expectancy positive at portfolio level every rolling 6-month window, max DD inside MC bands, and an operator who followed the process ≥ 95% of days. If that sentence is true in month 24, you have built something genuinely rare.
+L1612: 45. The Daily Boot Sequence & Operating Manifesto
+L1613: 45.1 The 5-minute boot sequence (every trading day, in order)
+L1614: 1. System health:  data fresh ✓ · jobs green ✓ · breakers armed ✓   [30 sec]
+L1615: 2. KPI reds:       any red rows on the board? → resolve before cards [60 sec]
+L1616: 3. Edge Cards:     read today's cards aloud — conditions, size, stop [2 min]
+L1617: 4. Risk budget:    daily loss remaining, open exposure, VaR gauge    [60 sec]
+L1618: 5. Mindset:        one breath, read laws #1 and #2, open journal     [30 sec]
+L1619: If any step fails → no trading today, only fixing. A day without trades costs nothing; a day trading a broken system can cost the quarter.
+L1620: 45.2 The Operating Manifesto (print this page)
+L1621: I trade the system’s evidence, not my opinions.
+L1622: I protect capital first; returns are the byproduct of survival.
+L1623: I log everything, hide nothing, and review weekly without fail.
+L1624: I let the validation lab break my heart cheaply so the market can’t do it expensively.
+L1625: I respect the sample size. I respect the correction. I respect the out-of-sample wall.
+L1626: I size by formula, enter by card, exit by plan, and stop by breaker.
+L1627: I expect losing streaks, drawdowns, dead months — and I have a written playbook for each.
+L1628: I treat every kill as saved money and every mistake as tuition already paid.
+L1629: I never scale on emotion — only on evidence, by the sizing law.
+L1630: I am building a multi-year asset. I will not burn it for a one-week feeling.
+L1631: Signed and dated, taped above the trading desk. Reread at every drawdown, every euphoria, and every temptation to “just this once.”
+L1632: Appendix O — Pre-Live Simulation Drill Pack
+L1633: A mandatory 2-week “dress rehearsal” between passing G8 and committing real capital. Treat it as seriously as flight-simulator hours.
+L1634: Week 1 — Normal operations rehearsal - [ ] D1: Full boot sequence + 2 simulated trades end-to-end (alert → checklist → paper fill → journal) — timed; must feel boring - [ ] D2: Boot sequence + review yesterday’s journal for completeness; fix form friction - [ ] D3: Simulate a 3-loss day in the journal; verify you followed law #4 (walk) and the daily digest still made sense - [ ] D4: Practice the monthly rebalance flow on last month’s data (accept/decline with written reason) - [ ] D5: Simulate card expiry: pick an active card, walk through re-validation workflow
+L1635: Week 2 — Emergency drills - [ ] D6: Breaker drill — force daily-loss breaker in a test account; confirm lockout + Telegram + your own compliance (no override) - [ ] D7: Kill-switch drill — flatten everything from your phone in < 60 seconds; log the time - [ ] D8: Outage drill — disconnect internet mid-session; execute PB-5 from written instructions only - [ ] D9: Data-corruption drill — quarantine a pair, flag affected runs, restore from backup (SYS-9 rehearsal) - [ ] D10: Full-stop rehearsal — walk PB-4 on paper: post-mortem template filled for a simulated −20% event
+L1636: Graduation: all 10 drills logged with times and notes; any drill that felt confusing gets repeated until it doesn’t. Capital is committed only after the drill pack is signed in the decision log.
+L1637: Appendix P — Frequently-Used Reference Tables
+L1638: P.1 z-score quick table (decay detector & drift tests)
+L1639: P.2 Sample size cheat table (σ(R) = 1.2 assumed)
+L1640: Use it inversely too: a +0.1R edge needs ~550+ trades to statistically confirm — some real edges are only provable across years or across pairs pooled.
+L1641: P.3 p-value intuition table
+L1642: P.4 Win-rate / payoff break-even grid (before costs)
+L1643: Trend systems live in the top rows (low WR, big payoff); mean-reversion in the bottom rows (high WR, small payoff). Know which row your strategy occupies — it predicts the losing-streak psychology you’ll face.
+L1644: P.5 Trade frequency planning table
+L1645: P.6 Expectancy health bands (live vs backtest)
+L1646: 46. Master Index of Gates, Checklists & Controls
+L1647: Every verification artifact in this document, indexed. When someone (including future-you) asks “how do you know X works?”, this index points to the proof.
+L1648: 46.1 Phase gates (Part E)
+L1649: 46.2 Module acceptance checklists (Part C)
+L1650: 46.3 Statistical controls (rerun after any statistics-code change)
+L1651: 46.4 System-level acceptance tests
+L1652: SYS-1 through SYS-10 in §26.2: rebuild-from-scratch, reproducibility, data-wall audit, cost realism, breaker drill, failure injection, performance, security, backup restore, documentation audit. All ten must pass before the first live trade — no exceptions, no “it’s probably fine.”
+L1653: 46.5 Operational drills (Appendix O)
+L1654: D1–D10 dress-rehearsal drills: normal ops, breakers, kill-switch, outage, corruption, full-stop. Signed in the decision log before capital is committed.
+L1655: 46.6 Recurring verifications (never one-time)
+L1656: 
+L1657: 
+L1658: Appendix K — Compounding, Drawdown & Risk-of-Ruin Mathematics
+L1659: The arithmetic of survival and growth — the tables to revisit before ever increasing size.
+L1660: K.1 The compounding table (why small edges matter)
+L1661: Monthly return vs equity growth on $1,000 (no additions, no withdrawals):
+L1662: A +2–3% monthly system is unglamorous and excellent. Chasing +15% months is chasing variance that eventually collects its debt. Also note what the table demands: not losing — a −20% month wipes out ten +2% months.
+L1663: K.2 The drawdown recovery trap
+L1664: This asymmetry is the mathematical reason the breaker stack exists. The −20% full-stop is placed exactly where recovery starts getting expensive; −50% is where systems go to die.
+L1665: K.3 Consecutive losses are normal (psych-proof yourself)
+L1666: With a 45% win-rate strategy, probability of a losing streak of length L somewhere in 100 trades:
+L1667: You WILL have an 8-loss streak while the system is perfectly healthy. The journal’s streak profile (query C6) plus the decay z-score tell you when a streak stops being weather and starts being climate.
+L1668: K.4 Risk-of-ruin intuition table
+L1669: Approximate probability of hitting −20% before +40%, for E[R]=+0.2, σ(R)=1.2, various risk fractions (Monte Carlo, 50k paths):
+L1670: Read this table whenever greed whispers. Doubling from 1% to 2% doesn’t double your expectation — it multiplies your ruin probability while expectancy grows only linearly.
+L1671: K.5 The expectancy-frequency-size identity
+L1672: Monthly return ≈ trades/month × E[R] × risk% × confidence
+L1673: +2% month at 0.75% risk needs: 40 trades × +0.067R, or 12 trades × +0.22R,
+L1674: or 5 trades × +0.53R
+L1675: Three routes to the same destination: frequency (more strategies/pairs), edge (better filters), or size (more risk). Only the first two scale safely; the third is the ruin table above. This identity is why the system invests in mining breadth and filter quality rather than conviction sizing.
+L1676: K.6 The cost drag table
+L1677: Round-trip cost impact on a 30-trade/month strategy (0.75% risk, E[R]=+0.2 gross):
+L1678: High-frequency small-edge strategies live and die on this table — the reason cost modeling, slippage calibration, and fee-tier management are engineering priorities, not afterthoughts.
+L1679: Appendix L — Data Quality Field Guide
+L1680: Symptoms you’ll encounter in real data, what they mean, and what to do.
+L1681: Golden rules: (1) never silently “clean” data — quarantine, document, decide; (2) suspicious-but-real data stays in (markets are suspicious places); (3) every remediation is logged with date and reason; (4) re-run affected backtests after any historical correction and note metric deltas.
+L1682: Appendix M — Builder’s Weekly Schedule Templates
+L1683: Time is the scarcest input. Three templates for different life situations.
+L1684: M.1 Full-time builder (25–30 h/week) — fastest path
+L1685: M.2 Part-time builder (10–12 h/week) — the default assumption
+L1686: M.3 Operator phase (once live; 5–7 h/week)
+L1687: Scheduling law: the system is built in the blocks, but it’s kept in the reviews. If a week only allows one hour, spend it on the weekly review — continuity of observation beats bursts of effort.
+L1688: Appendix N — Expanded Glossary of Quant Terms
+L1689: Alpha decay — the tendency of a discovered edge to weaken as markets adapt. Anchored walk-forward — walk-forward where the training window’s start stays fixed while it grows. Autocorrelation — correlation of a series with its own past; streaks in trade P&L. Basis — price difference between perp and spot. Beta — sensitivity to the market factor (BTC for alts). Block bootstrap — resampling contiguous chunks to preserve autocorrelation. Breadth — number of independent bets; Grinold’s law: skill × √breadth. Calmar ratio — CAGR ÷ max drawdown. Chandelier exit — ATR-based trailing stop hanging from the highest high. Cointegration — long-run statistical linkage between non-stationary series (pairs trading basis). Cross-sectional — comparing many assets at one time (vs time-series: one asset across time). CSCV — combinatorially symmetric cross-validation; the PBO machinery. CVaR / Expected Shortfall — average loss in the worst α% of cases. Deflated Sharpe — Sharpe significance deflated by trial count and non-normality. Drawdown duration — time spent below the equity peak; hurts more than depth. Edge — positive expectancy that persists out-of-sample and net of costs. Embargo — gap enforced between train and test windows to prevent leakage. Expectancy — mean P&L per trade (R or bps). Exposure — fraction of time/capital in the market. Fat tails — extreme events more frequent than Gaussian prediction. Fill model — assumptions about how orders execute in backtest. Funding rate — perp mechanism payment anchoring perp to spot. GARCH — volatility clustering model; forecasts tomorrow’s vol. HRP — clustering-based allocation needing no covariance inversion. Information Coefficient — rank correlation of signal vs forward return. Intrabar ambiguity — unknowable order of high/low within one bar. Kelly criterion — growth-optimal bet fraction; used fractionally if at all. Kupiec test — statistical check of VaR model exception rate. Leakage — any future information contaminating the past; the original sin. MAE/MFE — worst/best excursion during a trade’s life. Multiple comparisons problem — more tests ⇒ more false discoveries. Overfitting — fitting noise; performs in-sample, dies live. PBO — probability the selected config is overfit. Plateau — parameter region where neighbors also perform. Point-in-time — data as known at that moment, no revisions. Profit factor — gross profit ÷ gross loss. Purged CV — cross-validation removing overlapping label windows. R-multiple — P&L in units of initial risk. Regime — persistent market state with stable statistics. Risk parity — allocating so each component contributes equal risk. Sharpe ratio — excess return per unit volatility. Slippage — execution price worse than decision price. Sortino — Sharpe using downside deviation only. Stationarity — stable statistical properties over time. Stochastic dominance — one distribution systematically better than another. Survivorship bias — measuring only what survived. Tail risk — exposure to extreme, rare losses. Time-stop — exit after fixed holding period. Turnover — trading frequency; drives cost drag. Type I/II error — trading noise / discarding signal. VaR — loss level not exceeded with probability α. Volatility targeting — scaling size to hold portfolio vol constant. Walk-forward efficiency — OOS ÷ IS annualized performance. Wick — bar extreme beyond body; rejection evidence. z-score — distance from mean in standard errors.
+L1690: 
+L1691: Final word. This plan is deliberately conservative: it assumes most ideas fail, that noise impersonates edge, and that the operator is human. Systems built on those assumptions are the ones still trading in year three. Build the heartbeat first (G2), protect the database like treasure, let the Validation Lab break your heart weekly — and let compounding do what compounding does.
+L1692: — End of Master Plan v1.0 —
+L1693: Field | Value
+L1694: Document title | Project APEX — Quant Trading System Master Plan
+L1695: Version | 1.0
+L1696: Status | Approved for execution
+L1697: Owner | You (System Architect & Operator)
+L1698: Purpose | Single source of truth for designing, building, testing, and operating a complete quantitative trading system at zero budget
+L1699: Scope | Research, backtesting, strategy mining, validation, portfolio & risk management, execution support, monitoring, and continuous improvement
+L1700: Out of scope | Paid data feeds, paid APIs, cloud compute, high-frequency trading, options market-making
+L1701: Version | Date | Change
+L1702: 0.1 | 2026 | Initial outline and module map
+L1703: 0.5 | 2026 | Added strategy miner, validation lab, QA gates
+L1704: 1.0 | 2026 | Complete master plan with acceptance criteria and runbooks
+L1705: # | Objective | Measure | Target
+L1706: O1 | Local data lake, self-updating | Pairs × years × timeframes coverage | 20 pairs, 2017→now, 1m→1d
+L1707: O2 | Automated strategy discovery | Miner variants evaluated per run | ≥ 100,000 variants/run
+L1708: O3 | Complete trade memory | Labeled trades in DuckDB | ≥ 100,000 by month 6
+L1709: O4 | Validation discipline | % of mined strategies rejected | ≥ 90% rejected (healthy)
+L1710: O5 | Portfolio of uncorrelated edges | Live-validated strategies | 5–10
+L1711: O6 | Risk control | Max portfolio drawdown | Hard stop at −20%
+L1712: O7 | Live-vs-backtest fidelity | Live expectancy within 1.5σ of backtest | Yes, per strategy
+L1713: O8 | Positive expectancy | Net expectancy after all costs, 6-month rolling | > 0 per active strategy
+L1714: O9 | Operator discipline | Checklist adherence score (runbook §27) | ≥ 95%
+L1715: O10 | Zero recurring cost | Monthly spend on data/APIs/compute | $0
+L1716: Criterion | Weight | Why it matters
+L1717: Data cost & limits | 25% | $0 budget is absolute
+L1718: Data quality & depth | 20% | Backtest realism depends on it
+L1719: History length | 10% | More regimes = better validation
+L1720: Market hours | 10% | 24/7 = 4.5× more data/year than 5-day markets
+L1721: Tradability at tiny capital | 15% | Live validation must be affordable
+L1722: Paper-trading availability | 10% | Free testnet/demo
+L1723: Strategy diversity fit | 10% | Trend + mean-reversion both present
+L1724: Factor | Crypto (Binance) | Forex (Dukascopy) | US Equities | Indian Equities
+L1725: Historical data cost | Free, unlimited bulk ZIPs | Free but heavily rate-limited | Intraday paywalled (Polygon etc.) | Needs funded broker account
+L1726: Granularity available | Tick, aggTrades, 1s–1M klines | True tick w/ bid-ask | Daily free, intraday limited | Limited intraday depth
+L1727: History start | 2017 (BTC), 2018–2020 (alts) | 2003+ | Decades (daily only) | Varies
+L1728: Market hours | 24/7/365 | 24/5 | 6.5h × 5d | 6.25h × 5d
+L1729: Min live position | ~$5 | ~$100+ (micro lots) | ~$50+ | ~₹500+
+L1730: Free paper trading | Binance testnet (excellent) | MT5 demo (good) | Alpaca paper (good) | Limited
+L1731: Spread/cost model | Real exchange spreads | Variable, session-dependent | Commissions + spread | STT + brokerage + slippage
+L1732: Timezone complexity | None (pure UTC) | High (DST, sessions) | Medium | Low
+L1733: Verdict | PRIMARY | Secondary (Phase 3 plug-in) | Later | Later
+L1734: Layer | Component | Repo / Package | License | Role
+L1735: Data | Binance archive client | Custom downloader (~200 lines, stdlib requests + zipfile) | MIT | Bulk history ingestion
+L1736: Data | CCXT | ccxt | MIT | Live/incremental updates, exchange abstraction
+L1737: Storage | Parquet | pyarrow | Apache | Columnar data files
+L1738: Storage | DuckDB | duckdb | MIT | Analytical SQL over Parquet; trade DB
+L1739: Compute | pandas / numpy | pandas, numpy | BSD | Core dataframes
+L1740: Indicators | pandas-ta | pandas-ta | MIT | 130+ indicators
+L1741: Sweeps | vectorbt (OSS) | vectorbt | Apache | Massive parameter grids, fast screening
+L1742: Realistic backtest | NautilusTrader | nautilus_trader | LGPL | Event-driven fills, fees, slippage; backtest≈live parity
+L1743: Quick backtest | backtesting.py | backtesting | AGPL (dev tool only) | Rapid single-idea prototyping
+L1744: Reports | quantstats | quantstats | Apache | Tear sheets, metrics, heatmaps
+L1745: Factor analysis | alphalens-reloaded | alphalens-reloaded | Apache | Signal IC analysis
+L1746: Portfolio | skfolio | skfolio | BSD | HRP, risk parity, CVaR opt, walk-forward CV
+L1747: Alt portfolio | Riskfolio-Lib | riskfolio-lib | BSD | Drawdown-constrained allocation (comparison)
+L1748: Volatility | arch | arch | NCSA | GARCH, VaR forecasting
+L1749: Stats | statsmodels / scipy | — | BSD | Tests, cointegration, distributions
+L1750: Genetic mining | DEAP + gplearn | deap, gplearn | LGPL / BSD | Genetic programming engine (Miner-2)
+L1751: Local ML | scikit-learn / XGBoost / LightGBM | — | BSD | Miner-3, trade-success classifier
+L1752: Feature extraction | tsfresh | tsfresh | MIT | Automated time-series features
+L1753: UI | Streamlit | streamlit | Apache | Command Center
+L1754: Plotting | plotly / matplotlib | — | MIT | Interactive charts
+L1755: Alerts | python-telegram-bot | — | LGPL | Telegram notifications
+L1756: Scheduling | APScheduler | apscheduler | MIT | Nightly jobs, alert windows
+L1757: Live trading (later) | Freqtrade | freqtrade | GPL | Battle-tested crypto execution + FreqAI local ML
+L1758: Notebook | Jupyter | — | BSD | Exploratory research
+L1759: DB UI | DuckDB CLI / Harlequin | — | MIT | Ad-hoc SQL
+L1760: Excluded | Reason
+L1761: Backtrader | Unmaintained since 2023; creator departed; bugs unpatched
+L1762: Zipline / zipline-reloaded | Extremely slow; equity-centric; heavy dependency chain
+L1763: PyAlgoTrade, Catalyst, Blankly, Bulbea | Abandoned
+L1764: Freqtrade (as core) | Excellent for crypto live trading, but its backtester is strategy-singular — poor for mass mining; we adopt it at the execution layer only
+L1765: Qlib, FinRL | ML research frameworks; not production trading systems; dependency hell
+L1766: Jesse, Hummingbot | Crypto-specific apps; Hummingbot targets market-making — revisit for that module later
+L1767: Paid vectorbt PRO / StrategyQuant / Trade Ideas | Budget = 0; OSS covers our needs
+L1768: LLM APIs in the trading loop | Recurring cost; no measurable edge vs. local statistics
+L1769: Direction | Artifact | Format
+L1770: Input | Binance archive ZIPs (data.binance.vision) | Monthly/daily CSV in ZIP
+L1771: Input | CCXT REST (fetch_ohlcv) | JSON
+L1772: Output | data/raw/binance/<PAIR>/<TF>.parquet | Parquet (snappy)
+L1773: Output | DuckDB views v_bars_<tf> | SQL view
+L1774: Output | Data quality report (per update) | Markdown/JSON log
+L1775: Check | Rule | Action on fail
+L1776: Gap check | No missing 1m bars beyond exchange maintenance windows (>60 consecutive missing bars = investigate) | Quarantine pair-month; re-download
+L1777: Duplicate check | open_time unique per pair/tf | Drop dupes, log count
+L1778: OHLC sanity | high ≥ max(open,close), low ≤ min(open,close), all > 0 | Quarantine
+L1779: Outlier check |  | log-return
+L1780: Volume check | Zero-volume runs > 30 bars → flag | Investigate
+L1781: Continuity after resample | Derived 1h bar count == 1m count / 60 (± maintenance) | Fail resample
+L1782: Freshness | After nightly update, latest bar < 24h old | Alert via Telegram
+L1783: Group | Features (examples) | Library
+L1784: Momentum | RSI(2,7,14,21), Stoch, MACD histogram, ROC, Williams %R | pandas-ta
+L1785: Trend | EMA(9,21,50,200) distance & slope, ADX(14), +DI/−DI, Supertrend, Donchian position | pandas-ta
+L1786: Volatility | ATR(14) & ATR percentile (252d), Bollinger %B & bandwidth, historical vol (20d), Parkinson vol | pandas-ta / numpy
+L1787: Volume | Volume z-score (20d), OBV slope, taker-buy ratio, dollar volume | pandas/numpy
+L1788: Time | hour_utc, day_of_week, is_weekend, week_of_month, month, quarter | pandas
+L1789: Session-analog* | asia(00–08), europe(07–16), us(12–21), overlap(12–16) UTC labels | custom
+L1790: Regime — trend | trend_regime ∈ {up, down, range} from EMA200 slope + ADX threshold | custom
+L1791: Regime — vol | vol_regime ∈ {low, mid, high, extreme} from ATR percentile quartiles | custom
+L1792: Micro-structure | gap vs prior close, distance to 24h high/low, consecutive up/down bars, range position | custom
+L1793: Funding/perp | funding rate, funding z-score (when using perp data) | archive
+L1794: Event | minutes_to_event, is_event_day, event_impact | calendar join
+L1795: Block type | Examples | Count target (v1)
+L1796: Entry triggers | EMA cross, RSI threshold cross, BB %B cross, Donchian break, MACD hist flip, volume spike + candle direction, Supertrend flip | 20–30
+L1797: Entry filters | ADX > x, vol_regime ∈ {…}, trend_regime ∈ {…}, session ∈ {…}, day_of_week ∈ {…}, RSI range, funding sign | 15–20
+L1798: Exit models | Fixed SL/TP (R-multiples), ATR trailing, time-stop (N bars), signal-flip exit, partial scale-out | 8–12
+L1799: Direction | long-only, short-only, both | 3
+L1800: Timeframes | 5m, 15m, 1h, 4h | 4
+L1801: Property | vectorbt (screening) | NautilusTrader (finalists)
+L1802: Speed | ~10k variants/hour | ~1–10 runs/minute
+L1803: Cost model | Fees + slippage bps (vectorized) | Per-fill fees, spread, slippage models
+L1804: Order types | Market | Market/limit/stop/trailing, partial fills
+L1805: Use | Miner Stages 1–3 | Validation Lab, pre-live sign-off
+L1806: Parity requirement | — | Same strategy must reproduce vectorbt metrics within tolerance (±10% expectancy) or explain why
+L1807: MC type | Method | Pass criterion
+L1808: Trade reshuffle | Random permutation of trade P&L sequence | 95th-pct max DD ≤ risk budget (default 20%)
+L1809: Trade skipping | Drop 10–30% of trades randomly | Median expectancy still > 0
+L1810: Block bootstrap | Resample contiguous 20-trade blocks (preserves streaks) | 95th-pct max DD ≤ 25%
+L1811: Cost stress | Re-run with 2× and 3× fees+slippage | Expectancy > 0 at 2× (3× = informational)
+L1812: Method | Use | Notes
+L1813: Equal weight | Baseline | Always compute; surprisingly hard to beat
+L1814: HRP (Hierarchical Risk Parity) | Primary | No matrix inversion; robust to estimation error; clusters correlated strategies
+L1815: Risk parity (vol) | Secondary | Equal risk contribution per strategy
+L1816: CVaR risk parity | Stress-case | Allocates by tail risk; check in high-vol regimes
+L1817: Mean-variance (Ledoit-Wolf) | Reference only | Unstable at small n; never deploy raw
+L1818: Tier | Capital | Allocation approach
+L1819: T1 | < $2,000 | Max 2–3 strategies, equal risk weight; HRP meaningless at this size
+L1820: T2 | $2k–$25k | HRP over all validated strategies
+L1821: T3 | > $25k | HRP + CVaR overlay, cluster caps binding
+L1822: Breaker | Limit | Action
+L1823: Per-trade risk | ≤ 1% equity | Reject order plan
+L1824: Concurrent positions | ≤ 5 | Queue new signals
+L1825: Same-direction single-asset exposure | ≤ 2 positions | Skip correlated adds
+L1826: Daily loss | −1.5% equity | Flat + locked until next day
+L1827: Weekly loss | −4% | Flat + locked until Monday
+L1828: Strategy drawdown | −15% from its peak | Strategy benched → re-validation
+L1829: Portfolio drawdown | −12% | All sizes halved
+L1830: Portfolio drawdown | −20% | FULL STOP → manual review, re-validate everything
+L1831: API/journal failure | — | No new trades until logging restored
+L1832: Stage | Mode | Gate to advance
+L1833: S1 | Manual (system alerts → you click on exchange) | 8 weeks + 50 paper trades matching backtest within 1.5σ
+L1834: S2 | Semi-auto on Binance testnet (Freqtrade or CCXT bot) | 8 weeks testnet, fills/slippage within model
+L1835: S3 | Live auto-execution (small capital) | S2 green + full breaker stack + kill-switch drill passed
+L1836: Report | Cadence | Contents
+L1837: Daily digest | EOD Telegram | P&L, trades taken vs cards, breaker status, tomorrow’s windows
+L1838: Weekly report | Sunday | Per-strategy live-vs-backtest drift, decay z-scores, risk metrics, journal adherence %
+L1839: Monthly deep-dive | 1st | Full quantstats tear sheets, rebalance proposal, re-validation queue, miner summary, data health
+L1840: Column | Type | Unit | Definition | Notes
+L1841: open_time | TIMESTAMP | UTC ms→ts | Bar open timestamp | Binance convention: bar covers [open_time, open_time+tf)
+L1842: open | DOUBLE | USDT | First trade price in bar | —
+L1843: high | DOUBLE | USDT | Highest trade price in bar | Must be ≥ max(open, close)
+L1844: low | DOUBLE | USDT | Lowest trade price in bar | Must be ≤ min(open, close)
+L1845: close | DOUBLE | USDT | Last trade price in bar | —
+L1846: volume | DOUBLE | base asset | Sum of base-asset volume | e.g., BTC for BTCUSDT
+L1847: quote_vol | DOUBLE | USDT | Sum of quote-asset volume | Liquidity proxy
+L1848: trades | INTEGER | count | Number of trades in bar | Activity proxy
+L1849: taker_buy | DOUBLE | base asset | Taker-buy base volume | buy/sell pressure: ratio = taker_buy/volume
+L1850: Feature | Values | Definition
+L1851: hour_utc | 0–23 | Hour of bar open, UTC
+L1852: day_of_week | 0–6 | Monday=0 … Sunday=6
+L1853: is_weekend | bool | Sat/Sun — crypto trades weekends, but liquidity/participation differs; test as filter
+L1854: week_of_month | 1–5 | Calendar week within month
+L1855: month | 1–12 | Calendar month (seasonality scans)
+L1856: session | asia / europe / us / overlap / off | UTC windows: asia 00–07, europe 07–12, overlap 12–16, us 16–21, off 21–24
+L1857: minutes_from_session_open | int | Bars-since current session window opened
+L1858: is_month_end | bool | Last 2 trading days of month (rebalancing flows)
+L1859: minutes_to_event | int/null | Minutes to next scheduled high-impact event
+L1860: is_event_day | bool | Any high/medium event scheduled that UTC day
+L1861: Feature | Params | Formula / Definition | Typical use
+L1862: rsi_2 / rsi_7 / rsi_14 / rsi_21 | Wilder | RSI over N bars | MR triggers (2,7), trend filter (14,21)
+L1863: stoch_k / stoch_d | 14,3 | %K = (C − LL14)/(HH14 − LL14) × 100 | MR within ranges
+L1864: macd_hist | 12,26,9 | MACD line − signal line | Momentum flips
+L1865: roc_10 | 10 | (C/C[−10] − 1) × 100 | Breakout strength
+L1866: willr_14 | 14 | Williams %R | OB/OS in ranges
+L1867: cci_20 | 20 | Commodity Channel Index | Cyclical extremes
+L1868: Feature | Definition
+L1869: ema_9/21/50/200 | Exponential moving averages of close
+L1870: ema200_slope_20 | (ema200 − ema200[−20]) / ema200[−20] × 100 — normalized trend direction
+L1871: adx_14, plus_di, minus_di | Wilder ADX family; trend strength & direction
+L1872: supertrend_dir | ±1 from Supertrend(10, 3)
+L1873: donchian_pos | (C − LL20) / (HH20 − LL20), 0–1 channel position
+L1874: dist_ema200_pct | (C/ema200 − 1) × 100 — extension measure
+L1875: Feature | Definition
+L1876: atr_14 | Wilder ATR
+L1877: atr_pct | atr_14 / close × 100 — normalized vol
+L1878: atr_pctile_252d | Percentile of current atr_pct within trailing 252 days (0–1)
+L1879: bb_pctb | (C − lowerBB) / (upperBB − lowerBB), BB(20,2)
+L1880: bb_width | (upper − lower) / mid — squeeze detection
+L1881: hv_20 | 20-bar stdev of log returns × √periods
+L1882: parkinson_20 | Range-based vol estimator
+L1883: vol_z_20 | (volume − mean20) / std20 — volume shock
+L1884: obv_slope_10 | Slope of On-Balance-Volume over 10 bars
+L1885: dollar_vol_20d | 20-day mean quote_vol — liquidity floor filter
+L1886: Feature | Definition
+L1887: gap_pct | (open − prev_close) / prev_close × 100 (4h/1d timeframes)
+L1888: dist_24h_high/low_pct | Distance to trailing 24h extremes
+L1889: consec_bars | Consecutive same-direction closes (signed)
+L1890: range_pos | Position of close within current bar range, 0–1
+L1891: trend_regime | up / down / range — §10.3 rules
+L1892: vol_regime | low / mid / high / extreme — §10.3 quartiles
+L1893: funding_rate / funding_z | Perp funding and its 90d z-score (perp data only)
+L1894: ID | Name | Logic | Params
+L1895: T01 | EMA cross up/down | ema_fast crosses above ema_slow | fast ∈ {5..21}, slow ∈ {21..200}
+L1896: T02 | RSI threshold cross | rsi_n crosses above/below level | n ∈ {2,7,14}, level ∈ {10..90}
+L1897: T03 | RSI pullback in trend | rsi_2 < 10 while trend_regime=up (long) | rsi level, trend gate
+L1898: T04 | BB %B cross | %B crosses below 0 / above 1 | bb_len, bb_std
+L1899: T05 | Donchian breakout | close > HH_n of prior bars | n ∈ {10,20,55}
+L1900: T06 | MACD hist flip | hist crosses 0 | standard 12/26/9
+L1901: T07 | Volume-shock momentum | vol_z > z AND candle direction | z ∈ {2,3}
+L1902: T08 | Supertrend flip | direction changes | (10, mult ∈ {2,3,4})
+L1903: T09 | Session-open range break | break of first-hour range of session | session, buffer_bps
+L1904: T10 | Gap fill | gap > x% then reversal back into gap | gap threshold
+L1905: T11 | Consecutive-bars reversal | consec_bars ≥ k then first opposite close | k ∈ {3..6}
+L1906: T12 | Momentum persistence | roc_10 in top decile → continuation | lookback, threshold
+L1907: T13 | VWAP stretch revert | dist_vwap beyond σ band → revert | σ mult ∈ {1.5,2,2.5}
+L1908: T14 | Funding extreme fade | funding_z extreme → fade perp crowd | z ∈ {2,2.5,3}
+L1909: T15 | Range-position snapback | close in bottom 10% of bar after down move | filters required
+L1910: T16 | 24h-high/low retest | touch & rejection wick | wick ratio
+L1911: T17 | BB squeeze break | bb_width in bottom quintile → trade the break | width pctile
+L1912: T18 | Stoch cross in range | %K×%D cross while trend_regime=range | 14,3
+L1913: T19 | CCI extreme revert | cci_20 beyond ±100 revert | level
+L1914: T20 | ATR expansion momentum | atr_pct jump > x% with direction | expansion factor
+L1915: T21 | EMA200 first-touch | first touch of ema200 after >50 bars away | distance memory
+L1916: T22 | Multi-TF alignment | HTF trend + LTF trigger | htf gate + any trigger
+L1917: T23 | Wick rejection | lower wick > 2× body at support zone | wick/body ratio
+L1918: T24 | Month-end drift | directional bias into month close | calendar gate
+L1919: ID | Name | Passes when
+L1920: F01 | Trend gate | trend_regime ∈ chosen set
+L1921: F02 | Vol gate | vol_regime ∈ chosen set
+L1922: F03 | ADX floor/ceiling | adx_14 > x (or < x)
+L1923: F04 | Session gate | session ∈ chosen set
+L1924: F05 | Day gate | day_of_week ∈ chosen set
+L1925: F06 | Hour gate | hour_utc ∈ chosen ranges
+L1926: F07 | Weekend toggle | is_weekend = chosen
+L1927: F08 | Event blackout | minutes_to_event > buffer AND not is_event_day
+L1928: F09 | Liquidity floor | dollar_vol_20d > threshold
+L1929: F10 | EMA200 side | close on chosen side of ema200
+L1930: F11 | RSI zone | rsi_14 within range
+L1931: F12 | Funding side | funding sign matches direction logic
+L1932: F13 | Squeeze gate | bb_width pctile in chosen band
+L1933: F14 | ATR band | atr_pct within min–max (avoid dead & insane vol)
+L1934: F15 | Correlated-position guard | no open same-direction trade on correlated pair
+L1935: F16 | Cooldown | ≥ N bars since last trade on same pair
+L1936: F17 | Month-end toggle | is_month_end = chosen
+L1937: F18 | Slope gate | ema200_slope_20 sign matches direction
+L1938: ID | Name | Logic | Params
+L1939: X01 | Fixed SL/TP | stop at k×ATR, target at m×ATR | k, m
+L1940: X02 | R-multiple | stop 1R, target r×R | r ∈ {1,1.5,2,3}
+L1941: X03 | ATR trailing | chandelier: highest_high − k×ATR | k ∈ {2,3,4}
+L1942: X04 | Time stop | exit after N bars regardless | N ∈ {8..96}
+L1943: X05 | Signal flip | exit on opposite trigger | —
+L1944: X06 | Scale-out | 50% at 1R, stop→BE, trail rest | ratios
+L1945: X07 | Session close | exit at session window end | session
+L1946: X08 | RSI normalize | exit when rsi crosses back through 50 | rsi_n
+L1947: X09 | Donchian mid exit | exit at channel midline | n
+L1948: X10 | Vol-crush exit | exit if vol_regime collapses to low while in trade | —
+L1949: # | Check | Answer
+L1950: 1 | Active Edge Card ID exists for this setup | EC-___
+L1951: 2 | All card conditions currently true (session/day/regime/ADX…) | yes/no
+L1952: 3 | No event blackout active | yes/no
+L1953: 4 | Daily loss budget untouched, breakers clear | yes/no
+L1954: 5 | Size taken from Risk Engine (not adjusted) | qty ___
+L1955: 6 | Stop price known BEFORE entry | price ___
+L1956: 7 | Emotion score 1–5 logged | ___
+L1957: 8 | Reason in one sentence (if it takes two, skip) | ___
+L1958: Days | Focus | Done when
+L1959: 1–7 | Repo, env, config, CI | G0 green
+L1960: 8–21 | Data Lake: download, validate, resample, update | G1 (A1.1–A1.8)
+L1961: 22–35 | Features + ONE strategy heartbeat: sweep → DB → first slice | G2 ★
+L1962: 36–49 | Engine hardening + block library + Miner-1 first run | G3
+L1963: 50–63 | Trade DB at scale + Edge Analytics + first cards | G4 (A6.3 green)
+L1964: 64–77 | Validation Lab; run gauntlet; expect 2–8 survivors | G5 (A7.3 green)
+L1965: 78–84 | Portfolio + Risk engines; breaker drills | G6
+L1966: 85–90 | Command Center + alerts; begin paper trading | G7 → Phase 8
+L1967: # | Task | Verify
+L1968: 1 | Write fetch_month() for one pair/tf; inspect raw CSV | Columns match §9.4
+L1969: 2 | Add month-cache + resume logic | Kill mid-run, restart skips done months
+L1970: 3 | Ingest BTCUSDT 1m full history | Row count vs Binance UI sample
+L1971: 4 | Write validator v1 (gaps, dupes, OHLC rules) | Runs on BTC, produces report
+L1972: 5 | Fix/remediate flagged months | Report clean
+L1973: 6 | Loop all 20 pairs (background, days) | Coverage matrix filled
+L1974: 7 | Write resampler + unit test | Hand-check passes
+L1975: 8 | Generate 5m–1d for all pairs | Continuity check passes
+L1976: 9 | DuckDB views v_bars_* | Query < 2s for 1y 15m
+L1977: 10 | get_bars() access API | Returns correct slice
+L1978: 11 | Nightly updater via CCXT | Idempotent second run
+L1979: 12 | Wire APScheduler job | Job log shows success
+L1980: 13 | Event calendar CSV + loader | Events queryable
+L1981: 14 | Quality report automation → Telegram | First report received
+L1982: # | Task
+L1983: 1 | Indicator wrapper (pandas-ta) for momentum group
+L1984: 2 | Trend + volatility + volume groups
+L1985: 3 | Time/session label functions
+L1986: 4 | Regime labelers (trend, vol) per §10.3
+L1987: 5 | Lookahead test harness (C2.6.1)
+L1988: 6 | Synthetic fixtures (C2.6.2) for 5 core indicators
+L1989: 7 | Materialize features.parquet per pair/tf
+L1990: 8 | Feature versioning + rebuild script
+L1991: 9 | Event join (minutes_to_event etc.)
+L1992: 10 | Funding features (perp archive)
+L1993: 11 | Nightly feature rebuild job
+L1994: # | Task
+L1995: 1 | Block base classes + registry
+L1996: 2 | Implement 8 triggers + tests
+L1997: 3 | Implement 8 filters + 5 exits + tests
+L1998: 4 | Complete v1 block catalog (24/18/10)
+L1999: 5 | vectorbt screen runner + cost config
+L2000: 6 | Stage-1 solo scan all pairs/tfs
+L2001: 7 | Stage-2 pair-up pipeline + chunking
+L2002: 8 | TradeWriter integration (every run logs)
+L2003: 9 | Stage-3 exit search
+L2004: 10 | Plateau analyzer
+L2005: 11 | Run registry + trial accounting
+L2006: 12 | Ranking + candidate handoff file
+L2007: # | Task
+L2008: 1 | Zero-cost parity test (C2.6.3)
+L2009: 2 | Cost model (fees+slippage)
+L2010: 3 | Next-bar fill enforcement
+L2011: 4 | Intrabar conservative rule
+L2012: 5 | Run-registry writer
+L2013: 6 | Metrics panel + quantstats tear sheet
+L2014: 7 | NautilusTrader wrapper for one strategy
+L2015: 8 | Parity check vectorbt↔Nautilus
+L2016: 9 | Reproducibility hash test
+L2017: # | Task
+L2018: 1 | Schema DDL + migration runner
+L2019: 2 | TradeWriter + label joiner
+L2020: 3 | Idempotent upsert
+L2021: 4 | Analytical views (v_strategy_summary etc.)
+L2022: 5 | Backtest vs live label parity
+L2023: 6 | Performance tuning (partition if needed)
+L2024: 7 | Backup script + schedule
+L2025: 8 | Restore drill
+L2026: # | Task
+L2027: 1 | slice_stats engine (C2.11.4)
+L2028: 2 | Dimension scanners (hour×day, session×regime)
+L2029: 3 | Bootstrap CI implementation
+L2030: 4 | BH correction (C2.11.5)
+L2031: 5 | Both-halves stability check
+L2032: 6 | Negative control (A6.3)
+L2033: 7 | Positive control (A6.4)
+L2034: 8 | Edge Card generator + storage
+L2035: 9 | Expiry job
+L2036: # | Task
+L2037: 1 | Fold generator (anchored)
+L2038: 2 | Walk-forward runner + WFE
+L2039: 3 | MC reshuffle + skip + block bootstrap
+L2040: 4 | Cost-stress rerun harness
+L2041: 5 | Regime grid gate
+L2042: 6 | PBO (CSCV) implementation
+L2043: 7 | DSR implementation + trial input
+L2044: 8 | Gauntlet orchestrator (gates in order)
+L2045: 9 | Noise control (A7.3) — THE critical test
+L2046: 10 | Positive control (A7.4)
+L2047: # | Task
+L2048: M8-1 | Strategy return-series builder (stitched OOS)
+L2049: M8-2 | skfolio HRP wrapper + constraints
+L2050: M8-3 | Correlation guard
+L2051: M8-4 | Allocator backtest vs equal weight
+L2052: M8-5 | Monthly rebalance job + archive
+L2053: M8-6 | Tier logic (T1/T2/T3)
+L2054: M9-1 | Sizing engine (base × confidence × decay × weight)
+L2055: M9-2 | 9 circuit breakers
+L2056: M9-3 | VaR/CVaR historical
+L2057: M9-4 | GARCH forecaster (arch)
+L2058: M9-5 | VaR backtest (Kupiec)
+L2059: M9-6 | Decay-multiplier wiring
+L2060: M9-7 | Risk metrics dashboard queries
+L2061: M9-8 | Breaker → Telegram alerts
+L2062: # | Task
+L2063: M10-1 | Streamlit skeleton + navigation
+L2064: M10-2 | Overview page
+L2065: M10-3 | Edge Explorer
+L2066: M10-4 | Validation Center
+L2067: M10-5 | Portfolio page
+L2068: M10-6 | Journal page + form
+L2069: M10-7 | Data Manager page
+L2070: M10-8 | Performance pass (caching)
+L2071: M11-1 | Edge Card publisher (daily job)
+L2072: M11-2 | Telegram alert bot
+L2073: M11-3 | Journal form + checklist enforcement
+L2074: M11-4 | Violation counter + lockout
+L2075: M11-5 | Testnet bridge (CCXT)
+L2076: M11-6 | Kill-switch
+L2077: M11-7 | Slippage calibration job
+L2078: M12-1 | Decay detector + z-score wiring
+L2079: M12-2 | Daily digest job
+L2080: M12-3 | Weekly report generator
+L2081: M12-4 | Monthly deep-dive generator
+L2082: M12-5 | Health monitor (freshness/jobs/disk)
+L2083: M12-6 | Event audit trail in DB
+L2084: Day | Task | Deliverable
+L2085: 1 | Repo init, folder tree (§8.1), git, pre-commit hooks | Clean repo
+L2086: 2 | Environment, pinned requirements, sanity imports | .venv, requirements.txt
+L2087: 3 | Config system (YAML loader + validation) | src/config.py
+L2088: 4 | Logging + run-registry skeleton | src/runs.py
+L2089: 5 | DuckDB bootstrap + migration runner | db/ tooling
+L2090: 6–7 | CI: pytest scaffold, GitHub Actions (or local pre-push) | Green pipeline
+L2091: Level | Scope | Tool | Coverage target
+L2092: Unit | every indicator, block, labeler, sizer, breaker | pytest | ≥ 80% on src/ core (datalake, tradesdb, risk, edge)
+L2093: Property | no-lookahead, no-negative-weights, idempotent-writes | pytest + hypothesis | critical paths 100%
+L2094: Integration | bar→trade→DB→slice chain | pytest fixtures | the heartbeat path always green
+L2095: Statistical | negative/positive controls for miner, edge engine, validation lab | scripted sims | mandatory before trusting outputs
+L2096: Test ID | Test | Pass standard
+L2097: SYS-1 | Full rebuild from scratch on clean machine | System operational ≤ 2 days using docs alone
+L2098: SYS-2 | Reproducibility: re-run 5 historical runs | Identical metrics hashes
+L2099: SYS-3 | Data-wall audit | No code path loads OOS data into miner (grep + runtime test)
+L2100: SYS-4 | Cost realism: backtest vs paper slippage | Paper slippage ≤ 1.5× modeled
+L2101: SYS-5 | Breaker drill | All 9 breakers fire in simulation; kill-switch drill signed
+L2102: SYS-6 | Failure injection: kill internet mid-update, corrupt a Parquet, stop DuckDB | System degrades with alerts, never silently
+L2103: SYS-7 | Performance: 500k-trade DB, UI < 5s/page, slice queries < 3s | Timing log
+L2104: SYS-8 | Security: API keys (testnet) in env vars, never in git | git grep clean
+L2105: SYS-9 | Backup restore drill | Full system restored from backup ≤ 4 hours
+L2106: SYS-10 | Documentation audit | Every module README + this plan current to ≤ 2 weeks
+L2107: Bias | Symptom | System countermeasure
+L2108: Overconfidence after wins | Oversizing next trade | Fixed sizing, no discretion
+L2109: Loss aversion | Widening stops, hoping | Law #6, stop placed at entry
+L2110: Recency bias | Abandoning strategy after 3 losses | Decay detector needs z < −2.5 over 20+ trades
+L2111: Hindsight bias | “I knew it” after the fact | Journal written BEFORE outcomes known
+L2112: Gambler’s fallacy | “We’re due for a win” | Trade-by-trade independence; cards don’t care
+L2113: Action bias | Trading from boredom | No-card-no-trade lockout
+L2114: Survivorship bias | Remembering winners only | The DB remembers everything — review it
+L2115: Phase | Capital at risk | Realistic goal
+L2116: Build (months 1–3) | $0 | Skill + system
+L2117: Paper (months 4–6) | $0 | Process proof
+L2118: Micro live (months 6–9) | $200–500 | Fill/slippage reality, psychology under real stakes
+L2119: Small live (months 9–18) | $1k–5k | Confirm expectancy compounds; scale only on evidence
+L2120: Growth (18m+) | Evidence-scaled | Add capital only from profits + proven track record
+L2121: Enhancement | Value | Effort
+L2122: Miner-2 genetic programming | Discovers non-obvious logic humans wouldn’t try | 2–3 weeks
+L2123: Miner-3 ML trade filter | Learns from your own trade DB; typically +10–20% expectancy on validated strategies | 2 weeks
+L2124: Regime-switching overlay | HMM (hmmlearn) market-regime detection → auto-enable/disable strategy families | 1 week
+L2125: Order-book features | Binance provides book snapshots; imbalance features for short-TF strategies | 1–2 weeks
+L2126: Auto-execution (Freqtrade) | Removes execution latency & emotion; only after S1–S2 gates | 2 weeks
+L2127: Funding-rate carry strategy family | Delta-neutral funding harvest (perp short + spot long) — a genuinely different return stream | 2 weeks
+L2128: Pairs/cointegration module | statsmodels cointegration on correlated alts; market-neutral reversion | 1–2 weeks
+L2129: Enhancement | Notes
+L2130: Forex plug-in (Chapter 23) | Second uncorrelated market; same system
+L2131: React + FastAPI Command Center v2 | Only when Streamlit genuinely limits you
+L2132: Multi-timeframe ensemble strategies | HTF regime gates LTF entries systematically
+L2133: Portfolio-of-portfolios | Meta-allocation across strategy families (trend / MR / carry / stat-arb)
+L2134: Walk-forward automation | Monthly auto re-validation of the whole roster
+L2135: Advanced execution | TWAP/VWAP slicing for larger size; limit-order fill modeling from book data
+L2136: Hummingbot evaluation | If market-making ever interests you (different game, separate capital)
+L2137: Resource | Start | When it hurts | Fix
+L2138: CPU | Any modern 4–6 cores | Miner-2 overnight runs | Multiprocessing pools; rent nothing
+L2139: RAM | 16 GB | vectorbt grids on 1m × 20 pairs | Chunk pairs; use 15m for screening
+L2140: Disk | 100 GB free | Tick data ambitions | Keep 1m as base; archive old runs
+L2141: Backup | Second local disk | Data > 100 GB | Free-tier cloud (15 GB) for DB + configs only
+L2142: Time | 10–15 h/week | Operations > 1 h/day | Automate; the system should serve you, not employ you
+L2143: Resource | URL | Used for
+L2144: Binance data archive | data.binance.vision | Bulk historical klines/trades
+L2145: CCXT | github.com/ccxt/ccxt | Exchange connectivity
+L2146: vectorbt | github.com/polakowo/vectorbt | Vectorized sweeps
+L2147: NautilusTrader | github.com/nautechsystems/nautilus_trader | Event-driven backtest/live
+L2148: backtesting.py | github.com/kernc/backtesting.py | Rapid prototyping
+L2149: quantstats | github.com/ranaroussi/quantstats | Tear sheets
+L2150: alphalens-reloaded | github.com/stefan-jansen/alphalens-reloaded | Factor IC analysis
+L2151: skfolio | github.com/skfolio/skfolio | Portfolio optimization
+L2152: Riskfolio-Lib | github.com/dcajasn/Riskfolio-Lib | Alt allocation methods
+L2153: arch | github.com/bashtage/arch | GARCH/VaR
+L2154: pandas-ta | github.com/twopirllc/pandas-ta | Indicators
+L2155: DEAP | github.com/DEAP/deap | Genetic algorithms
+L2156: gplearn | github.com/trevorstephens/gplearn | Genetic programming
+L2157: Freqtrade | github.com/freqtrade/freqtrade | Live execution + FreqAI
+L2158: DuckDB | github.com/duckdb/duckdb | Analytics database
+L2159: Streamlit | github.com/streamlit/streamlit | Command Center
+L2160: Dukascopy data | dukascopy.com/swiss/english/marketwatch/historical/ | Forex plug-in
+L2161: Symptom | Likely cause | Fix
+L2162: Amazing backtest, dead live | Same-bar fills, lookahead, or costs off | Re-audit Gates A4.3/A2.1; slippage calibration
+L2163: Miner “finds” 500 great strategies | Multiple-testing illusion OR leakage | Check trial accounting → DSR; run negative control A7.3
+L2164: Slice looks great, n=23 | Small-sample mirage | Provisional status; wait or widen slice
+L2165: Strategy great until 2024, dead after | Edge decay or regime shift | Decay detector verdict; re-mine; retire gracefully
+L2166: Equity curve too smooth | Intrabar optimistic assumption | Enforce conservative intrabar rule (A4.4)
+L2167: DuckDB slow | Row-wise inserts, no views | Batch inserts; pre-aggregate views; partition Parquet
+L2168: vectorbt memory blow-up | Grid × 1m × 20 pairs at once | Chunk pairs/timeframes; screen on 15m first
+L2169: “It worked in vectorbt but not Nautilus” | Fill/timing difference | Parity test A4.5; find the exact divergent trade
+L2170: Constantly tweaking the system | Action bias applied to engineering | Changes only via weekly review; decision log
+L2171: Skipping journal entries | Discipline leak | Lockout rule; adherence in weekly audit
+L2172: One pair dominates P&L | Pair-specific luck | Require cross-pair robustness before scaling
+L2173: Drawdown feels unbearable | Size too big for your psychology | Halve base risk; the best size is one you can hold
+L2174: # | Failure mode | Mechanism | APEX defense
+L2175: 1 | Lookahead bias | Feature uses future data | A2.1 lookahead tests on everything
+L2176: 2 | Same-bar fills | Signal and fill on same bar | next-bar-open rule, A4.3 test
+L2177: 3 | Intrabar optimism | TP assumed before SL in one bar | conservative rule, A4.4
+L2178: 4 | Cost amnesia | Backtest without fees/slippage | costs mandatory in config; A4.2
+L2179: 5 | Spread blindness | Fixed spread assumption | measured calibration loop §19.3
+L2180: 6 | Survivorship in universe | Only today’s surviving pairs | include delisted pairs in archive pulls
+L2181: 7 | Multiple-testing illusion | 100k trials → fake edges | BH correction, PBO, DSR, trial accounting
+L2182: 8 | Peak-picking | Choosing best backtest params | plateau scoring §11.3 Stage 4
+L2183: 9 | Small-sample trust | n=30 “edge” | n≥100 rule, provisional tier
+L2184: 10 | Regime overfit | Works only in 2021 bull | regime stress gate; both-halves stability
+L2185: 11 | Walk-forward theater | WF run once, cherry-picked | full anchored folds, WFE threshold
+L2186: 12 | OOS peeking | “Just checking” 2024 results | data wall, SYS-3 audit
+L2187: 13 | Parameter creep | Tuning after seeing OOS | new OOS required; decision log
+L2188: 14 | Correlation pile-up | 5 strategies = 1 bet | correlation guard, HRP clusters
+L2189: 15 | Sizing by conviction | Bigger on “sure things” | Risk Engine only; journal violations
+L2190: 16 | Breaker override | “Just this once” | code-enforced lockouts, PB-1
+L2191: 17 | Revenge trading | Chasing losses | lockouts, operator law #4
+L2192: 18 | Edge decay denial | Riding dead strategy | decay detector, auto-bench
+L2193: 19 | Rebalancing churn | Weekly weight fiddling | monthly cadence, turnover penalty
+L2194: 20 | Complexity worship | Adding ML to broken basics | simple-first principle; ML-as-filter only
+L2195: 21 | Data rot | Silent gaps/bad bars | validator, quarantine, PB-6
+L2196: 22 | Backup theater | Backups never tested | restore drills SYS-9
+L2197: 23 | Single-exchange risk | Exchange freezes | minimal balances, monthly sweeps
+L2198: 24 | Journaling decay | Stops journaling → blind | adherence metric, lockout rule
+L2199: 25 | Abandoning in drawdown | Quitting at the percentile bottom | MC percentile framing, PB-3/4
+L2200: KPI | Definition | Green | Yellow | Red
+L2201: Live expectancy drift z | (live rolling 30-trade mean − backtest mean) / SE | > −1.5 | −1.5…−2.5 | < −2.5
+L2202: Checklist adherence | % of trades with complete pre-trade checklist | ≥ 95% | 85–95% | < 85%
+L2203: On-card rate | % of trades with active Edge Card | 100% | 95–99% | < 95%
+L2204: Cost ratio | measured live slippage ÷ modeled | ≤ 1.2 | 1.2–1.5 | > 1.5 → recalibrate
+L2205: Data freshness | age of newest bar at morning check | < 12h | 12–24h | > 24h
+L2206: Backup age | days since verified backup | ≤ 7 | 8–14 | > 14
+L2207: Portfolio DD percentile | current DD vs MC distribution | < 75th | 75–95th | > 95th → PB-3/4
+L2208: VaR95 utilization | current VaR95 ÷ limit | < 70% | 70–100% | > 100%
+L2209: Strategy breadth | # live validated strategies | 3–8 | 2 or 9–10 | 1 or >10
+L2210: Correlation guard | max pairwise 90d strategy corr | < 0.5 | 0.5–0.6 | > 0.6 → action
+L2211: Validation backlog | candidates awaiting gauntlet | < 10 | 10–20 | > 20 (schedule lab time)
+L2212: Card freshness | % cards validated within 90 days | 100% | 90–99% | < 90%
+L2213: Miner cadence | days since last mining run | ≤ 30 | 31–45 | > 45
+L2214: Journal completeness | % trades with post-trade entry | 100% | 95–99% | < 95%
+L2215: Equity vs plan | actual equity vs MC median path | band ±1σ | ±1–2σ | outside 2σ either way
+L2216: Month | System focus | Trading focus | Milestone
+L2217: M1 | Phases 0–1: repo, data lake | None | G0, G1 green
+L2218: M2 | Phases 2–3: features, heartbeat, miner | None | G2 ★ heartbeat, G3
+L2219: M3 | Phases 4–5: edge analytics, validation lab | None | First validated strategies
+L2220: M4 | Phases 6–7: risk, UI; paper trading begins | Paper only | G6, G7; first paper cards
+L2221: M5 | Paper trading; Miner-2 build starts | Paper | 25+ paper trades
+L2222: M6 | Paper trading; calibration loops live | Paper | G8 gate attempt (50+ trades)
+L2223: M7 | Micro-live (T1); monthly re-mine operational | Micro live | First real fills journaled
+L2224: M8 | Live ops; decay detector proving itself | Micro live | 30+ live trades
+L2225: M9 | Miner-2 genetic runs feeding lab | Micro live | First GP-discovered candidate
+L2226: M10 | Miner-3 ML filter research | Small live if evidence | 60+ live trades
+L2227: M11 | Forex plug-in (Dukascopy) build | Small live | Second market in data lake
+L2228: M12 | Annual review: full re-validation of everything | Small live | Year-1 report; year-2 plan
+L2229: Weeks | Topic | Why now | Free resources
+L2230: 1–3 | Python + pandas fluency | Everything is DataFrames | pandas docs, Kaggle pandas course
+L2231: 4–6 | SQL + DuckDB | Edge mining is SQL | DuckDB docs, Mode SQL tutorial
+L2232: 5–8 | Statistics core (Ch. 33 topics) | Validation lab needs it | StatQuest (YouTube), Think Stats (free PDF)
+L2233: 7–10 | vectorbt + backtesting internals | Engine work | vectorbt docs & examples
+L2234: 9–12 | López de Prado selected chapters | PBO/DSR/CV correctness | AFML book + author’s free papers
+L2235: 13–16 | Portfolio theory lite (HRP, risk parity) | Portfolio engine | skfolio docs + HRP original paper (free)
+L2236: 17–20 | GARCH & VaR (arch docs) | Risk engine | arch docs, RiskMetrics doc (free)
+L2237: 21+ | Market microstructure + trader psychology | Live phase | Trading in the Zone (Douglas), Ch. 34
+L2238: Workstream | Actions | Exit criteria
+L2239: Miner-2 at full power | Weekly genetic runs; dedicated island-model tuning | ≥ 2 GP-discovered strategies through the gauntlet
+L2240: Forex plug-in live | Dukascopy lake complete; 4 forex strategies validated | Second market contributing live P&L
+L2241: Funding-carry family | Delta-neutral funding harvest researched & validated | 1 market-neutral strategy live (low correlation by construction)
+L2242: Universe expansion | 30 pairs total (tier rules §39.5) | Liquidity floor maintained
+L2243: Workstream | Actions | Exit criteria
+L2244: Miner-3 ML filter deployed | Trade-success classifier as size adjuster on 3+ strategies | Measured expectancy lift vs control (paired test)
+L2245: Order-book features | Snapshot collection running; imbalance blocks in catalog | ≥ 1 book-feature filter survives validation
+L2246: HMM regime overlay | Market-regime model gating strategy families | Overlay improves portfolio Sharpe in honest backtest
+L2247: Failure research | Systematic study of the kill archive (all 12 months) | 3 documented failure patterns → new miner constraints
+L2248: Workstream | Actions | Exit criteria
+L2249: Auto-execution graduation | If S1–S3 gates long since green: Freqtrade deployment on 2 strategies | 2 months auto-exec matching manual stats
+L2250: UI v2 decision | Only if Streamlit genuinely limits daily ops | Decision logged with evidence
+L2251: Tax & accounting pipeline | Journal → tax-lot export automation | One-click yearly report
+L2252: Red-team week | Deliberately attack own system: inject bad data, fake edges, breaker storms | All defenses hold; gaps documented & fixed
+L2253: Workstream | Actions | Exit criteria
+L2254: Capital tier T3 evaluation | 24-month evidence review vs §30.1 law | Evidence-based tier decision
+L2255: Portfolio-of-portfolios | Meta-allocation across families (trend/MR/carry/stat-arb) | Family-level HRP live
+L2256: Annual deep review v2.0 | Every strategy re-validated; this document revised | Master Plan v2.0 issued
+L2257: Year-3 planning | Options? New venues? Larger infra? All gated by evidence | Written year-3 charter
+L2258: z-score | Meaning | Action
+L2259: > −1.0 | Normal variance | Nothing
+L2260: −1.0 to −1.5 | Watch closely | Note in weekly review
+L2261: −1.5 to −2.0 | Warning | Size × 1 (watch state), investigate regime
+L2262: −2.0 to −2.5 | Serious | Size × 0.5 (automatic)
+L2263: < −2.5 (20+ trades) | Likely edge failure | Bench → re-validation
+L2264: n trades | SE of mean R | Minimum E[R] distinguishable from 0 (95%)
+L2265: 25 | 0.24 | 0.47
+L2266: 50 | 0.17 | 0.33
+L2267: 100 | 0.12 | 0.24
+L2268: 200 | 0.085 | 0.17
+L2269: 400 | 0.06 | 0.12
+L2270: 1000 | 0.038 | 0.075
+L2271: Tests run | Naive p<0.05 expected false hits | BH-adjusted threshold for top hit
+L2272: 1 | 0.05 | 0.050
+L2273: 20 | ~1 | 0.0025
+L2274: 168 (hour×day) | ~8 | 0.0003
+L2275: 1,000 | ~50 | 0.00005
+L2276: Win rate | Break-even payoff (avg win ÷ avg loss)
+L2277: 35% | 1.86
+L2278: 40% | 1.50
+L2279: 45% | 1.22
+L2280: 50% | 1.00
+L2281: 55% | 0.82
+L2282: 60% | 0.67
+L2283: 65% | 0.54
+L2284: Active strategies | Avg trades/strategy/month | Portfolio trades/month | Journal load
+L2285: 2 | 8 | 16 | Light
+L2286: 4 | 8 | 32 | Comfortable
+L2287: 6 | 10 | 60 | Heavy — consider auto-journal
+L2288: 8 | 10 | 80 | Maximum for manual ops
+L2289: Live ÷ backtest expectancy | Reading | Action
+L2290: > 100% | Suspiciously good | Verify no logging error; enjoy quietly
+L2291: 70–100% | Healthy | Nothing
+L2292: 50–70% | Acceptable | Check costs/slippage calibration
+L2293: 30–50% | Degraded | Reduce size; investigate fills
+L2294: < 30% | Broken | Bench; re-validate
+L2295: Gate | Verifies | Evidence location
+L2296: G0 | Repo, env, config, CI operational | §24 Phase 0
+L2297: G1 | Data Lake complete & trusted | A1.1–A1.8
+L2298: G2 ★ | Heartbeat end-to-end loop | §24 Phase 2
+L2299: G3 | Engine + Miner-1 at scale | A3.x, A4.x
+L2300: G4 | Trade DB + Edge Analytics honest | A5.x, A6.x
+L2301: G5 | Validation Lab rejects noise, keeps signal | A7.x
+L2302: G6 | Portfolio + Risk enforced | A8.x, A9.x
+L2303: G7 | Command Center operable | A10.x
+L2304: G8 | Paper trading proven | §24 Phase 8
+L2305: Checklist | Items | Module
+L2306: A1.x | 8 | Data Lake
+L2307: A2.x | 7 | Feature Factory
+L2308: A3.x | 8 | Strategy Miner
+L2309: A4.x | 7 | Backtest Engine
+L2310: A5.x | 7 | Trade Database
+L2311: A6.x | 7 | Edge Analytics
+L2312: A7.x | 7 | Validation Lab
+L2313: A8.x | 5 | Portfolio Engine
+L2314: A9.x | 6 | Risk Engine
+L2315: A10.x | 6 | Command Center
+L2316: A11.x | 6 | Execution Loop
+L2317: A12.x | 5 | Monitoring & Decay
+L2318: Total | 79 checks | —
+L2319: Control | What it proves | Where
+L2320: A6.3 noise scan | Edge engine produces ~0 false cards | §14.5
+L2321: A6.4 planted edge | Edge engine finds known edges | §14.5
+L2322: A7.3 noise gauntlet | Lab kills ≥ 95% of random strategies | §15.5
+L2323: A7.4 planted strategy | Lab passes genuine persistent edges | §15.5
+L2324: A12.1 synthetic decay | Detector catches degrading stream | §20.5
+L2325: A2.1 lookahead suite | No future data in any feature | §10.5
+L2326: Cadence | Verification
+L2327: Daily | Boot sequence §45.1; data freshness; breaker status
+L2328: Weekly | Journal audit; decay z-scores; backup ran
+L2329: Monthly | Rebalance decision; card re-validation; slippage calibration; breaker drill; KPI board; restore spot-check
+L2330: Quarterly | Universe review §39; failure-mode list re-read (App. H); correlation audit
+L2331: Annually | Full re-validation of everything; Master Plan version bump
+L2332: Monthly | 6 mo | 12 mo | 24 mo | 36 mo
+L2333: +1% | $1,062 | $1,127 | $1,270 | $1,431
+L2334: +2% | $1,126 | $1,268 | $1,608 | $2,041
+L2335: +3% | $1,194 | $1,426 | $2,033 | $2,907
+L2336: +5% | $1,340 | $1,796 | $3,226 | $5,792
+L2337: +8% | $1,587 | $2,518 | $6,343 | $15,976
+L2338: Drawdown | Gain needed to recover
+L2339: −5% | +5.3%
+L2340: −10% | +11.1%
+L2341: −20% | +25%
+L2342: −33% | +50%
+L2343: −50% | +100%
+L2344: −70% | +233%
+L2345: Streak length | Probability in 100 trades
+L2346: 5 losses | ~85%
+L2347: 7 losses | ~45%
+L2348: 10 losses | ~10%
+L2349: 12 losses | ~3%
+L2350: Risk/trade | P(hit −20% first)
+L2351: 0.5% | ~4%
+L2352: 0.75% | ~6%
+L2353: 1.0% | ~9%
+L2354: 1.5% | ~16%
+L2355: 2.5% | ~31%
+L2356: 5.0% | ~55%
+L2357: Round-trip cost | Cost/month | % of expectancy eaten
+L2358: 0.02R | 0.6R | 10%
+L2359: 0.06R | 1.8R | 30%
+L2360: 0.10R | 3.0R | 50%
+L2361: 0.15R | 4.5R | 75%
+L2362: Symptom | Meaning | Action
+L2363: Single 1m bar with 30% wick | Usually real (liquidation cascade); occasionally bad print | Check second source; if real, keep — your backtest MUST survive these
+L2364: Multi-hour gap, all pairs | Exchange outage/maintenance | Document; exclude window from session stats
+L2365: Gap on one pair only | Pair-specific halt or data issue | Quarantine, re-download
+L2366: Volume = 0 for hours (alt, 2018) | Dead market period | Keep (it’s history); liquidity floor filter handles it in strategies
+L2367: Sudden price jump ×1000 (old data) | Unit change/redenomination | Investigate pair history; adjust or exclude
+L2368: Funding rate missing days | Perp not yet listed | Null, not zero — never fill with 0
+L2369: Duplicate timestamps | Updater bug | A5.4 idempotency + dedupe migration
+L2370: Negative volume | Corrupt row | Quarantine whole file, re-pull
+L2371: Timestamps off by exactly 1h | DST bug (forex later) or timezone mixup | Everything UTC, always; find the offending code
+L2372: Latest bar stale > 24h | Updater dead | Health monitor should have paged you; check job log
+L2373: Day | Block 1 (3h) | Block 2 (2h)
+L2374: Mon | Module build (current phase) | Learning track
+L2375: Tue | Module build | Tests + QA evidence
+L2376: Wed | Module build | Learning track
+L2377: Thu | Module build | Docs + decision log
+L2378: Fri | Integration + fixes | Weekly review (runbook)
+L2379: Sat | Optional: research notebooks | —
+L2380: Sun | Rest | —
+L2381: Day | 1.5–2h block
+L2382: Mon | Module build
+L2383: Tue | Learning track + reading
+L2384: Wed | Module build
+L2385: Thu | Tests + QA evidence
+L2386: Fri | Module build
+L2387: Sun | Weekly review + planning (1h)
+L2388: Day | Time | Activity
+L2389: Daily | 20 min | Pre-session + journal (runbook §27.1)
+L2390: Sun | 1 h | Weekly review (§27.2)
+L2391: 1st Sun | 3 h | Monthly deep-dive (§27.3)
+L2392: Flexible | 2–3 h | One improvement task from the monthly priorities — never more than one

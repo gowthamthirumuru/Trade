@@ -1,0 +1,26 @@
+# Strategy Specification: Funding Rate Carry (funding_rate_arb)
+name: funding_rate_arb
+version: 1.0.0
+author: APEX Strategy Miner
+
+parameters:
+  pair: ETHUSDT
+  timeframe: 8h
+  trigger: T03_funding_rate_extreme
+  min_funding_rate: 0.0003
+  rebalance_period_hours: 8
+
+filters:
+  trend_regime: [up, range]
+  vol_regime: [low, mid]
+  allowed_sessions: [asia, europe, US]
+  allowed_days: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+
+exits:
+  stop_loss_pct: 0.025
+  take_profit_pct: 0.050
+  max_bars_hold: 30
+
+cost_model:
+  fee_bps: 5.0
+  slippage_bps: 2.0

@@ -60,14 +60,14 @@ def months_between(start_date: str, end_date: str) -> List[str]:
     """Generates a list of year-month string formatted dates ('YYYY-MM') between start and end.
 
     Args:
-        start_date (str): Start date string (e.g., '2017-08-01').
-        end_date (str): End date string (e.g., '2023-12-31').
+        start_date (str): Start date string (e.g., '2020-01-01').
+        end_date (str): End date string (e.g., '2026-01-01').
 
     Returns:
-        List[str]: List of year-month strings (e.g., ['2017-08', '2017-09', ...]).
+        List[str]: List of year-month strings (e.g., ['2020-01', '2020-02', ...]).
     """
     period_range = pd.period_range(start=start_date, end=end_date, freq="M")
-    return [str(period.date())[:7] for period in period_range]
+    return [str(period)[:7] for period in period_range]
 
 
 def fetch_month(pair: str, timeframe: str, year_month: str, timeout: int = 60) -> Optional[pd.DataFrame]:

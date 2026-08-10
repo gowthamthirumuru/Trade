@@ -1,0 +1,29 @@
+# Strategy Specification: RSI Mean Reversion (mean_reversion_rsi)
+name: mean_reversion_rsi
+version: 1.0.0
+author: APEX Strategy Miner
+
+parameters:
+  pair: BTCUSDT
+  timeframe: 1h
+  trigger: T02_rsi_oversold
+  rsi_period: 14
+  rsi_buy_threshold: 30.0
+  rsi_sell_threshold: 70.0
+  bb_period: 20
+  bb_std: 2.0
+
+filters:
+  trend_regime: [range]
+  vol_regime: [mid]
+  allowed_sessions: [asia, europe, US]
+  allowed_days: [Mon, Tue, Wed, Thu, Fri]
+
+exits:
+  stop_loss_pct: 0.015
+  take_profit_pct: 0.030
+  max_bars_hold: 16
+
+cost_model:
+  fee_bps: 5.0
+  slippage_bps: 2.0

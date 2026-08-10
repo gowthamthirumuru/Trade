@@ -1,4 +1,4 @@
-# Project APEX Universe & Data Lake Configuration (Master Plan §9.6)
+# Project APEX Universe & Data Lake Configuration (Master Plan §9.6 & Chapter 23)
 pairs:
   - BTCUSDT
   - ETHUSDT
@@ -21,6 +21,15 @@ pairs:
   - APTUSDT
   - FILUSDT
 
+forex_pairs:
+  - EURUSD
+  - GBPUSD
+  - USDJPY
+  - USDCHF
+  - USDCAD
+  - AUDUSD
+  - NZDUSD
+
 base_timeframe: "1m"
 derived_timeframes:
   - "5m"
@@ -32,3 +41,9 @@ derived_timeframes:
 history_from: "2017-08-01"
 storage: "parquet"
 compression: "snappy"
+
+forex_cost_defaults:
+  spread_pips_major: 1.0
+  spread_pips_asia: 2.5
+  wednesday_triple_swap: true
+

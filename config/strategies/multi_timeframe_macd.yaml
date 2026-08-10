@@ -1,0 +1,27 @@
+# Strategy Specification: Multi-Timeframe MACD Trend (multi_timeframe_macd)
+name: multi_timeframe_macd
+version: 1.0.0
+author: APEX Strategy Miner
+
+parameters:
+  pair: LINKUSDT
+  timeframe: 1h
+  trigger: T06_macd_cross
+  fast_period: 12
+  slow_period: 26
+  signal_period: 9
+
+filters:
+  trend_regime: [up]
+  vol_regime: [mid]
+  allowed_sessions: [asia, europe, US]
+  allowed_days: [Tue, Wed, Thu, Fri]
+
+exits:
+  stop_loss_pct: 0.020
+  take_profit_pct: 0.045
+  max_bars_hold: 24
+
+cost_model:
+  fee_bps: 5.0
+  slippage_bps: 2.0

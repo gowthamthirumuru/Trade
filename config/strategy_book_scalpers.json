@@ -1,0 +1,128 @@
+[
+  {
+    "strategy": "S38_ema_rsi_scalp",
+    "book_ref": "S38 \u00b7 5-Minute EMA Scalping (8/21 + RSI)",
+    "pair": "BTCUSDT",
+    "timeframe": "5m",
+    "trigger": "T01",
+    "filter": "F01",
+    "exit": "X01",
+    "params": {
+      "fast": 8,
+      "slow": 21,
+      "rsi_thresh": 50,
+      "direction": "long",
+      "k_sl": 1.0,
+      "m_tp": 2.0
+    }
+  },
+  {
+    "strategy": "S40_bollinger_1m_scalp",
+    "book_ref": "S40 \u00b7 Bollinger Band 1-Minute Scalp",
+    "pair": "BTCUSDT",
+    "timeframe": "1m",
+    "trigger": "T04",
+    "filter": "F02",
+    "exit": "X01",
+    "params": {
+      "n": 20,
+      "k": 2.0,
+      "direction": "long",
+      "k_sl": 1.0,
+      "m_tp": 1.5
+    }
+  },
+  {
+    "strategy": "S48_chandelier_scalp",
+    "book_ref": "S48 \u00b7 Chandelier-Trail Crypto Scalp",
+    "pair": "SOLUSDT",
+    "timeframe": "5m",
+    "trigger": "T08",
+    "filter": "F05",
+    "exit": "X02",
+    "params": {
+      "atr_period": 14,
+      "mult": 3.0,
+      "direction": "long",
+      "k_sl": 1.2,
+      "m_tp": 2.5
+    }
+  },
+  {
+    "strategy": "S50_btc_21_23_window",
+    "book_ref": "S50 \u00b7 The 21:00\u201323:00 UTC Bitcoin Window",
+    "pair": "BTCUSDT",
+    "timeframe": "5m",
+    "trigger": "T09",
+    "filter": "F08",
+    "exit": "X01",
+    "params": {
+      "session": "asia",
+      "direction": "long",
+      "k_sl": 1.0,
+      "m_tp": 2.0
+    }
+  },
+  {
+    "strategy": "S52_monday_asia_open",
+    "book_ref": "S52 \u00b7 The Monday Asia Open Effect (BTC Trend Window)",
+    "pair": "BTCUSDT",
+    "timeframe": "15m",
+    "trigger": "T09",
+    "filter": "F09",
+    "exit": "X01",
+    "params": {
+      "day_of_week": 0,
+      "direction": "long",
+      "k_sl": 1.0,
+      "m_tp": 2.0
+    }
+  },
+  {
+    "strategy": "S59_eth_5m_scalp",
+    "book_ref": "S59 \u00b7 ETH 5-Minute Optimized Scalping System",
+    "pair": "ETHUSDT",
+    "timeframe": "5m",
+    "trigger": "T01",
+    "filter": "F03",
+    "exit": "X01",
+    "params": {
+      "fast": 13,
+      "slow": 34,
+      "direction": "long",
+      "k_sl": 1.0,
+      "m_tp": 2.0
+    }
+  },
+  {
+    "strategy": "S60_bollinger_squeeze",
+    "book_ref": "S60 \u00b7 Crypto Bollinger Squeeze Breakout",
+    "pair": "BNBUSDT",
+    "timeframe": "15m",
+    "trigger": "T17",
+    "filter": "F04",
+    "exit": "X02",
+    "params": {
+      "n": 20,
+      "bb_width_max": 0.02,
+      "direction": "long",
+      "k_sl": 1.0,
+      "m_tp": 2.5
+    }
+  },
+  {
+    "strategy": "S93_liquidation_cascade",
+    "book_ref": "S93 \u00b7 Liquidation-Cascade Reversal (Crypto Perps)",
+    "pair": "SOLUSDT",
+    "timeframe": "1m",
+    "trigger": "T07",
+    "filter": "F07",
+    "exit": "X01",
+    "params": {
+      "z": 2.5,
+      "direction": "long",
+      "k_sl": 1.0,
+      "m_tp": 2.0
+    }
+  }
+]

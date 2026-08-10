@@ -149,3 +149,52 @@ SELECT
     SUM(CASE WHEN pnl_r > 0 THEN pnl_r ELSE 0 END) / NULLIF(-SUM(CASE WHEN pnl_r < 0 THEN pnl_r ELSE 0 END), 0) AS pf
 FROM trades 
 GROUP BY 1, 2, 3;
+
+CREATE VIEW IF NOT EXISTS v_hourly AS
+SELECT
+    strategy,
+    pair,
+    hour_utc,
+    COUNT(*) AS n,
+    AVG(pnl_r) AS exp_r,
+    AVG(CASE WHEN pnl_r > 0 THEN 1.0 ELSE 0.0 END) * 100 AS winrate,
+    SUM(CASE WHEN pnl_r > 0 THEN pnl_r ELSE 0 END) / NULLIF(-SUM(CASE WHEN pnl_r < 0 THEN pnl_r ELSE 0 END), 0) AS pf
+FROM trades
+GROUP BY 1, 2, 3;
+
+CREATE VIEW IF NOT EXISTS v_daily AS
+SELECT
+    strategy,
+    pair,
+    day_of_week,
+    COUNT(*) AS n,
+    AVG(pnl_r) AS exp_r,
+    AVG(CASE WHEN pnl_r > 0 THEN 1.0 ELSE 0.0 END) * 100 AS winrate,
+    SUM(CASE WHEN pnl_r > 0 THEN pnl_r ELSE 0 END) / NULLIF(-SUM(CASE WHEN pnl_r < 0 THEN pnl_r ELSE 0 END), 0) AS pf
+FROM trades
+GROUP BY 1, 2, 3;
+
+CREATE VIEW IF NOT EXISTS v_session AS
+SELECT
+    strategy,
+    pair,
+    session,
+    COUNT(*) AS n,
+    AVG(pnl_r) AS exp_r,
+    AVG(CASE WHEN pnl_r > 0 THEN 1.0 ELSE 0.0 END) * 100 AS winrate,
+    SUM(CASE WHEN pnl_r > 0 THEN pnl_r ELSE 0 END) / NULLIF(-SUM(CASE WHEN pnl_r < 0 THEN pnl_r ELSE 0 END), 0) AS pf
+FROM trades
+GROUP BY 1, 2, 3;
+
+CREATE VIEW IF NOT EXISTS v_regime AS
+SELECT
+    strategy,
+    pair,
+    trend_regime,
+    vol_regime,
+    COUNT(*) AS n,
+    AVG(pnl_r) AS exp_r,
+    AVG(CASE WHEN pnl_r > 0 THEN 1.0 ELSE 0.0 END) * 100 AS winrate,
+    SUM(CASE WHEN pnl_r > 0 THEN pnl_r ELSE 0 END) / NULLIF(-SUM(CASE WHEN pnl_r < 0 THEN pnl_r ELSE 0 END), 0) AS pf
+FROM trades
+GROUP BY 1, 2, 3, 4;

@@ -1,0 +1,25 @@
+# Strategy Specification: Asian Session Range Breakout (session_breakout_asia - T09)
+name: session_breakout_asia
+version: 1.0.0
+author: APEX Strategy Miner
+
+parameters:
+  pair: ETHUSDT
+  timeframe: 15m
+  trigger: T09_session_range_breakout
+  lookback_bars: 16
+
+filters:
+  trend_regime: [up, range]
+  vol_regime: [mid, high]
+  allowed_sessions: [europe, overlap]
+  allowed_days: [Tue, Wed, Thu]
+
+exits:
+  stop_loss_pct: 0.015
+  take_profit_pct: 0.035
+  max_bars_hold: 20
+
+cost_model:
+  fee_bps: 5.0
+  slippage_bps: 2.0

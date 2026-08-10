@@ -1,0 +1,26 @@
+# Strategy Specification: EMA Trend Regime Follower (regime_filter_trend)
+name: regime_filter_trend
+version: 1.0.0
+author: APEX Strategy Miner
+
+parameters:
+  pair: BNBUSDT
+  timeframe: 4h
+  trigger: T04_ema_crossover
+  fast_ema: 50
+  slow_ema: 200
+
+filters:
+  trend_regime: [up]
+  vol_regime: [mid, high]
+  allowed_sessions: [europe, US]
+  allowed_days: [Tue, Wed, Thu, Fri]
+
+exits:
+  stop_loss_pct: 0.030
+  take_profit_pct: 0.075
+  max_bars_hold: 40
+
+cost_model:
+  fee_bps: 5.0
+  slippage_bps: 2.0

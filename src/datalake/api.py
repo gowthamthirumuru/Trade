@@ -34,7 +34,7 @@ def get_bars(pair: str, tf: str, start: str, end: str, data_dir: Optional[Path] 
     """Fetches a UTC-indexed OHLCV+ DataFrame from Parquet via DuckDB pushdown query.
 
     Args:
-        pair (str): Trading pair symbol (e.g. 'BTCUSDT').
+        pair (str): Trading pair symbol (e.g. 'BTCUSDT' or 'EURUSD').
         tf (str): Timeframe identifier ('1m', '5m', '15m', '1h', '4h', '1d').
         start (str): Start date/time string (inclusive, UTC).
         end (str): End date/time string (inclusive, UTC).
@@ -45,12 +45,16 @@ def get_bars(pair: str, tf: str, start: str, end: str, data_dir: Optional[Path] 
     """
     root = get_project_root()
     data_path = data_dir or (root / "data")
+
+    # Check Binance Crypto store first, then Dukascopy Forex store
     parquet_file = data_path / "raw" / "binance" / pair / f"{tf}.parquet"
+    if not parquet_file.exists():
+        parquet_file = data_path / "raw" / "dukascopy" / pair / f"{tf}.parquet"
 
     if not parquet_file.exists():
         logger.warning("Parquet file not found for pair %s tf %s at %s", pair, tf, parquet_file)
         return pd.DataFrame(columns=[
-            "open_time", "open", "high", "low", "close", "volume", "quote_vol", "trades", "taker_buy", "pair", "timeframe"
+            "open_time", "open", "high", "low", "close", "volume", "quote_vol", "trades", "taker_buy", "pair", "timeframe", "session"
         ])
 
     start_ts = pd.Timestamp(start).tz_localize("UTC" if pd.Timestamp(start).tzinfo is None else None).isoformat()
@@ -59,7 +63,7 @@ def get_bars(pair: str, tf: str, start: str, end: str, data_dir: Optional[Path] 
     # Execute high-performance DuckDB SQL query directly over Parquet file
     query = """
         SELECT 
-            open_time, open, high, low, close, volume, quote_vol, trades, taker_buy, pair, timeframe
+            *
         FROM read_parquet(?)
         WHERE open_time >= CAST(? AS TIMESTAMPTZ)
           AND open_time <= CAST(? AS TIMESTAMPTZ)
@@ -105,15 +109,7 @@ def get_events(start: str, end: str, data_dir: Optional[Path] = None) -> pd.Data
 
 
 def data_quality_report(pair: Optional[str] = None, data_dir: Optional[Path] = None) -> Dict[str, str]:
-    """Reads latest data quality report markdown or log summary.
-
-    Args:
-        pair (Optional[str]): Pair filter option.
-        data_dir (Optional[Path]): Data directory override.
-
-    Returns:
-        Dict[str, str]: Summary report dict.
-    """
+    """Reads latest data quality report markdown or log summary."""
     root = get_project_root()
     data_path = data_dir or (root / "data")
     report_file = data_path / "data_quality_report.md"
@@ -126,25 +122,22 @@ def data_quality_report(pair: Optional[str] = None, data_dir: Optional[Path] = N
 
 
 def register_duckdb_views(con: duckdb.DuckDBPyConnection, data_dir: Optional[Path] = None) -> None:
-    """Registers DuckDB SQL views (`v_bars_1m`, `v_bars_5m`, `v_bars_1h`, etc.) over all raw Parquet files.
-
-    Args:
-        con (duckdb.DuckDBPyConnection): Active DuckDB connection.
-        data_dir (Optional[Path]): Data directory override.
-    """
+    """Registers DuckDB SQL views (`v_bars_1m`, `v_forex_bars_15m`, etc.) over raw Parquet files."""
     root = get_project_root()
     data_path = data_dir or (root / "data")
     timeframes = ["1m", "5m", "15m", "1h", "4h", "1d"]
 
     for tf in timeframes:
-        glob_pattern = str(data_path / "raw" / "binance" / "*" / f"{tf}.parquet").replace("\\", "/")
-        view_name = f"v_bars_{tf}"
-        view_sql = f"""
-            CREATE OR REPLACE VIEW {view_name} AS 
-            SELECT * FROM read_parquet('{glob_pattern}')
-        """
-        try:
-            con.execute(view_sql)
-            logger.debug("Registered DuckDB view %s for pattern %s", view_name, glob_pattern)
-        except Exception as exc:
-            logger.warning("Could not register view %s (no parquet files matching %s): %s", view_name, glob_pattern, exc)
+        for provider in ["binance", "dukascopy"]:
+            glob_pattern = str(data_path / "raw" / provider / "*" / f"{tf}.parquet").replace("\\", "/")
+            view_name = f"v_{provider}_bars_{tf}" if provider != "binance" else f"v_bars_{tf}"
+            view_sql = f"""
+                CREATE OR REPLACE VIEW {view_name} AS 
+                SELECT * FROM read_parquet('{glob_pattern}')
+            """
+            try:
+                con.execute(view_sql)
+                logger.debug("Registered DuckDB view %s for pattern %s", view_name, glob_pattern)
+            except Exception as exc:
+                logger.warning("Could not register view %s: %s", view_name, exc)
+

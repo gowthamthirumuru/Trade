@@ -33,3 +33,10 @@ testpaths = [
 line-length = 100
 select = ["E", "F", "W", "I"]
 ignore = []
+
+[tool.pyright]
+executionEnvironments = [
+  { root = "." }
+]
+extraPaths = [".", "src"]
+

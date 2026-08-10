@@ -83,6 +83,8 @@ def run_vectorized_backtest(
     m_tp = params.get("m_tp", 2.0)
     atr = df_features.get("atr_14", df_bars["close"] * 0.01)
 
+    direction = str(params.get("direction", "long")).lower()
+
     for i, idx in enumerate(entry_indices):
         # RULE A4.3: Next-bar open fill rule (signal at bar t executes at open of t+1)
         if idx + 1 >= len(df_bars):
@@ -90,23 +92,31 @@ def run_vectorized_backtest(
 
         entry_idx = idx + 1
         entry_time = df_bars["open_time"].iloc[entry_idx]
-        entry_price = df_bars["open"].iloc[entry_idx]
+        entry_price = float(df_bars["open"].iloc[entry_idx])
 
-        target_atr = atr.iloc[entry_idx]
-        sl_price = entry_price - (k_sl * target_atr)
-        tp_price = entry_price + (m_tp * target_atr)
+        target_atr = float(atr.iloc[entry_idx])
+        if direction == "short":
+            sl_price = entry_price + (k_sl * target_atr)
+            tp_price = entry_price - (m_tp * target_atr)
+        else:
+            sl_price = entry_price - (k_sl * target_atr)
+            tp_price = entry_price + (m_tp * target_atr)
 
         exit_idx = min(entry_idx + 12, len(df_bars) - 1)
         exit_reason = "time"
-        exit_price = df_bars["close"].iloc[exit_idx]
+        exit_price = float(df_bars["close"].iloc[exit_idx])
 
         # Scan intrabar for SL / TP hits
         for search_i in range(entry_idx, min(entry_idx + 24, len(df_bars))):
-            b_high = df_bars["high"].iloc[search_i]
-            b_low = df_bars["low"].iloc[search_i]
+            b_high = float(df_bars["high"].iloc[search_i])
+            b_low = float(df_bars["low"].iloc[search_i])
 
-            sl_hit = b_low <= sl_price
-            tp_hit = b_high >= tp_price
+            if direction == "short":
+                sl_hit = b_high >= sl_price
+                tp_hit = b_low <= tp_price
+            else:
+                sl_hit = b_low <= sl_price
+                tp_hit = b_high >= tp_price
 
             # RULE A4.4: Intrabar Conservative Rule (if both hit in same bar, SL recorded first)
             if sl_hit and tp_hit:
@@ -128,7 +138,11 @@ def run_vectorized_backtest(
         exit_time = df_bars["open_time"].iloc[exit_idx]
         bars_held = max(exit_idx - entry_idx, 1)
 
-        raw_ret = (exit_price - entry_price) / entry_price
+        if direction == "short":
+            raw_ret = (entry_price - exit_price) / entry_price
+        else:
+            raw_ret = (exit_price - entry_price) / entry_price
+
         net_ret = raw_ret - round_trip_cost
         pnl_quote = current_equity * 0.0075 * net_ret / 0.01  # Fixed 0.75% risk per trade
         pnl_pct = net_ret
@@ -139,15 +153,19 @@ def run_vectorized_backtest(
 
         # Track Adverse Excursions (MAE / MFE)
         trade_bars = df_bars.iloc[entry_idx : exit_idx + 1]
-        mae_pct = ((trade_bars["low"].min() - entry_price) / entry_price) * 100.0
-        mfe_pct = ((trade_bars["high"].max() - entry_price) / entry_price) * 100.0
+        if direction == "short":
+            mae_pct = ((entry_price - float(trade_bars["high"].max())) / entry_price) * 100.0
+            mfe_pct = ((entry_price - float(trade_bars["low"].min())) / entry_price) * 100.0
+        else:
+            mae_pct = ((float(trade_bars["low"].min()) - entry_price) / entry_price) * 100.0
+            mfe_pct = ((float(trade_bars["high"].max()) - entry_price) / entry_price) * 100.0
 
         trades.append({
             "trade_id": i + 1,
             "strategy": f"strategy_{trigger_id}_{filter_id}",
             "pair": pair_name,
             "timeframe": timeframe,
-            "direction": params.get("direction", "long"),
+            "direction": direction,
             "entry_time": entry_time,
             "exit_time": exit_time,
             "entry_price": round(entry_price, 4),

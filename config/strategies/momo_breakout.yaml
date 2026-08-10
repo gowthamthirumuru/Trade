@@ -1,0 +1,29 @@
+# Strategy Specification: Momentum Breakout (momo_breakout)
+name: momo_breakout
+version: 1.0.0
+author: APEX Strategy Miner
+
+parameters:
+  pair: SOLUSDT
+  timeframe: 15m
+  trigger: T01_momentum_breakout
+  fast_ma: 20
+  slow_ma: 50
+  adx_min: 20.0
+  rsi_lower: 40.0
+  rsi_upper: 60.0
+
+filters:
+  trend_regime: [up]
+  vol_regime: [mid, high]
+  allowed_sessions: [europe, overlap]
+  allowed_days: [Tue, Wed, Thu]
+
+exits:
+  stop_loss_pct: 0.02
+  take_profit_pct: 0.04
+  max_bars_hold: 24
+
+cost_model:
+  fee_bps: 5.0
+  slippage_bps: 2.0

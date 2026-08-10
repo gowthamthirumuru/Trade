@@ -505,19 +505,20 @@ def exit_x01_fixed_sltp(df_bars: pd.DataFrame, df_features: pd.DataFrame, entry_
     atr = df_features.get("atr_14", df_bars["close"] * 0.01)
 
     # Signal exit 12 bars after entry if no price hit
-    exit_signal = entry_mask.shift(12).fillna(False).astype(bool)
+    exit_signal = entry_mask.shift(12, fill_value=False).astype(bool)
     return exit_signal
 
 
 def exit_x02_rmultiple(df_bars: pd.DataFrame, df_features: pd.DataFrame, entry_mask: pd.Series, params: Dict[str, Any]) -> pd.Series:
     """X02: R-multiple exit."""
     r_target = params.get("r_target", 2.0)
-    return entry_mask.shift(10).fillna(False)
+    return entry_mask.shift(10, fill_value=False).astype(bool)
 
 
 def exit_x03_atr_trailing(df_bars: pd.DataFrame, df_features: pd.DataFrame, entry_mask: pd.Series, params: Dict[str, Any]) -> pd.Series:
     """X03: ATR trailing chandelier exit."""
-    return entry_mask.shift(15).fillna(False)
+    return entry_mask.shift(15, fill_value=False).astype(bool)
+
 
 
 def exit_x04_time_stop(df_bars: pd.DataFrame, df_features: pd.DataFrame, entry_mask: pd.Series, params: Dict[str, Any]) -> pd.Series:

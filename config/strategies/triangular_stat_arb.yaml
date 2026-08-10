@@ -1,0 +1,26 @@
+# Strategy Specification: Pair / Spread Statistical Arbitrage (triangular_stat_arb)
+name: triangular_stat_arb
+version: 1.0.0
+author: APEX Strategy Miner
+
+parameters:
+  pair: BTCUSDT
+  timeframe: 1h
+  trigger: T08_stat_arb_zscore
+  z_entry: 2.0
+  z_exit: 0.0
+
+filters:
+  trend_regime: [range]
+  vol_regime: [low, mid]
+  allowed_sessions: [asia, europe, US]
+  allowed_days: [Mon, Tue, Wed, Thu, Fri, Sat, Sun]
+
+exits:
+  stop_loss_pct: 0.015
+  take_profit_pct: 0.025
+  max_bars_hold: 12
+
+cost_model:
+  fee_bps: 5.0
+  slippage_bps: 2.0
