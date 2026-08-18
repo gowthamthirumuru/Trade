@@ -25,7 +25,7 @@ from src.edge.cards import make_edge_card
 from src.execution.telegram_bot import send_interactive_telegram_alert
 from src.features.factory import build_features_for_bars
 from src.monitoring.decay_detector import detect_edge_decay
-from src.tradesdb.api import query
+from src.tradesdb.api import query, write_trades
 from src.tradesdb.schema import initialize_duckdb_schema
 from src.validation.gauntlet import run_gauntlet
 
@@ -88,7 +88,7 @@ def run_strategy_book_scalping_pipeline(data_dir: Optional[Path] = None, db_path
             )
 
             run_id = f"run_{strat_id}_{int(time.time())}"
-            # 4. Write run registry to DuckDB and disk
+            # 4. Write run registry & trades to DuckDB and disk
             write_run_registry(
                 run_id=run_id,
                 strategy_config=item,
@@ -97,6 +97,7 @@ def run_strategy_book_scalping_pipeline(data_dir: Optional[Path] = None, db_path
                 trades_df=trades_df,
                 db_path=target_db,
             )
+            write_trades(run_id=run_id, trades_df=trades_df, db_path=target_db, features_df=df_features)
 
             # 5. Run 6-Gate Validation Gauntlet
             gauntlet_res = run_gauntlet(strategy=strat_id, run_id=run_id, db_path=target_db, trades_df=trades_df)
