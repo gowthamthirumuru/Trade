@@ -40,7 +40,7 @@ export const TraderDevelopment: React.FC<TraderDevelopmentProps> = ({
           <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <path
-                className="text-[#161F38]"
+                className="text-[#1a1a1a]"
                 strokeWidth="3.5"
                 stroke="currentColor"
                 fill="none"
@@ -72,7 +72,8 @@ export const TraderDevelopment: React.FC<TraderDevelopmentProps> = ({
                   <span className="text-slate-300 font-medium">{skill.name}</span>
                   <span className="font-mono text-slate-300 font-semibold">{skill.score}</span>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#161F38] overflow-hidden">
+                <div className="w-full h-1.5 rounded-full bg-[#1a1a1a] overflow-hidden">
+
                   <div
                     className={`h-full rounded-full ${getSkillBarColor(skill.color)}`}
                     style={{ width: `${skill.score}%` }}

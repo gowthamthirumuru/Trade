@@ -18,7 +18,7 @@ export const DataHealth: React.FC<DataHealthProps> = ({ data }) => {
         <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
             <path
-              className="text-[#161F38]"
+              className="text-[#1a1a1a]"
               strokeWidth="3.5"
               stroke="currentColor"
               fill="none"
@@ -51,16 +51,17 @@ export const DataHealth: React.FC<DataHealthProps> = ({ data }) => {
       <div className="flex-1 overflow-x-auto text-[11px]">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-[#161F38] text-[10px] text-slate-500 font-medium">
+            <tr className="border-b border-[#1a1a1a] text-[10px] text-slate-500 font-medium">
               <th className="pb-1.5 font-medium">Instrument</th>
               <th className="pb-1.5 font-medium text-right">Data Quality</th>
               <th className="pb-1.5 font-medium text-right">Time Range</th>
               <th className="pb-1.5 font-medium text-right">Candles</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#161F38]/50">
+          <tbody className="divide-y divide-[#171717]">
             {data.items.map((item) => (
-              <tr key={item.instrument} className="hover:bg-[#151B32]/40 transition">
+              <tr key={item.instrument} className="hover:bg-[#121212] transition">
+
                 <td className="py-1.5 font-bold text-white">{item.instrument}</td>
                 <td className="py-1.5 text-right font-mono text-emerald-400 font-medium">
                   {item.quality_pct.toFixed(1)}%

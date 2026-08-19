@@ -294,7 +294,7 @@ export const App: React.FC = () => {
   const { title, subtitle } = getPageInfo(activePage);
 
   return (
-    <div className="flex h-screen w-screen bg-[#07090E] text-slate-100 overflow-hidden font-sans">
+    <div className="flex h-screen w-screen bg-black text-slate-100 overflow-hidden font-sans">
       {/* Sidebar */}
       {isSidebarOpen && (
         <Sidebar activePage={activePage} onSelectPage={(p) => setActivePage(p)} />
@@ -309,10 +309,11 @@ export const App: React.FC = () => {
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         />
 
-        <main className="flex-1 overflow-y-auto bg-[#07090E]">
+        <main className="flex-1 overflow-y-auto bg-black">
           {renderActivePage()}
         </main>
       </div>
+
 
       {/* Global Spotlight Search Modal */}
       <GlobalSearchModal

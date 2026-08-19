@@ -68,7 +68,7 @@ export const ResearchWarnings: React.FC<ResearchWarningsProps> = ({
           <div
             key={w.id}
             onClick={() => onSelectWarning && onSelectWarning(w)}
-            className="p-2.5 rounded-lg bg-[#0B0E17]/60 border border-[#161F38] hover:border-slate-700 cursor-pointer transition space-y-1 group"
+            className="p-2.5 rounded-lg bg-[#050505] border border-[#1c1c1c] hover:border-neutral-700 cursor-pointer transition space-y-1 group"
           >
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
@@ -84,6 +84,7 @@ export const ResearchWarnings: React.FC<ResearchWarningsProps> = ({
             </div>
           </div>
         ))}
+
       </div>
     </div>
   );

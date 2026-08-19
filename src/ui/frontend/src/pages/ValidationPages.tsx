@@ -46,14 +46,14 @@ export const WalkForwardPage: React.FC = () => {
     xAxis: {
       type: 'category',
       data: windows.map((w: any) => `${w.window_id} (${w.test_period})`),
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisLabel: { color: '#64748B' },
     },
     yAxis: {
       type: 'value',
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisLabel: { color: '#64748B', fontFamily: 'monospace' },
-      splitLine: { lineStyle: { color: '#161F38', type: 'dashed' } },
+      splitLine: { lineStyle: { color: '#1a1a1a', type: 'dashed' } },
     },
     series: [
       { name: 'In-Sample Sharpe', type: 'bar', data: windows.map((w: any) => w.is_sharpe), itemStyle: { color: '#3B82F6' } },
@@ -110,7 +110,7 @@ export const WalkForwardPage: React.FC = () => {
         <div className="overflow-x-auto text-xs font-mono">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-[#161F38] text-slate-400 text-[11px] bg-[#0B0E17]/40">
+              <tr className="border-b border-[#1c1c1c] text-slate-400 text-[11px] bg-[#040404]">
                 <th className="py-2.5 px-3">Window</th>
                 <th className="py-2.5 px-3">Train Period (IS)</th>
                 <th className="py-2.5 px-3">Test Period (OOS)</th>
@@ -120,9 +120,9 @@ export const WalkForwardPage: React.FC = () => {
                 <th className="py-2.5 px-3 text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#161F38]/60 text-slate-200">
+            <tbody className="divide-y divide-[#171717] text-slate-200">
               {windows.map((w: any) => (
-                <tr key={w.window_id} className="hover:bg-[#151B32]/40 transition">
+                <tr key={w.window_id} className="hover:bg-[#101010] transition">
                   <td className="py-2.5 px-3 font-bold text-white">{w.window_id}</td>
                   <td className="py-2.5 px-3 text-slate-400">{w.train_period}</td>
                   <td className="py-2.5 px-3 text-cyan-400 font-bold">{w.test_period}</td>
@@ -164,11 +164,11 @@ export const OutOfSamplePage: React.FC = () => {
 
   const chartOption = {
     backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis', backgroundColor: '#101426', borderColor: '#2A365E', textStyle: { color: '#F1F5F9' } },
+    tooltip: { trigger: 'axis', backgroundColor: '#050505', borderColor: '#262626', textStyle: { color: '#F1F5F9' } },
     legend: { data: ['In-Sample (2018–2023)', 'Blind Out-of-Sample (2024–2026)'], textStyle: { color: '#94A3B8' } },
     grid: { left: '3%', right: '3%', top: '15%', bottom: '8%', containLabel: true },
-    xAxis: { type: 'category', data: months, axisLine: { lineStyle: { color: '#161F38' } }, axisLabel: { color: '#64748B' } },
-    yAxis: { type: 'value', axisLabel: { color: '#64748B', fontFamily: 'monospace' }, splitLine: { lineStyle: { color: '#161F38', type: 'dashed' } } },
+    xAxis: { type: 'category', data: months, axisLine: { lineStyle: { color: '#1a1a1a' } }, axisLabel: { color: '#64748B' } },
+    yAxis: { type: 'value', axisLabel: { color: '#64748B', fontFamily: 'monospace' }, splitLine: { lineStyle: { color: '#1a1a1a', type: 'dashed' } } },
     series: [
       { name: 'In-Sample (2018–2023)', type: 'line', smooth: true, data: isEquities, lineStyle: { color: '#3B82F6', width: 2 } },
       { name: 'Blind Out-of-Sample (2024–2026)', type: 'line', smooth: true, data: oosEquities, lineStyle: { color: '#10B981', width: 2.5 } },
@@ -197,18 +197,18 @@ export const OutOfSamplePage: React.FC = () => {
 
         {/* Right: Metrics Teardown */}
         <div className="lg:col-span-4 quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Degradation Scorecard
           </h3>
 
           <div className="space-y-3 text-xs">
-            <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38] space-y-1">
+            <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c] space-y-1">
               <span className="text-slate-400 text-[10px] uppercase font-bold">Alpha Retention</span>
               <div className="text-2xl font-extrabold font-mono text-emerald-400">81.3%</div>
               <div className="text-[11px] text-slate-400">Degradation: -18.7% (Under 30% Limit)</div>
             </div>
 
-            <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38] space-y-1">
+            <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c] space-y-1">
               <span className="text-slate-400 text-[10px] uppercase font-bold">Parameter Stability Index (PSI)</span>
               <div className="text-2xl font-extrabold font-mono text-cyan-400">92.4 / 100</div>
               <div className="text-[11px] text-slate-400">Weights & Thresholds did not drift</div>
@@ -269,11 +269,11 @@ export const MonteCarloPage: React.FC = () => {
 
   const fanChartOption = {
     backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis', backgroundColor: '#101426', borderColor: '#2A365E', textStyle: { color: '#F1F5F9' } },
+    tooltip: { trigger: 'axis', backgroundColor: '#050505', borderColor: '#262626', textStyle: { color: '#F1F5F9' } },
     legend: { data: ['95th %ile', '75th %ile', 'Median (50th)', '25th %ile', '5th %ile'], textStyle: { color: '#94A3B8' } },
     grid: { left: '3%', right: '3%', top: '15%', bottom: '8%', containLabel: true },
-    xAxis: { type: 'category', data: fan.x_axis, axisLine: { lineStyle: { color: '#161F38' } }, axisLabel: { color: '#64748B' } },
-    yAxis: { type: 'value', axisLabel: { color: '#64748B', fontFamily: 'monospace' }, splitLine: { lineStyle: { color: '#161F38', type: 'dashed' } } },
+    xAxis: { type: 'category', data: fan.x_axis, axisLine: { lineStyle: { color: '#1a1a1a' } }, axisLabel: { color: '#64748B' } },
+    yAxis: { type: 'value', axisLabel: { color: '#64748B', fontFamily: 'monospace' }, splitLine: { lineStyle: { color: '#1a1a1a', type: 'dashed' } } },
     series: [
       { name: '95th %ile', type: 'line', smooth: true, data: fan.p95, lineStyle: { color: '#10B981', width: 1.5 }, areaStyle: { color: 'rgba(16, 185, 129, 0.1)' } },
       { name: '75th %ile', type: 'line', smooth: true, data: fan.p75, lineStyle: { color: '#06B6D4', width: 1.5 }, areaStyle: { color: 'rgba(6, 182, 212, 0.15)' } },
@@ -376,23 +376,23 @@ export const RobustnessPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Jitter Table */}
         <div className="lg:col-span-7 quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Parameter Neighborhood Jitter (±30% Shift)
           </h3>
 
           <div className="overflow-x-auto text-xs font-mono">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-[#161F38] text-slate-400 text-[11px]">
+                <tr className="border-b border-[#1c1c1c] text-slate-400 text-[11px]">
                   <th className="py-2.5 px-3">Perturbation Shift</th>
                   <th className="py-2.5 px-3 text-right">Sharpe Ratio</th>
                   <th className="py-2.5 px-3 text-right">Expectancy (R)</th>
                   <th className="py-2.5 px-3 text-center">Neighborhood Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#161F38]/60 text-slate-200">
+              <tbody className="divide-y divide-[#171717] text-slate-200">
                 {jitter.map((j: any, i: number) => (
-                  <tr key={i} className="hover:bg-[#151B32]/40 transition">
+                  <tr key={i} className="hover:bg-[#101010] transition">
                     <td className="py-2.5 px-3 font-bold text-white">{j.shift}</td>
                     <td className="py-2.5 px-3 text-right font-bold text-emerald-400">{j.sharpe.toFixed(2)}</td>
                     <td className="py-2.5 px-3 text-right font-bold text-slate-300">+{j.expectancy_r.toFixed(2)}R</td>
@@ -417,7 +417,7 @@ export const RobustnessPage: React.FC = () => {
         {/* Cost Modeling Card */}
         <div className="lg:col-span-5 quant-card p-5 space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+            <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
               Execution Cost Sensitivity
             </h3>
 
@@ -428,7 +428,7 @@ export const RobustnessPage: React.FC = () => {
                 { name: '3x Slippage Stress (5 bps + 6 bps)', exp: '+0.61R', pf: '1.68' },
                 { name: 'Black Swan Crisis (10 bps + 10 bps)', exp: '+0.38R', pf: '1.35' },
               ].map((c, i) => (
-                <div key={i} className="p-3 bg-[#0B0E17] rounded border border-[#161F38] flex justify-between items-center font-mono">
+                <div key={i} className="p-3 bg-[#050505] rounded border border-[#1c1c1c] flex justify-between items-center font-mono">
                   <span className="font-sans text-slate-300">{c.name}</span>
                   <div className="flex gap-3">
                     <span className="text-emerald-400 font-bold">{c.exp}</span>
@@ -495,23 +495,23 @@ export const OverfittingDetectorPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Gate 6: Deflated Sharpe Ratio */}
         <div className="quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Gate 6: Deflated Sharpe Ratio (DSR)
           </h3>
 
           <div className="space-y-3 text-xs font-mono">
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38]">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c]">
                 <span className="text-slate-400 text-[10px] font-sans block">Observed Sharpe Ratio</span>
                 <span className="text-xl font-bold text-white">2.18</span>
               </div>
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38]">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c]">
                 <span className="text-slate-400 text-[10px] font-sans block">Deflated Sharpe (DSR)</span>
                 <span className="text-xl font-bold text-emerald-400">1.84 (p = 0.0042)</span>
               </div>
             </div>
 
-            <div className="p-3.5 bg-[#0B0E17] rounded border border-[#161F38] space-y-2 text-slate-300">
+            <div className="p-3.5 bg-[#050505] rounded border border-[#1c1c1c] space-y-2 text-slate-300">
               <div className="flex justify-between">
                 <span className="text-slate-400 font-sans">Miner Trials Accounted (N):</span>
                 <span className="font-bold text-white">184 variants</span>
@@ -534,23 +534,23 @@ export const OverfittingDetectorPage: React.FC = () => {
 
         {/* Probability of Backtest Overfitting (PBO) */}
         <div className="quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Probability of Backtest Overfitting (CSCV PBO)
           </h3>
 
           <div className="space-y-3 text-xs font-mono">
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38]">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c]">
                 <span className="text-slate-400 text-[10px] font-sans block">PBO Overfitting Probability</span>
                 <span className="text-xl font-bold text-emerald-400">12.0%</span>
               </div>
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38]">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c]">
                 <span className="text-slate-400 text-[10px] font-sans block">Institutional Threshold</span>
                 <span className="text-xl font-bold text-slate-300">&lt; 30.0%</span>
               </div>
             </div>
 
-            <div className="p-3.5 bg-[#0B0E17] rounded border border-[#161F38] space-y-2 text-slate-300">
+            <div className="p-3.5 bg-[#050505] rounded border border-[#1c1c1c] space-y-2 text-slate-300">
               <div className="flex justify-between">
                 <span className="text-slate-400 font-sans">CSCV Partitions (S):</span>
                 <span className="font-bold text-white">16 Combinations</span>

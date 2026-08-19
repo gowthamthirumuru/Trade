@@ -36,8 +36,8 @@ export const ExpectancyChart: React.FC<ExpectancyChartProps> = ({ data, onStrate
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
-      backgroundColor: '#101426',
-      borderColor: '#2A365E',
+      backgroundColor: '#050505',
+      borderColor: '#262626',
       textStyle: { color: '#F1F5F9', fontSize: 11 },
       formatter: (params: any) => {
         const item = params[0];
@@ -61,7 +61,7 @@ export const ExpectancyChart: React.FC<ExpectancyChartProps> = ({ data, onStrate
     xAxis: {
       type: 'category',
       data: chartData.map((d) => d.date),
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisTick: { show: false },
       axisLabel: { color: '#64748B', fontSize: 10 },
     },
@@ -77,7 +77,7 @@ export const ExpectancyChart: React.FC<ExpectancyChartProps> = ({ data, onStrate
         formatter: (val: number) => val.toFixed(2),
       },
       splitLine: {
-        lineStyle: { color: '#161F38', type: 'dashed' },
+        lineStyle: { color: '#171717', type: 'dashed' },
       },
     },
     series: [
@@ -122,7 +122,7 @@ export const ExpectancyChart: React.FC<ExpectancyChartProps> = ({ data, onStrate
           <select
             value={selectedStrategy}
             onChange={(e) => handleSelectChange(e.target.value)}
-            className="appearance-none bg-[#0B0E17] border border-[#161F38] rounded-md px-2.5 py-1 pr-7 text-xs text-slate-300 hover:border-slate-700 outline-none cursor-pointer font-medium"
+            className="appearance-none bg-[#040404] border border-[#1c1c1c] rounded-md px-2.5 py-1 pr-7 text-xs text-slate-300 hover:border-neutral-700 outline-none cursor-pointer font-medium"
           >
             <option value="All Strategies">All Strategies</option>
             <option value="BB Reversion v4">BB Reversion v4</option>
@@ -133,6 +133,7 @@ export const ExpectancyChart: React.FC<ExpectancyChartProps> = ({ data, onStrate
           <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2 top-2 pointer-events-none" />
         </div>
       </div>
+
 
       {/* Chart */}
       <div className="flex-1 min-h-[190px]">

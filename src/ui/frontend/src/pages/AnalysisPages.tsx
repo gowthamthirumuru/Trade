@@ -74,7 +74,7 @@ export const PerformancePage: React.FC = () => {
         <div className="overflow-x-auto text-xs font-mono text-center">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#161F38] text-slate-400">
+              <tr className="border-b border-[#1c1c1c] text-slate-400">
                 <th className="p-2 text-left font-sans">Year</th>
                 {months.map((m) => (
                   <th key={m} className="p-2">{m}</th>
@@ -82,7 +82,7 @@ export const PerformancePage: React.FC = () => {
                 <th className="p-2 text-right font-sans">YTD</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#161F38]/60 text-slate-200">
+            <tbody className="divide-y divide-[#171717] text-slate-200">
               {years.map((yr) => {
                 const row = monthlyMap[yr] || {};
                 let ytd = 0;
@@ -91,7 +91,7 @@ export const PerformancePage: React.FC = () => {
                 });
 
                 return (
-                  <tr key={yr} className="hover:bg-[#151B32]/40 transition">
+                  <tr key={yr} className="hover:bg-[#101010] transition">
                     <td className="p-2.5 text-left font-bold text-white font-sans text-xs">{yr}</td>
                     {months.map((m) => {
                       const val = row[m];
@@ -160,14 +160,14 @@ export const TradeAnalyticsPage: React.FC = () => {
     xAxis: {
       type: 'category',
       data: bins.map((b: any) => b.r_range),
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisLabel: { color: '#64748B', fontSize: 10 },
     },
     yAxis: {
       type: 'value',
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisLabel: { color: '#64748B', fontFamily: 'monospace' },
-      splitLine: { lineStyle: { color: '#161F38', type: 'dashed' } },
+      splitLine: { lineStyle: { color: '#1a1a1a', type: 'dashed' } },
     },
     series: [
       {
@@ -204,20 +204,20 @@ export const TradeAnalyticsPage: React.FC = () => {
         {/* Right: Cost Drag Audit */}
         <div className="lg:col-span-5 quant-card p-5 space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+            <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
               Execution Cost & Friction Audit
             </h3>
 
             <div className="space-y-2 text-xs font-mono">
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38] flex justify-between">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c] flex justify-between">
                 <span className="text-slate-400 font-sans">Gross Trading Profit:</span>
                 <span className="text-white font-bold">$38,450.00</span>
               </div>
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38] flex justify-between">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c] flex justify-between">
                 <span className="text-slate-400 font-sans">Taker Fees Paid (5 bps):</span>
                 <span className="text-rose-400 font-bold">-$2,410.50</span>
               </div>
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38] flex justify-between">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c] flex justify-between">
                 <span className="text-slate-400 font-sans">Simulated Slippage (2 bps):</span>
                 <span className="text-rose-400 font-bold">-$964.20</span>
               </div>
@@ -228,7 +228,7 @@ export const TradeAnalyticsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-400 p-3 bg-[#0B0E17] rounded border border-[#161F38]">
+          <div className="text-[11px] text-slate-400 p-3 bg-[#050505] rounded border border-[#1c1c1c]">
             Total fee & slippage drag accounts for <span className="text-amber-400 font-bold">8.78%</span> of gross profits, well below the 15% institutional friction threshold.
           </div>
         </div>
@@ -265,12 +265,12 @@ export const StatsLabPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Inferential Tests */}
         <div className="quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Hypothesis Testing Suite (Sample n = 4,821 Trades)
           </h3>
 
           <div className="space-y-3 text-xs">
-            <div className="p-3.5 bg-[#0B0E17] rounded border border-[#161F38] space-y-1">
+            <div className="p-3.5 bg-[#050505] rounded border border-[#1c1c1c] space-y-1">
               <div className="flex justify-between items-center font-bold">
                 <span className="text-white">Student's t-test (Alpha Significance)</span>
                 <span className="text-emerald-400 font-mono">t = 4.82 (p &lt; 0.0001)</span>
@@ -278,7 +278,7 @@ export const StatsLabPage: React.FC = () => {
               <p className="text-[11px] text-slate-400">Null Hypothesis: Mean return = 0. Verdict: Strongly Reject H0.</p>
             </div>
 
-            <div className="p-3.5 bg-[#0B0E17] rounded border border-[#161F38] space-y-1">
+            <div className="p-3.5 bg-[#050505] rounded border border-[#1c1c1c] space-y-1">
               <div className="flex justify-between items-center font-bold">
                 <span className="text-white">Welch's t-test (Heteroskedasticity Robust)</span>
                 <span className="text-emerald-400 font-mono">t = 4.61 (p &lt; 0.0001)</span>
@@ -286,7 +286,7 @@ export const StatsLabPage: React.FC = () => {
               <p className="text-[11px] text-slate-400">Unequal variance across regimes. Verdict: Strongly Reject H0.</p>
             </div>
 
-            <div className="p-3.5 bg-[#0B0E17] rounded border border-[#161F38] space-y-1">
+            <div className="p-3.5 bg-[#050505] rounded border border-[#1c1c1c] space-y-1">
               <div className="flex justify-between items-center font-bold">
                 <span className="text-white">Kolmogorov-Smirnov Test (Normality)</span>
                 <span className="text-cyan-400 font-mono">KS = 0.042 (p = 0.184)</span>
@@ -298,12 +298,12 @@ export const StatsLabPage: React.FC = () => {
 
         {/* Bootstrap CI & Higher Moments */}
         <div className="quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Bootstrap Confidence Intervals & Return Moments
           </h3>
 
           <div className="space-y-3 text-xs font-mono">
-            <div className="p-3.5 bg-[#0B0E17] rounded border border-[#161F38] space-y-2">
+            <div className="p-3.5 bg-[#050505] rounded border border-[#1c1c1c] space-y-2">
               <span className="text-slate-400 font-sans font-bold">95% Bootstrap Confidence Interval for Expectancy:</span>
               <div className="text-2xl font-extrabold text-emerald-400">
                 [ +0.78R , +1.04R ]
@@ -314,11 +314,11 @@ export const StatsLabPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38]">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c]">
                 <span className="text-slate-400 text-[10px] font-sans block">Return Skewness</span>
                 <span className="text-lg font-bold text-cyan-400">+1.24 (Positive)</span>
               </div>
-              <div className="p-3 bg-[#0B0E17] rounded border border-[#161F38]">
+              <div className="p-3 bg-[#050505] rounded border border-[#1c1c1c]">
                 <span className="text-slate-400 text-[10px] font-sans block">Return Kurtosis</span>
                 <span className="text-lg font-bold text-purple-400">4.82 (Fat-tailed)</span>
               </div>
@@ -348,9 +348,9 @@ export const ComparisonPage: React.FC = () => {
         { name: 'WFER (%)', max: 100 },
         { name: 'Smoothness', max: 100 },
       ],
-      splitLine: { lineStyle: { color: '#161F38' } },
+      splitLine: { lineStyle: { color: '#1a1a1a' } },
       splitArea: { show: false },
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
     },
     series: [
       {
@@ -385,14 +385,14 @@ export const ComparisonPage: React.FC = () => {
         </div>
 
         <div className="lg:col-span-6 quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Comparative Metrics Matrix
           </h3>
 
           <div className="overflow-x-auto text-xs font-mono">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-[#161F38] text-slate-400 text-[11px]">
+                <tr className="border-b border-[#1c1c1c] text-slate-400 text-[11px]">
                   <th className="py-2 px-2 font-sans">Strategy</th>
                   <th className="py-2 px-2 text-right">Sharpe</th>
                   <th className="py-2 px-2 text-right">PF</th>
@@ -401,14 +401,14 @@ export const ComparisonPage: React.FC = () => {
                   <th className="py-2 px-2 text-right">WFER</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#161F38]/60 text-slate-200">
+              <tbody className="divide-y divide-[#171717] text-slate-200">
                 {[
                   { name: 'BB Reversion v4', sharpe: 2.18, pf: 2.18, win: 62.4, dd: 8.4, wfer: 81.4 },
                   { name: 'Order Block v4', sharpe: 1.92, pf: 1.92, win: 64.4, dd: 9.1, wfer: 78.2 },
                   { name: 'Liquidity Sweep v3', sharpe: 1.81, pf: 1.81, win: 58.7, dd: 10.2, wfer: 75.6 },
                   { name: 'London Breakout v2', sharpe: 1.72, pf: 1.72, win: 54.1, dd: 7.6, wfer: 83.1 },
                 ].map((s, i) => (
-                  <tr key={i} className="hover:bg-[#151B32]/40 transition">
+                  <tr key={i} className="hover:bg-[#101010] transition">
                     <td className="py-2.5 px-2 font-bold text-white font-sans">{s.name}</td>
                     <td className="py-2.5 px-2 text-right text-emerald-400 font-bold">{s.sharpe.toFixed(2)}</td>
                     <td className="py-2.5 px-2 text-right text-slate-200">{s.pf.toFixed(2)}</td>

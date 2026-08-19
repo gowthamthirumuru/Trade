@@ -37,7 +37,7 @@ class DuckDBService:
     """Zero-copy analytical query engine for QUANT EDGE UI."""
 
     def __init__(self, db_path: Optional[Path] = None):
-        self.root = Path(__file__).parent.parent.parent.parent
+        self.root = Path(__file__).resolve().parents[4]
         self.db_path = db_path or (self.root / "db" / "apex.duckdb")
         self.engine = LiveDataEngine(db_path=self.db_path)
         try:

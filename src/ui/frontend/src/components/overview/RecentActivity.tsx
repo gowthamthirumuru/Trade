@@ -44,9 +44,10 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ items }) => {
             className="flex items-center justify-between text-xs py-1 hover:text-white transition group"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <div className="p-1 rounded bg-[#161F38]/60 shrink-0">
+              <div className="p-1 rounded bg-[#141414] border border-[#222222] shrink-0">
                 {getIcon(item.category)}
               </div>
+
               <span className="text-slate-300 group-hover:text-white transition truncate">
                 {item.text}
               </span>

@@ -49,9 +49,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-24 px-4">
-      <div className="bg-[#101426] border border-[#2A365E] rounded-xl w-full max-w-xl shadow-2xl shadow-purple-950/40 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-        <div className="p-3.5 border-b border-[#161F38] flex items-center gap-3">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-start justify-center pt-24 px-4">
+      <div className="bg-[#080808] border border-[#262626] rounded-xl w-full max-w-xl shadow-2xl shadow-purple-950/30 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="p-3.5 border-b border-[#1c1c1c] flex items-center gap-3">
           <Search className="w-5 h-5 text-purple-400" />
           <input
             autoFocus
@@ -79,10 +79,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                     onNavigate(item.page);
                     onClose();
                   }}
-                  className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-[#161F38] transition text-left group"
+                  className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-[#141414] transition text-left group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded bg-purple-950/60 border border-purple-800/40 flex items-center justify-center text-purple-400">
+                    <div className="w-7 h-7 rounded bg-purple-950/40 border border-purple-800/40 flex items-center justify-center text-purple-400">
                       <Icon className="w-4 h-4" />
                     </div>
                     <div>
@@ -99,7 +99,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
           )}
         </div>
 
-        <div className="p-2.5 bg-[#0A0D16] border-t border-[#161F38] text-[10px] text-slate-500 flex justify-between">
+        <div className="p-2.5 bg-black border-t border-[#1c1c1c] text-[10px] text-slate-500 flex justify-between">
           <span>Navigate with ⌘K / ESC to close</span>
           <span className="text-purple-400 font-medium">Project APEX Zero-Lookahead Engine</span>
         </div>

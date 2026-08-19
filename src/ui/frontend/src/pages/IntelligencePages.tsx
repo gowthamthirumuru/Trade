@@ -86,7 +86,7 @@ export const AIQuantAnalystPage: React.FC = () => {
           <button
             key={i}
             onClick={() => handleSendText(p)}
-            className="px-3 py-1.5 bg-[#101426] hover:bg-[#161F38] border border-[#161F38] text-slate-300 rounded-lg transition text-[11px] font-medium"
+            className="px-3 py-1.5 bg-[#080808] hover:bg-[#141414] border border-[#1c1c1c] text-slate-300 rounded-lg transition text-[11px] font-medium"
           >
             {p}
           </button>
@@ -106,14 +106,14 @@ export const AIQuantAnalystPage: React.FC = () => {
               className={`p-4 rounded-xl max-w-2xl text-xs leading-relaxed whitespace-pre-line space-y-2 ${
                 m.sender === 'user'
                   ? 'bg-purple-600 text-white rounded-br-none'
-                  : 'bg-[#0B0E17] border border-[#161F38] text-slate-200 rounded-bl-none'
+                  : 'bg-[#050505] border border-[#1c1c1c] text-slate-200 rounded-bl-none'
               }`}
             >
               <div>{m.text}</div>
               {m.sources && m.sources.length > 0 && (
-                <div className="pt-2 border-t border-[#161F38]/60 flex flex-wrap gap-1.5">
+                <div className="pt-2 border-t border-[#171717] flex flex-wrap gap-1.5">
                   {m.sources.map((src: string, sIdx: number) => (
-                    <span key={sIdx} className="px-2 py-0.5 bg-[#101426] text-purple-300 border border-purple-500/30 rounded text-[9px] font-mono">
+                    <span key={sIdx} className="px-2 py-0.5 bg-[#080808] text-purple-300 border border-purple-500/30 rounded text-[9px] font-mono">
                       Source: {src}
                     </span>
                   ))}
@@ -137,7 +137,7 @@ export const AIQuantAnalystPage: React.FC = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSendText(input)}
-          className="flex-1 bg-[#101426] border border-[#161F38] rounded-lg px-4 py-3 text-xs text-white outline-none focus:border-purple-500 placeholder-slate-500"
+          className="flex-1 bg-[#080808] border border-[#1c1c1c] rounded-lg px-4 py-3 text-xs text-white outline-none focus:border-purple-500 placeholder-slate-500"
         />
         <button
           onClick={() => handleSendText(input)}
@@ -224,7 +224,7 @@ All 6 primary strategies passed the institutional validation gauntlet.
                 {r.title}
               </h3>
               <p className="text-xs text-slate-400">{r.summary}</p>
-              <div className="pt-2 border-t border-[#161F38] flex justify-between items-center text-xs">
+              <div className="pt-2 border-t border-[#1c1c1c] flex justify-between items-center text-xs">
                 <span className="text-emerald-400 font-bold flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Certified
                 </span>
@@ -238,14 +238,14 @@ All 6 primary strategies passed the institutional validation gauntlet.
 
         {/* Right Column: Tearsheet Markdown Viewer */}
         <div className="lg:col-span-6 quant-card p-5 space-y-3">
-          <div className="flex justify-between items-center border-b border-[#161F38] pb-3">
+          <div className="flex justify-between items-center border-b border-[#1c1c1c] pb-3">
             <h3 className="text-sm font-bold text-white">Live Report Tearsheet Preview</h3>
             <button className="flex items-center gap-1.5 px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs font-bold transition">
               <Download className="w-3.5 h-3.5" /> Export Markdown
             </button>
           </div>
 
-          <div className="p-4 bg-[#0B0E17] rounded-lg border border-[#161F38] max-h-[480px] overflow-y-auto text-xs text-slate-300 font-mono leading-relaxed whitespace-pre-line">
+          <div className="p-4 bg-[#050505] rounded-lg border border-[#1c1c1c] max-h-[480px] overflow-y-auto text-xs text-slate-300 font-mono leading-relaxed whitespace-pre-line">
             {selectedReport || reports[0].content}
           </div>
         </div>
@@ -303,7 +303,7 @@ export const InsightsPage: React.FC = () => {
               <span className="text-slate-500 text-[10px]">{ins.time}</span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed">{ins.desc}</p>
-            <div className="pt-2 border-t border-[#161F38] text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+            <div className="pt-2 border-t border-[#1c1c1c] text-[10px] text-slate-400 uppercase font-bold tracking-wider">
               Directive: {ins.severity}
             </div>
           </div>

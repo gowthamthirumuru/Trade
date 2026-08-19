@@ -98,13 +98,14 @@ export const KpiRibbon: React.FC<KpiRibbonProps> = ({ kpis }) => {
       {kpis.map((kpi) => (
         <div
           key={kpi.id}
-          className="quant-card p-3.5 flex flex-col justify-between relative overflow-hidden group hover:border-[#2A365E] transition shadow-sm"
+          className="quant-card p-3.5 flex flex-col justify-between relative overflow-hidden group hover:border-neutral-700 transition shadow-sm"
         >
           {/* Header & Icon */}
           <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
             <span className="font-medium truncate">{kpi.title}</span>
-            <div className="p-1 rounded bg-[#161F38]/60">{getIcon(kpi.id)}</div>
+            <div className="p-1 rounded bg-[#141414] border border-[#222222]">{getIcon(kpi.id)}</div>
           </div>
+
 
           {/* Value & Sparkline Row */}
           <div className="flex items-baseline justify-between mt-1">

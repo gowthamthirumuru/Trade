@@ -11,11 +11,12 @@ export const RobustnessDonut: React.FC<RobustnessDonutProps> = ({ data }) => {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
-      backgroundColor: '#101426',
-      borderColor: '#2A365E',
+      backgroundColor: '#050505',
+      borderColor: '#262626',
       textStyle: { color: '#F1F5F9', fontSize: 11 },
       formatter: '{b}: <b>{c} ({d}%)</b>',
     },
+
     series: [
       {
         name: 'Robustness',
@@ -89,12 +90,13 @@ export const RobustnessDonut: React.FC<RobustnessDonutProps> = ({ data }) => {
             </span>
           </div>
 
-          <div className="pt-2 border-t border-[#161F38] text-[11px] text-slate-400 flex justify-between">
+          <div className="pt-2 border-t border-[#1a1a1a] text-[11px] text-slate-400 flex justify-between">
             <span>Average Robustness</span>
             <span className="font-bold text-emerald-400 font-mono">
               {data.average_robustness} / 100
             </span>
           </div>
+
         </div>
       </div>
     </div>

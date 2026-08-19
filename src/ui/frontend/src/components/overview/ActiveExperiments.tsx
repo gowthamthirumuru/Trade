@@ -68,7 +68,7 @@ export const ActiveExperiments: React.FC<ActiveExperimentsProps> = ({
   return (
     <div className="quant-card flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-[#161F38] flex items-center justify-between">
+      <div className="p-4 border-b border-[#1a1a1a] flex items-center justify-between">
         <h2 className="text-sm font-bold text-white tracking-tight">Active Experiments</h2>
         <button
           onClick={onViewAll}
@@ -104,7 +104,8 @@ export const ActiveExperiments: React.FC<ActiveExperimentsProps> = ({
 
             {/* Progress bar and % */}
             <div className="flex items-center gap-2 pl-5">
-              <div className="flex-1 h-1.5 rounded-full bg-[#161F38] overflow-hidden">
+              <div className="flex-1 h-1.5 rounded-full bg-[#1a1a1a] overflow-hidden">
+
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${getProgressBarColor(
                     exp.stage

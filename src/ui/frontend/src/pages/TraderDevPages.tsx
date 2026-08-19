@@ -93,12 +93,12 @@ export const JournalPage: React.FC = () => {
                 {entry.strategy} ({entry.direction})
               </h3>
 
-              <div className="p-2.5 bg-[#0B0E17] rounded border border-[#161F38] text-[11px] text-slate-300 leading-relaxed">
+              <div className="p-2.5 bg-[#050505] rounded border border-[#1c1c1c] text-[11px] text-slate-300 leading-relaxed">
                 "{entry.notes}"
               </div>
             </div>
 
-            <div className="pt-2 border-t border-[#161F38] flex justify-between items-center text-[11px]">
+            <div className="pt-2 border-t border-[#1c1c1c] flex justify-between items-center text-[11px]">
               <span className="text-slate-400 flex items-center gap-1 font-mono">
                 <Tag className="w-3 h-3 text-purple-400" /> {entry.emotional_state || 'Calm'}
               </span>
@@ -113,7 +113,7 @@ export const JournalPage: React.FC = () => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#101426] border border-[#2A365E] rounded-xl w-full max-w-md p-5 space-y-4 shadow-2xl animate-in zoom-in-95">
+          <div className="bg-[#080808] border border-[#262626] rounded-xl w-full max-w-md p-5 space-y-4 shadow-2xl animate-in zoom-in-95">
             <h3 className="text-base font-bold text-white">Log Qualitative Journal Entry</h3>
             <div className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-3">
@@ -122,7 +122,7 @@ export const JournalPage: React.FC = () => {
                   <select
                     value={newPair}
                     onChange={(e) => setNewPair(e.target.value)}
-                    className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white outline-none"
+                    className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white outline-none"
                   >
                     <option>XAUUSD</option>
                     <option>EURUSD</option>
@@ -135,7 +135,7 @@ export const JournalPage: React.FC = () => {
                   <select
                     value={newStrat}
                     onChange={(e) => setNewStrat(e.target.value)}
-                    className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white outline-none"
+                    className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white outline-none"
                   >
                     <option>BB Reversion v4</option>
                     <option>Order Block v4</option>
@@ -151,7 +151,7 @@ export const JournalPage: React.FC = () => {
                   <select
                     value={newDir}
                     onChange={(e) => setNewDir(e.target.value)}
-                    className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white outline-none"
+                    className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white outline-none"
                   >
                     <option>BUY</option>
                     <option>SELL</option>
@@ -164,7 +164,7 @@ export const JournalPage: React.FC = () => {
                     step={0.1}
                     value={newR}
                     onChange={(e) => setNewR(Number(e.target.value))}
-                    className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white outline-none font-mono"
+                    className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white outline-none font-mono"
                   />
                 </div>
               </div>
@@ -174,7 +174,7 @@ export const JournalPage: React.FC = () => {
                 <select
                   value={newEmotion}
                   onChange={(e) => setNewEmotion(e.target.value)}
-                  className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white outline-none"
+                  className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white outline-none"
                 >
                   <option>Calm / In-The-Zone</option>
                   <option>FOMO / Impatient</option>
@@ -190,13 +190,13 @@ export const JournalPage: React.FC = () => {
                   placeholder="Notes on entry trigger, HTF context, and SL execution..."
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white outline-none focus:border-purple-500"
+                  className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white outline-none focus:border-purple-500"
                 />
               </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <button onClick={() => setIsModalOpen(false)} className="px-3 py-1.5 bg-[#161F38] text-slate-300 rounded text-xs">
+              <button onClick={() => setIsModalOpen(false)} className="px-3 py-1.5 bg-[#141414] text-slate-300 rounded text-xs">
                 Cancel
               </button>
               <button onClick={handleAddEntry} className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs font-bold">
@@ -274,7 +274,7 @@ export const PsychologyPage: React.FC = () => {
                 <span className="font-mono text-[10px] text-slate-400">{s.trades} Trades</span>
               </div>
 
-              <div className="space-y-1 font-mono pt-1 border-t border-[#161F38]">
+              <div className="space-y-1 font-mono pt-1 border-t border-[#1c1c1c]">
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-400 font-sans">Avg Outcome:</span>
                   <span className={`font-bold ${s.avg_r >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
@@ -355,7 +355,7 @@ export const MistakesPage: React.FC = () => {
         <div className="overflow-x-auto text-xs font-mono">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-[#161F38] text-slate-400 text-[11px]">
+              <tr className="border-b border-[#1c1c1c] text-slate-400 text-[11px]">
                 <th className="py-2.5 px-3 font-sans">Mistake Category</th>
                 <th className="py-2.5 px-3 text-center">Occurrences</th>
                 <th className="py-2.5 px-3 text-right">Dollar Cost</th>
@@ -363,9 +363,9 @@ export const MistakesPage: React.FC = () => {
                 <th className="py-2.5 px-3 text-center">Severity</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#161F38]/60 text-slate-200">
+            <tbody className="divide-y divide-[#171717] text-slate-200">
               {mistakes.map((m: any) => (
-                <tr key={m.id} className="hover:bg-[#151B32]/40 transition">
+                <tr key={m.id} className="hover:bg-[#101010] transition">
                   <td className="py-2.5 px-3 font-bold text-white font-sans">{m.name}</td>
                   <td className="py-2.5 px-3 text-center text-slate-300">{m.occurrences}</td>
                   <td className="py-2.5 px-3 text-right font-bold text-rose-400">-${m.cost_usd.toLocaleString()}</td>
@@ -431,19 +431,19 @@ export const ReplayPage: React.FC = () => {
 
   const replayChartOption = {
     backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: '#101426', borderColor: '#2A365E', textStyle: { color: '#F1F5F9' } },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor: '#050505', borderColor: '#262626', textStyle: { color: '#F1F5F9' } },
     grid: { left: '3%', right: '3%', top: '10%', bottom: '10%', containLabel: true },
     xAxis: {
       type: 'category',
       data: candleDates,
       scale: true,
       boundaryGap: false,
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisLabel: { color: '#64748B', fontSize: 10 },
     },
     yAxis: {
       scale: true,
-      splitLine: { lineStyle: { color: '#161F38', type: 'dashed' } },
+      splitLine: { lineStyle: { color: '#1a1a1a', type: 'dashed' } },
       axisLabel: { color: '#64748B', fontFamily: 'monospace', fontSize: 10 },
     },
     series: [
@@ -485,7 +485,7 @@ export const ReplayPage: React.FC = () => {
         </div>
 
         {/* Replay Controls */}
-        <div className="flex items-center gap-2 bg-[#101426] p-1.5 rounded-lg border border-[#161F38]">
+        <div className="flex items-center gap-2 bg-[#080808] p-1.5 rounded-lg border border-[#1c1c1c]">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             className="p-2 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs font-bold transition flex items-center gap-1"
@@ -495,7 +495,7 @@ export const ReplayPage: React.FC = () => {
           </button>
           <button
             onClick={() => setCurrentIdx((p) => Math.min(allCandles.length - 1, p + 1))}
-            className="p-2 bg-[#0B0E17] hover:bg-[#151B32] text-slate-300 rounded text-xs font-medium transition flex items-center gap-1"
+            className="p-2 bg-[#050505] hover:bg-[#121212] text-slate-300 rounded text-xs font-medium transition flex items-center gap-1"
           >
             <SkipForward className="w-3.5 h-3.5" /> +1 Bar
           </button>
@@ -504,7 +504,7 @@ export const ReplayPage: React.FC = () => {
               setIsPlaying(false);
               setCurrentIdx(10);
             }}
-            className="p-2 bg-[#0B0E17] hover:bg-[#151B32] text-slate-400 hover:text-white rounded text-xs transition"
+            className="p-2 bg-[#050505] hover:bg-[#121212] text-slate-400 hover:text-white rounded text-xs transition"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
@@ -517,7 +517,7 @@ export const ReplayPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Replay Chart */}
         <div className="lg:col-span-8 quant-card p-5 space-y-4">
-          <div className="flex justify-between items-center border-b border-[#161F38] pb-3 text-xs">
+          <div className="flex justify-between items-center border-b border-[#1c1c1c] pb-3 text-xs">
             <span className="font-bold text-white">XAUUSD • 15m Simulation Stream</span>
             <span className="text-emerald-400 font-mono font-bold">Current Close: ${visibleCandles[visibleCandles.length - 1]?.close}</span>
           </div>
@@ -527,7 +527,7 @@ export const ReplayPage: React.FC = () => {
           </div>
 
           {/* Decision Buttons */}
-          <div className="flex gap-3 pt-2 border-t border-[#161F38]">
+          <div className="flex gap-3 pt-2 border-t border-[#1c1c1c]">
             <button
               onClick={() => handleDecision('BUY LONG')}
               className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-xs shadow-md shadow-emerald-900/30 transition"
@@ -542,7 +542,7 @@ export const ReplayPage: React.FC = () => {
             </button>
             <button
               onClick={() => handleDecision('PASS / WAIT')}
-              className="px-6 py-2.5 bg-[#161F38] hover:bg-slate-700 text-slate-300 rounded font-medium text-xs transition"
+              className="px-6 py-2.5 bg-[#141414] hover:bg-slate-700 text-slate-300 rounded font-medium text-xs transition"
             >
               Pass / Wait
             </button>
@@ -551,7 +551,7 @@ export const ReplayPage: React.FC = () => {
 
         {/* Decision History */}
         <div className="lg:col-span-4 quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Replay Decision Log
           </h3>
 
@@ -560,7 +560,7 @@ export const ReplayPage: React.FC = () => {
               <div className="text-slate-500 text-center py-10">No simulated decisions logged yet.</div>
             ) : (
               decisionLog.map((item, idx) => (
-                <div key={idx} className="p-2.5 bg-[#0B0E17] rounded border border-[#161F38] flex justify-between items-center">
+                <div key={idx} className="p-2.5 bg-[#050505] rounded border border-[#1c1c1c] flex justify-between items-center">
                   <div>
                     <span className="text-slate-400 font-sans text-[11px] block">{item.time}</span>
                     <span className="text-white font-bold">${item.price}</span>

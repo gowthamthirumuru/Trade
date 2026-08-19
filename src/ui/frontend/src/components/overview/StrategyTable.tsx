@@ -65,7 +65,7 @@ export const StrategyTable: React.FC<StrategyTableProps> = ({
   return (
     <div className="quant-card flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-[#161F38] flex items-center justify-between">
+      <div className="p-4 border-b border-[#1a1a1a] flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <h2 className="text-sm font-bold text-white tracking-tight">
             Strategy Performance (Top 10)
@@ -89,7 +89,7 @@ export const StrategyTable: React.FC<StrategyTableProps> = ({
       <div className="flex-1 overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-[#161F38]/80 text-[11px] text-slate-400 font-medium bg-[#0B0E17]/40">
+            <tr className="border-b border-[#1a1a1a] text-[11px] text-slate-400 font-medium bg-[#040404]">
               <th className="py-2.5 px-3.5 font-medium">Strategy</th>
               <th className="py-2.5 px-3 text-right font-medium">Expectancy (R)</th>
               <th className="py-2.5 px-3 text-right font-medium">OOS Expectancy (R)</th>
@@ -99,7 +99,7 @@ export const StrategyTable: React.FC<StrategyTableProps> = ({
               <th className="py-2.5 px-3.5 text-right font-medium">Trades</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#161F38]/40">
+          <tbody className="divide-y divide-[#171717]">
             {strategies.map((strat) => {
               const isPositiveExp = strat.expectancy_r >= 0;
               const isPositiveOos = strat.oos_expectancy_r >= 0;
@@ -108,8 +108,9 @@ export const StrategyTable: React.FC<StrategyTableProps> = ({
                 <tr
                   key={strat.name}
                   onClick={() => onSelectStrategy && onSelectStrategy(strat)}
-                  className="hover:bg-[#151B32]/70 cursor-pointer transition"
+                  className="hover:bg-[#121212] cursor-pointer transition"
                 >
+
                   <td className="py-2.5 px-3.5 flex items-center font-medium text-slate-200">
                     {renderMiniSparkline(strat.sparkline, strat.trend)}
                     <span className="truncate">{strat.name}</span>

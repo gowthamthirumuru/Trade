@@ -120,9 +120,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onSelectPage }) =>
   ];
 
   return (
-    <aside className="w-64 bg-[#0B0E17] border-r border-[#161F38] flex flex-col h-screen select-none shrink-0 z-20">
+    <aside className="w-64 bg-black border-r border-[#1a1a1a] flex flex-col h-screen select-none shrink-0 z-20">
       {/* Brand Header */}
-      <div className="p-4 border-b border-[#161F38]/60 flex items-center gap-3">
+      <div className="p-4 border-b border-[#1a1a1a] flex items-center gap-3 bg-black">
         <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-purple-700 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-900/40 text-white">
           <Hexagon className="w-5 h-5 fill-white/20 stroke-white stroke-[2.2]" />
         </div>
@@ -137,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onSelectPage }) =>
       </div>
 
       {/* Navigation Links (Scrollable) */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 text-xs">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 text-xs bg-black">
         {navigation.map((section, sIdx) => (
           <div key={sIdx} className="space-y-1">
             {section.title && (
@@ -155,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onSelectPage }) =>
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-150 text-left group ${
                     isActive
                       ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-sm shadow-purple-900/20'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#101426]'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#121212]'
                   }`}
                 >
                   <Icon
@@ -177,8 +177,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onSelectPage }) =>
       </div>
 
       {/* User Profile Footer */}
-      <div className="p-3 border-t border-[#161F38] bg-[#0A0D16]">
-        <div className="flex items-center gap-2.5 p-2 rounded-lg bg-[#101426] border border-[#161F38] hover:border-slate-700 cursor-pointer transition">
+      <div className="p-3 border-t border-[#1a1a1a] bg-black">
+        <div className="flex items-center gap-2.5 p-2 rounded-lg bg-[#080808] border border-[#1c1c1c] hover:border-neutral-700 cursor-pointer transition">
           <div className="w-7 h-7 rounded bg-purple-600/30 border border-purple-500/40 text-purple-300 font-bold text-xs flex items-center justify-center">
             QT
           </div>

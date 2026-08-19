@@ -8,13 +8,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#07090E',
-        sidebar: '#0B0E17',
-        card: '#101426',
-        'card-hover': '#151B32',
-        'card-border': '#1C243E',
-        'border-subtle': '#161F38',
-        'border-highlight': '#2A365E',
+        background: '#000000',
+        sidebar: '#000000',
+        card: '#080808',
+        'card-hover': '#121212',
+        'card-border': '#1a1a1a',
+        'border-subtle': '#181818',
+        'border-highlight': '#282828',
         
         // Brand & Status Accents matching the image
         brand: {
@@ -46,7 +46,7 @@ export default {
         'glow-purple': '0 0 20px -5px rgba(124, 58, 237, 0.35)',
         'glow-cyan': '0 0 20px -5px rgba(6, 182, 212, 0.35)',
         'glow-emerald': '0 0 20px -5px rgba(16, 185, 129, 0.35)',
-        'glow-card': '0 4px 20px -2px rgba(0, 0, 0, 0.5)',
+        'glow-card': '0 4px 20px -2px rgba(0, 0, 0, 0.7)',
       },
     },
   },

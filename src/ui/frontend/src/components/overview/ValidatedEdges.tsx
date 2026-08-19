@@ -31,7 +31,7 @@ export const ValidatedEdges: React.FC<ValidatedEdgesProps> = ({
   return (
     <div className="quant-card flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-[#161F38] flex items-center justify-between">
+      <div className="p-4 border-b border-[#1a1a1a] flex items-center justify-between">
         <h2 className="text-sm font-bold text-white tracking-tight">Top Validated Edges</h2>
         <button
           onClick={onViewAll}
@@ -47,12 +47,12 @@ export const ValidatedEdges: React.FC<ValidatedEdgesProps> = ({
           <div
             key={edge.id}
             onClick={() => onSelectEdge && onSelectEdge(edge)}
-            className="p-3 rounded-lg bg-[#0B0E17]/80 border border-[#161F38] hover:border-emerald-500/40 hover:bg-[#101426] cursor-pointer transition flex flex-col gap-2 group"
+            className="p-3 rounded-lg bg-[#050505] border border-[#1c1c1c] hover:border-emerald-500/40 hover:bg-[#0c0c0c] cursor-pointer transition flex flex-col gap-2 group"
           >
             {/* Title & Badge Row */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded bg-[#161F38] text-slate-300 text-[11px] font-bold flex items-center justify-center font-mono">
+                <span className="w-5 h-5 rounded bg-[#1a1a1a] text-slate-300 text-[11px] font-bold flex items-center justify-center font-mono">
                   {idx + 1}
                 </span>
                 <span className="text-xs font-bold text-white group-hover:text-emerald-400 transition">
@@ -70,7 +70,8 @@ export const ValidatedEdges: React.FC<ValidatedEdgesProps> = ({
             </div>
 
             {/* Metrics Grid */}
-            <div className="grid grid-cols-5 gap-1 pt-1.5 border-t border-[#161F38]/60 text-[10px] items-center">
+            <div className="grid grid-cols-5 gap-1 pt-1.5 border-t border-[#171717] text-[10px] items-center">
+
               <div>
                 <span className="text-slate-500 block">Expectancy</span>
                 <span className="font-mono font-bold text-emerald-400">

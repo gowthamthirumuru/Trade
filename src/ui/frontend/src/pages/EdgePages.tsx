@@ -98,18 +98,18 @@ export const EdgeExplorerPage: React.FC = () => {
 
   const rChartOption = {
     backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis', backgroundColor: '#101426', borderColor: '#2A365E', textStyle: { color: '#F1F5F9' } },
+    tooltip: { trigger: 'axis', backgroundColor: '#050505', borderColor: '#262626', textStyle: { color: '#F1F5F9' } },
     grid: { left: '3%', right: '3%', top: '8%', bottom: '10%', containLabel: true },
     xAxis: {
       type: 'category',
       data: rPoints.map((p: any) => p.label),
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisLabel: { color: '#64748B', fontSize: 10 },
     },
     yAxis: {
       type: 'value',
       axisLabel: { color: '#64748B', fontFamily: 'monospace', formatter: '+{value}R' },
-      splitLine: { lineStyle: { color: '#161F38', type: 'dashed' } },
+      splitLine: { lineStyle: { color: '#1a1a1a', type: 'dashed' } },
     },
     series: [
       {
@@ -169,7 +169,7 @@ export const EdgeExplorerPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Column: Slicing Parameters */}
         <div className="lg:col-span-4 quant-card p-5 space-y-4 text-xs">
-          <div className="flex items-center gap-2 font-bold text-white border-b border-[#161F38] pb-3">
+          <div className="flex items-center gap-2 font-bold text-white border-b border-[#1c1c1c] pb-3">
             <Filter className="w-4 h-4 text-emerald-400" /> Multi-Dimensional Filters
           </div>
 
@@ -178,7 +178,7 @@ export const EdgeExplorerPage: React.FC = () => {
             <select
               value={selectedPair}
               onChange={(e) => setSelectedPair(e.target.value)}
-              className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white font-semibold outline-none"
+              className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white font-semibold outline-none"
             >
               <option value="XAUUSD">XAUUSD (Gold / US Dollar)</option>
               <option value="EURUSD">EURUSD (Euro / US Dollar)</option>
@@ -193,7 +193,7 @@ export const EdgeExplorerPage: React.FC = () => {
             <select
               value={selectedSession}
               onChange={(e) => setSelectedSession(e.target.value)}
-              className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white font-semibold outline-none"
+              className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white font-semibold outline-none"
             >
               <option value="london">London Session (07:00 – 15:00 UTC)</option>
               <option value="new_york">New York Session (13:00 – 21:00 UTC)</option>
@@ -206,7 +206,7 @@ export const EdgeExplorerPage: React.FC = () => {
             <select
               value={selectedVol}
               onChange={(e) => setSelectedVol(e.target.value)}
-              className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white font-semibold outline-none"
+              className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white font-semibold outline-none"
             >
               <option value="high">High Volatility (ATR &gt; 18.0)</option>
               <option value="mid">Mid Volatility (ATR 10.0 – 18.0)</option>
@@ -219,7 +219,7 @@ export const EdgeExplorerPage: React.FC = () => {
             <select
               value={selectedTrend}
               onChange={(e) => setSelectedTrend(e.target.value)}
-              className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white font-semibold outline-none"
+              className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white font-semibold outline-none"
             >
               <option value="bullish">Bullish 4h Alignment (EMA 50 &gt; 200)</option>
               <option value="bearish">Bearish 4h Alignment (EMA 50 &lt; 200)</option>
@@ -232,7 +232,7 @@ export const EdgeExplorerPage: React.FC = () => {
             <select
               value={selectedDay}
               onChange={(e) => setSelectedDay(e.target.value)}
-              className="w-full bg-[#0B0E17] border border-[#161F38] rounded p-2 text-white font-semibold outline-none"
+              className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white font-semibold outline-none"
             >
               <option value="Tuesday">Tuesday (Peak Volatility Day)</option>
               <option value="Wednesday">Wednesday</option>
@@ -300,7 +300,7 @@ export const EdgeExplorerPage: React.FC = () => {
             <div className="overflow-x-auto text-xs">
               <table className="w-full text-left font-mono">
                 <thead>
-                  <tr className="border-b border-[#161F38] text-slate-400 text-[10px]">
+                  <tr className="border-b border-[#1c1c1c] text-slate-400 text-[10px]">
                     <th className="py-2 px-2">Trade ID</th>
                     <th className="py-2 px-2">Entry Time</th>
                     <th className="py-2 px-2">Side</th>
@@ -309,9 +309,9 @@ export const EdgeExplorerPage: React.FC = () => {
                     <th className="py-2 px-2 text-center">Exit Reason</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#161F38]/50 text-slate-300 text-[11px]">
+                <tbody className="divide-y divide-[#171717] text-slate-300 text-[11px]">
                   {(sliceData?.trades_sample || []).map((t: any) => (
-                    <tr key={t.trade_id} className="hover:bg-[#151B32]/40 transition">
+                    <tr key={t.trade_id} className="hover:bg-[#101010] transition">
                       <td className="py-2 px-2 text-slate-400 font-bold">#{t.trade_id}</td>
                       <td className="py-2 px-2 text-slate-300 font-sans">{t.entry_time}</td>
                       <td className={`py-2 px-2 font-bold ${t.direction === 'LONG' ? 'text-emerald-400' : 'text-purple-400'}`}>
@@ -369,14 +369,14 @@ export const ConditionAnalysisPage: React.FC = () => {
     grid: { left: '3%', right: '4%', top: '8%', bottom: '5%', containLabel: true },
     xAxis: {
       type: 'value',
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisLabel: { color: '#64748B', fontFamily: 'monospace', formatter: '{value}%' },
-      splitLine: { lineStyle: { color: '#161F38', type: 'dashed' } },
+      splitLine: { lineStyle: { color: '#1a1a1a', type: 'dashed' } },
     },
     yAxis: {
       type: 'category',
       data: featureNames,
-      axisLine: { lineStyle: { color: '#161F38' } },
+      axisLine: { lineStyle: { color: '#1a1a1a' } },
       axisLabel: { color: '#94A3B8', fontSize: 11 },
     },
     series: [
@@ -403,20 +403,20 @@ export const ConditionAnalysisPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left: Feature Lift Ranking Table */}
         <div className="lg:col-span-7 quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Condition Lift Ranking (BB Reversion v4)
           </h3>
 
           <div className="space-y-3">
             {conditions.map((item, i) => (
-              <div key={i} className="p-3.5 rounded-lg bg-[#0B0E17] border border-[#161F38] space-y-2">
+              <div key={i} className="p-3.5 rounded-lg bg-[#050505] border border-[#1c1c1c] space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-white text-xs">{item.name}</span>
                   <span className="px-2.5 py-0.5 rounded font-bold font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 text-xs">
                     {item.lift_pct}
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-[11px] font-mono pt-1 text-slate-400 border-t border-[#161F38]/60">
+                <div className="grid grid-cols-3 gap-2 text-[11px] font-mono pt-1 text-slate-400 border-t border-[#171717]">
                   <div>Win-Rate: <span className="text-emerald-400 font-bold">{item.win_rate_after}%</span></div>
                   <div>Expectancy: <span className="text-emerald-400 font-bold">+{item.expectancy_after}R</span></div>
                   <div>p-value: <span className="text-slate-300 font-bold">{item.p_value}</span></div>
@@ -428,7 +428,7 @@ export const ConditionAnalysisPage: React.FC = () => {
 
         {/* Right: Permutation Importance Chart */}
         <div className="lg:col-span-5 quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Permutation Feature Importance (Shapley Impact)
           </h3>
           <div className="h-[320px]">
@@ -495,24 +495,24 @@ export const RegimeAnalysisPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 font-mono text-center pt-1 border-t border-[#161F38]">
-                <div className="p-2 bg-[#0B0E17] rounded">
+              <div className="grid grid-cols-3 gap-2 font-mono text-center pt-1 border-t border-[#1c1c1c]">
+                <div className="p-2 bg-[#050505] rounded">
                   <span className="text-[10px] text-slate-400 font-sans block">Expectancy</span>
                   <span className={`font-bold text-sm ${r.expectancy_r >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {r.expectancy_r >= 0 ? `+${r.expectancy_r}R` : `${r.expectancy_r}R`}
                   </span>
                 </div>
-                <div className="p-2 bg-[#0B0E17] rounded">
+                <div className="p-2 bg-[#050505] rounded">
                   <span className="text-[10px] text-slate-400 font-sans block">Win Rate</span>
                   <span className="text-slate-200 font-bold text-sm">{r.win_rate_pct}%</span>
                 </div>
-                <div className="p-2 bg-[#0B0E17] rounded">
+                <div className="p-2 bg-[#050505] rounded">
                   <span className="text-[10px] text-slate-400 font-sans block">Trades</span>
                   <span className="text-slate-300 font-medium text-sm">{r.trades_count}</span>
                 </div>
               </div>
 
-              <div className="text-[11px] text-slate-300 p-2 bg-[#0B0E17] rounded border border-[#161F38]">
+              <div className="text-[11px] text-slate-300 p-2 bg-[#050505] rounded border border-[#1c1c1c]">
                 <span className="text-slate-500 font-bold block text-[10px]">EXECUTION DIRECTIVE:</span>
                 {r.recommendation}
               </div>
@@ -563,22 +563,22 @@ export const PatternMiningPage: React.FC = () => {
               {p.pattern}
             </h3>
 
-            <div className="grid grid-cols-3 gap-2 font-mono text-center pt-1 border-t border-[#161F38]">
-              <div className="p-2 bg-[#0B0E17] rounded">
+            <div className="grid grid-cols-3 gap-2 font-mono text-center pt-1 border-t border-[#1c1c1c]">
+              <div className="p-2 bg-[#050505] rounded">
                 <span className="text-[10px] text-slate-400 font-sans block">Frequency</span>
                 <span className="text-slate-200 font-bold text-sm">{p.frequency}</span>
               </div>
-              <div className="p-2 bg-[#0B0E17] rounded">
+              <div className="p-2 bg-[#050505] rounded">
                 <span className="text-[10px] text-slate-400 font-sans block">Win Rate</span>
                 <span className="text-emerald-400 font-bold text-sm">{p.win_rate}%</span>
               </div>
-              <div className="p-2 bg-[#0B0E17] rounded">
+              <div className="p-2 bg-[#050505] rounded">
                 <span className="text-[10px] text-slate-400 font-sans block">Avg R-Multiple</span>
                 <span className="text-purple-300 font-bold text-sm">+{p.avg_r}R</span>
               </div>
             </div>
 
-            <div className="space-y-1 text-[11px] p-3 bg-[#0B0E17] rounded border border-[#161F38] text-slate-300 font-mono">
+            <div className="space-y-1 text-[11px] p-3 bg-[#050505] rounded border border-[#1c1c1c] text-slate-300 font-mono">
               <div><span className="text-slate-500 font-sans font-bold">Optimal Entry:</span> {p.optimal_entry}</div>
               <div><span className="text-slate-500 font-sans font-bold">Stop Loss:</span> {p.stop_loss}</div>
               <div><span className="text-slate-500 font-sans font-bold">Take Profit:</span> {p.take_profit}</div>
@@ -630,23 +630,23 @@ export const CorrelationPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left: Matrix Heatmap Table */}
         <div className="lg:col-span-8 quant-card p-5 space-y-4">
-          <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+          <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
             Pairwise Correlation Matrix (Daily Returns)
           </h3>
 
           <div className="overflow-x-auto text-xs font-mono text-center">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#161F38] text-slate-400">
+                <tr className="border-b border-[#1c1c1c] text-slate-400">
                   <th className="p-2 text-left font-sans">Strategy</th>
                   {strats.map((s: string) => (
                     <th key={s} className="p-2 text-xs truncate max-w-[100px]">{s}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#161F38]/60 text-slate-200">
+              <tbody className="divide-y divide-[#171717] text-slate-200">
                 {strats.map((sName: string, i: number) => (
-                  <tr key={i} className="hover:bg-[#151B32]/40 transition">
+                  <tr key={i} className="hover:bg-[#101010] transition">
                     <td className="p-2.5 text-left font-bold text-white font-sans text-xs">{sName}</td>
                     {matrix[i].map((v: number, j: number) => (
                       <td
@@ -672,11 +672,11 @@ export const CorrelationPage: React.FC = () => {
         {/* Right: Diversification Summary & Pruning Alert */}
         <div className="lg:col-span-4 quant-card p-5 space-y-4 flex flex-col justify-between">
           <div className="space-y-3">
-            <h3 className="text-sm font-bold text-white border-b border-[#161F38] pb-3">
+            <h3 className="text-sm font-bold text-white border-b border-[#1c1c1c] pb-3">
               Portfolio Diversification Metrics
             </h3>
 
-            <div className="p-3.5 bg-[#0B0E17] rounded border border-[#161F38] space-y-1">
+            <div className="p-3.5 bg-[#050505] rounded border border-[#1c1c1c] space-y-1">
               <span className="text-slate-400 text-[10px] uppercase font-bold">Variance Reduction</span>
               <div className="text-2xl font-extrabold font-mono text-emerald-400">
                 +34.2% Risk Reduction
@@ -686,7 +686,7 @@ export const CorrelationPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-3.5 bg-[#0B0E17] rounded border border-[#161F38] space-y-1">
+            <div className="p-3.5 bg-[#050505] rounded border border-[#1c1c1c] space-y-1">
               <span className="text-slate-400 text-[10px] uppercase font-bold">Average Cross-Correlation</span>
               <div className="text-xl font-extrabold font-mono text-cyan-400">
                 0.18 (Institutional Benchmark &lt; 0.30)
