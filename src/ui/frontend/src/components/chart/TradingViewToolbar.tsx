@@ -81,6 +81,7 @@ interface TradingViewToolbarProps {
   barLimit?: number;
   onBarLimitChange?: (limit: number) => void;
   onSelectEra?: (fromTime: number, toTime: number, name: string) => void;
+  onResetView?: () => void;
 }
 
 export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
@@ -115,6 +116,7 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
   barLimit = 5000,
   onBarLimitChange,
   onSelectEra,
+  onResetView,
 }) => {
   const [activeDropdown, setActiveDropdown] = useState<DropdownId>(null);
   const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
@@ -203,19 +205,19 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
           <div className="relative">
             <button
               onClick={() => toggleDropdown('symbol')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#141414] hover:bg-[#1f1f1f] border text-white font-bold font-mono transition ${
-                activeDropdown === 'symbol' ? 'border-purple-500 bg-[#1c1c1c]' : 'border-[#262626]'
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0e121a] hover:bg-[#161c28] border text-white font-bold font-mono transition ${
+                activeDropdown === 'symbol' ? 'border-cyan-500 bg-[#161c28]' : 'border-[#1c2436]'
               }`}
             >
               <span className="text-emerald-400 font-extrabold">{pair}</span>
-              <span className="text-[10px] px-1 py-0.2 rounded bg-neutral-800 text-slate-400 font-sans">
+              <span className="text-[10px] px-1 py-0.2 rounded bg-[#161c28] text-slate-400 font-sans">
                 {pair.includes('USDT') ? 'CRYPTO' : 'FOREX'}
               </span>
               <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${activeDropdown === 'symbol' ? 'rotate-180' : ''}`} />
             </button>
 
             {activeDropdown === 'symbol' && (
-              <div className="absolute left-0 top-full mt-1.5 w-80 bg-[#0c0c0c]/98 backdrop-blur-xl border border-neutral-800 rounded-xl shadow-2xl z-50 p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute left-0 top-full mt-1.5 w-80 bg-[#080a0f]/98 backdrop-blur-xl border border-[#1c2436] rounded-xl shadow-2xl z-50 p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-100">
                 <div className="relative">
                   <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-500" />
                   <input
@@ -223,18 +225,18 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
                     placeholder="Search 22 instruments..."
-                    className="w-full bg-[#171717] border border-neutral-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white font-mono placeholder:text-slate-600 outline-none focus:border-purple-500"
+                    className="w-full bg-[#0e121a] border border-[#1c2436] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white font-mono placeholder:text-slate-600 outline-none focus:border-cyan-500"
                     autoFocus
                   />
                 </div>
 
-                <div className="flex bg-[#141414] p-0.5 rounded-lg text-[10px] font-mono">
+                <div className="flex bg-[#0e121a] p-0.5 rounded-lg text-[10px] font-mono border border-[#1c2436]">
                   {(['ALL', 'Crypto', 'Forex'] as const).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setAssetTab(tab)}
                       className={`flex-1 py-1 rounded font-bold transition ${
-                        assetTab === tab ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
+                        assetTab === tab ? 'bg-cyan-500 text-black font-extrabold shadow-cyan-500/20' : 'text-slate-400 hover:text-white'
                       }`}
                     >
                       {tab}
@@ -252,7 +254,7 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
                           setActiveDropdown(null);
                         }}
                         className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition ${
-                          pair === p.pair ? 'bg-purple-950/60 border border-purple-800 text-white' : 'hover:bg-[#171717] text-slate-300'
+                          pair === p.pair ? 'bg-cyan-950/60 border border-cyan-700 text-white font-bold' : 'hover:bg-[#121722] text-slate-300'
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -270,16 +272,16 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
             )}
           </div>
 
-          <div className="h-4 w-px bg-neutral-800 mx-0.5 hidden sm:block" />
+          <div className="h-4 w-px bg-[#1c2436] mx-0.5 hidden sm:block" />
 
           {/* 2. Timeframe Quick Buttons */}
-          <div className="flex items-center bg-[#121212] p-0.5 rounded-lg border border-[#222]">
+          <div className="flex items-center bg-[#0e121a] p-0.5 rounded-lg border border-[#1c2436]">
             {mainTimeframes.map((tf) => (
               <button
                 key={tf}
                 onClick={() => onTimeframeChange(tf)}
                 className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold transition ${
-                  timeframe === tf ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+                  timeframe === tf ? 'bg-cyan-500 text-black font-extrabold shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 {tf}
@@ -290,7 +292,7 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
               <button
                 onClick={() => toggleDropdown('timeframe')}
                 className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold flex items-center gap-0.5 ${
-                  extraTimeframes.includes(timeframe) ? 'bg-purple-950 text-purple-300' : 'text-slate-500 hover:text-white'
+                  extraTimeframes.includes(timeframe) ? 'bg-cyan-950 text-cyan-300 border border-cyan-800' : 'text-slate-500 hover:text-white'
                 }`}
               >
                 {extraTimeframes.includes(timeframe) ? timeframe : '•••'}
@@ -298,8 +300,8 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
               </button>
 
               {activeDropdown === 'timeframe' && (
-                <div className="absolute left-0 top-full mt-1.5 w-32 bg-[#0e0e0e]/98 backdrop-blur-xl border border-neutral-800 rounded-xl shadow-2xl z-50 p-1 font-mono text-xs animate-in fade-in zoom-in-95 duration-100">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase px-2 py-1 border-b border-neutral-800">
+                <div className="absolute left-0 top-full mt-1.5 w-32 bg-[#080a0f]/98 backdrop-blur-xl border border-[#1c2436] rounded-xl shadow-2xl z-50 p-1 font-mono text-xs animate-in fade-in zoom-in-95 duration-100">
+                  <div className="text-[10px] font-bold text-slate-500 uppercase px-2 py-1 border-b border-[#1c2436]">
                     Extended TF
                   </div>
                   {extraTimeframes.map((tf) => (
@@ -310,7 +312,7 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
                         setActiveDropdown(null);
                       }}
                       className={`w-full text-left px-2.5 py-1.5 rounded-lg transition ${
-                        timeframe === tf ? 'bg-purple-950/70 text-purple-300 font-bold' : 'text-slate-300 hover:bg-[#1a1a1a] hover:text-white'
+                        timeframe === tf ? 'bg-cyan-950/70 text-cyan-300 font-bold' : 'text-slate-300 hover:bg-[#141b28] hover:text-white'
                       }`}
                     >
                       {tf}
@@ -321,14 +323,14 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
             </div>
           </div>
 
-          <div className="h-4 w-px bg-neutral-800 mx-0.5 hidden sm:block" />
+          <div className="h-4 w-px bg-[#1c2436] mx-0.5 hidden sm:block" />
 
           {/* 3. Chart Style Switcher */}
           <div className="relative">
             <button
               onClick={() => toggleDropdown('style')}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded bg-[#121212] hover:bg-[#1c1c1c] border text-slate-200 font-mono transition ${
-                activeDropdown === 'style' ? 'border-purple-500 bg-[#1c1c1c]' : 'border-[#222]'
+              className={`flex items-center gap-1 px-2.5 py-1 rounded bg-[#0e121a] hover:bg-[#161c28] border text-slate-200 font-mono transition ${
+                activeDropdown === 'style' ? 'border-cyan-500 bg-[#161c28]' : 'border-[#1c2436]'
               }`}
             >
               <span>{chartStylesList.find((s) => s.id === chartStyle)?.icon || '🕯️'}</span>
@@ -337,8 +339,8 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
             </button>
 
             {activeDropdown === 'style' && (
-              <div className="absolute left-0 top-full mt-1.5 w-48 bg-[#0e0e0e]/98 backdrop-blur-xl border border-neutral-800 rounded-xl shadow-2xl z-50 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
-                <div className="text-[10px] font-bold text-slate-500 uppercase px-2 py-1 border-b border-neutral-800">
+              <div className="absolute left-0 top-full mt-1.5 w-48 bg-[#080a0f]/98 backdrop-blur-xl border border-[#1c2436] rounded-xl shadow-2xl z-50 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                <div className="text-[10px] font-bold text-slate-500 uppercase px-2 py-1 border-b border-[#1c2436]">
                   Chart Rendering
                 </div>
                 {chartStylesList.map((s) => (
@@ -349,13 +351,13 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
                       setActiveDropdown(null);
                     }}
                     className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-mono transition ${
-                      chartStyle === s.id ? 'bg-purple-950/70 text-purple-300 font-bold' : 'text-slate-300 hover:bg-[#1a1a1a]'
+                      chartStyle === s.id ? 'bg-cyan-950/70 text-cyan-300 font-bold' : 'text-slate-300 hover:bg-[#141b28]'
                     }`}
                   >
                     <span className="flex items-center gap-2">
                       <span>{s.icon}</span> {s.label}
                     </span>
-                    {chartStyle === s.id && <Check className="w-3.5 h-3.5 text-purple-400" />}
+                    {chartStyle === s.id && <Check className="w-3.5 h-3.5 text-cyan-400" />}
                   </button>
                 ))}
               </div>
@@ -592,28 +594,28 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
             )}
           </div>
 
-          <div className="h-4 w-px bg-neutral-800 mx-0.5 hidden sm:block" />
+          <div className="h-4 w-px bg-[#1c2436] mx-0.5 hidden sm:block" />
 
-          {/* 9. Indicators & Overlays Hub */}
+          {/* 6. Technical & SMC Indicators Popover */}
           <div className="relative">
             <button
               onClick={() => toggleDropdown('indicators')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#121212] hover:bg-[#1c1c1c] border text-slate-200 font-mono transition ${
-                activeDropdown === 'indicators' ? 'border-purple-500 bg-[#1c1c1c]' : 'border-[#222]'
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0e121a] hover:bg-[#161c28] border text-slate-200 font-mono transition ${
+                activeDropdown === 'indicators' ? 'border-cyan-500 bg-[#161c28]' : 'border-[#1c2436]'
               }`}
             >
-              <Layers className="w-3.5 h-3.5 text-purple-400" />
+              <Layers className="w-3.5 h-3.5 text-cyan-400" />
               <span className="text-[11px] font-bold">Indicators</span>
-              <span className="text-[9px] px-1 py-0.2 rounded bg-purple-900/60 text-purple-300 font-bold">
+              <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-950/80 text-cyan-300 font-bold border border-cyan-700/60">
                 {Object.values(activeIndicators).filter(Boolean).length}
               </span>
             </button>
 
             {activeDropdown === 'indicators' && (
-              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-76 bg-[#0e0e0e]/98 backdrop-blur-xl border border-neutral-800 rounded-xl shadow-2xl z-50 p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-100">
-                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-mono border-b border-neutral-800 pb-1 flex justify-between items-center">
+              <div className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-76 bg-[#080a0f]/98 backdrop-blur-xl border border-[#1c2436] rounded-xl shadow-2xl z-50 p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-100">
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-mono border-b border-[#1c2436] pb-1 flex justify-between items-center">
                   <span>Institutional Overlays</span>
-                  <span className="text-[10px] text-purple-400 font-bold">
+                  <span className="text-[10px] text-cyan-400 font-bold">
                     {Object.values(activeIndicators).filter(Boolean).length} Active
                   </span>
                 </div>
@@ -621,21 +623,21 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
                 <div className="space-y-1 font-mono text-xs max-h-76 overflow-y-auto scrollbar-thin pr-1">
                   {[
                     { key: 'vpvr', label: 'Volume Profile (VPVR + POC / VAH / VAL)', color: 'text-amber-300 font-bold' },
-                    { key: 'researchWall', label: 'Research Wall & Demarcation (2023)', color: 'text-purple-300 font-bold' },
+                    { key: 'researchWall', label: 'Research Wall & Demarcation (2023)', color: 'text-cyan-300 font-bold' },
                     { key: 'ema20', label: 'EMA 20 (Fast Trend)', color: 'text-cyan-400' },
                     { key: 'ema50', label: 'EMA 50 (Intermediate)', color: 'text-amber-400' },
-                    { key: 'ema200', label: 'EMA 200 (Macro Baseline)', color: 'text-purple-400' },
+                    { key: 'ema200', label: 'EMA 200 (Macro Baseline)', color: 'text-blue-400' },
                     { key: 'vwap', label: 'VWAP (Volume Weighted)', color: 'text-emerald-400' },
-                    { key: 'bollinger', label: 'Bollinger Bands (20, 2.0)', color: 'text-blue-400' },
+                    { key: 'bollinger', label: 'Bollinger Bands (20, 2.0)', color: 'text-cyan-300' },
                     { key: 'rsi', label: 'RSI 14 (Oscillator Subpane)', color: 'text-rose-400' },
                     { key: 'macd', label: 'MACD (12, 26, 9 Subpane)', color: 'text-teal-400' },
                     { key: 'smcFvg', label: 'SMC: Fair Value Gaps (FVG)', color: 'text-yellow-400' },
-                    { key: 'smcOb', label: 'SMC: Order Blocks (OB)', color: 'text-indigo-400' },
+                    { key: 'smcOb', label: 'SMC: Order Blocks (OB)', color: 'text-blue-300' },
                   ].map((ind) => (
                     <button
                       key={ind.key}
                       onClick={() => onToggleIndicator(ind.key)}
-                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-[#1a1a1a] transition border border-transparent hover:border-neutral-800"
+                      className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-[#141b28] transition border border-transparent hover:border-[#1c2436]"
                     >
                       <span className={`text-xs ${ind.color} font-medium`}>{ind.label}</span>
                       {(activeIndicators as any)[ind.key] ? (
@@ -651,14 +653,25 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
           </div>
         </div>
 
-        {/* Right Section: Bar Replay + Fullscreen + Screenshot */}
+        {/* Right Section: Reset View + Bar Replay + Fullscreen + Screenshot */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
+          {onResetView && (
+            <button
+              onClick={onResetView}
+              title="Reset View to Realtime & Restore Zoom (Home / R)"
+              className="flex items-center gap-1 px-2 py-1 rounded bg-[#0e121a] hover:bg-[#161c28] border border-[#1c2436] text-slate-300 hover:text-white transition font-mono text-xs"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden xl:inline">Reset</span>
+            </button>
+          )}
+
           <button
             onClick={onToggleReplay}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-bold transition ${
               isReplayMode
                 ? 'bg-amber-500 text-black shadow-md shadow-amber-500/20'
-                : 'bg-[#121212] hover:bg-[#1c1c1c] border border-[#222] text-amber-400'
+                : 'bg-[#0e121a] hover:bg-[#161c28] border border-[#1c2436] text-amber-400'
             }`}
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -668,7 +681,7 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
           <button
             onClick={onTakeScreenshot}
             title="Download HD Chart Snapshot"
-            className="p-1.5 rounded bg-[#121212] hover:bg-[#1c1c1c] border border-[#222] text-slate-400 hover:text-white transition"
+            className="p-1.5 rounded bg-[#0e121a] hover:bg-[#161c28] border border-[#1c2436] text-slate-400 hover:text-white transition"
           >
             <Camera className="w-3.5 h-3.5" />
           </button>
@@ -676,7 +689,7 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
           <button
             onClick={onToggleFullscreen}
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-            className="p-1.5 rounded bg-[#121212] hover:bg-[#1c1c1c] border border-[#222] text-slate-400 hover:text-white transition"
+            className="p-1.5 rounded bg-[#0e121a] hover:bg-[#161c28] border border-[#1c2436] text-slate-400 hover:text-white transition"
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
@@ -684,7 +697,7 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
       </div>
 
       {/* Secondary Bar: Drawing Tools Quick Selector */}
-      <div className="relative z-20 flex items-center justify-between px-3 py-1 bg-[#070707] border-t border-[#171717] text-[11px] font-mono select-none overflow-x-auto scrollbar-none">
+      <div className="relative z-20 flex items-center justify-between px-3 py-1 bg-[#06070a] border-t border-[#151a24] text-[11px] font-mono select-none overflow-x-auto scrollbar-none">
         <div className="flex items-center gap-1 flex-shrink-0">
           <span className="text-slate-500 text-[10px] mr-1 uppercase">Draw:</span>
           {[
@@ -705,8 +718,8 @@ export const TradingViewToolbar: React.FC<TradingViewToolbarProps> = ({
                 onClick={() => onDrawingModeChange(tool.mode)}
                 className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] transition ${
                   isActive
-                    ? 'bg-purple-900/70 text-purple-300 border border-purple-600 font-bold'
-                    : 'text-slate-400 hover:bg-[#141414] hover:text-slate-200'
+                    ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-600 font-bold'
+                    : 'text-slate-400 hover:bg-[#101522] hover:text-slate-200'
                 }`}
               >
                 <Icon className="w-3 h-3" />

@@ -219,17 +219,17 @@ LIMIT 10`,
   };
 
   return (
-    <div className="quant-card p-5 space-y-4 font-mono">
+    <div className="quant-card p-5 space-y-4 font-mono border border-[#161c28] bg-[#0b0e14]">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#151a24] pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-lg bg-purple-950/60 border border-purple-800/60 text-purple-400">
+          <div className="p-2 rounded-lg bg-cyan-950/70 border border-cyan-800/80 text-cyan-400">
             <Terminal className="w-5 h-5" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               Embedded DuckDB SQL Lab & Parquet Analytics Sandbox
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-sans font-semibold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800/80 font-sans font-semibold">
                 Zero-Copy OLAP
               </span>
             </h3>
@@ -243,11 +243,11 @@ LIMIT 10`,
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400">
               <span className="text-emerald-400 font-bold">{result.row_count.toLocaleString()}</span> rows in{' '}
-              <span className="text-purple-400 font-bold">{result.execution_ms}ms</span>
+              <span className="text-cyan-400 font-bold">{result.execution_ms}ms</span>
             </span>
             <button
               onClick={handleExportCsv}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#171717] hover:bg-[#222] border border-neutral-700 text-slate-200 rounded-lg text-xs font-bold transition shadow"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0e121a] hover:bg-[#161c28] border border-[#1c2436] text-slate-200 rounded-lg text-xs font-bold transition shadow"
               title="Download results as CSV"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
@@ -255,10 +255,10 @@ LIMIT 10`,
             </button>
             <button
               onClick={handleExportJson}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#171717] hover:bg-[#222] border border-neutral-700 text-slate-200 rounded-lg text-xs font-bold transition shadow"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0e121a] hover:bg-[#161c28] border border-[#1c2436] text-slate-200 rounded-lg text-xs font-bold transition shadow"
               title="Download results as JSON"
             >
-              <Download className="w-3.5 h-3.5 text-blue-400" />
+              <Download className="w-3.5 h-3.5 text-cyan-400" />
               <span>JSON</span>
             </button>
           </div>
@@ -268,7 +268,7 @@ LIMIT 10`,
       {/* Preset Quant Templates */}
       <div className="space-y-1.5">
         <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Institutional Quant Presets:
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Institutional Quant Presets:
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
           {quantPresets.map((p) => {
@@ -279,8 +279,8 @@ LIMIT 10`,
                 onClick={() => handleSelectPreset(p)}
                 className={`text-left p-2.5 rounded-xl border transition ${
                   isActive
-                    ? 'bg-purple-950/50 border-purple-600 text-white shadow-lg'
-                    : 'bg-[#0e0e0e] border-neutral-850 hover:border-neutral-700 text-slate-400 hover:text-slate-200'
+                    ? 'bg-cyan-950/60 border-cyan-500 text-white shadow-lg shadow-cyan-950/40'
+                    : 'bg-[#0e121a] border-[#1c2436] hover:border-cyan-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <div className="text-xs font-bold text-slate-200 truncate">{p.name}</div>
@@ -298,7 +298,7 @@ LIMIT 10`,
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopySql}
-              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white transition px-2 py-0.5 rounded bg-neutral-900"
+              className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white transition px-2 py-0.5 rounded bg-[#0e121a] border border-[#1c2436]"
             >
               {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
               <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -306,7 +306,7 @@ LIMIT 10`,
             <button
               onClick={() => handleRunQuery()}
               disabled={isRunning}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:bg-neutral-800 text-white rounded-lg text-xs font-bold shadow-md shadow-purple-900/30 transition"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:bg-neutral-800 text-black font-extrabold rounded-xl text-xs shadow-lg shadow-cyan-500/20 transition active:scale-95"
             >
               <Play className={`w-3.5 h-3.5 ${isRunning ? 'animate-spin' : ''}`} />
               <span>{isRunning ? 'Executing...' : 'Run Query (Ctrl+Enter)'}</span>
@@ -325,7 +325,7 @@ LIMIT 10`,
               }
             }}
             rows={5}
-            className="w-full bg-[#080808] border border-neutral-800 rounded-xl p-3.5 text-xs text-purple-200 font-mono focus:border-purple-500 focus:outline-none shadow-inner leading-relaxed resize-y selection:bg-purple-900"
+            className="w-full bg-[#080a0f] border border-[#1c2436] rounded-xl p-3.5 text-xs text-cyan-100 font-mono focus:border-cyan-500 focus:outline-none shadow-inner leading-relaxed resize-y selection:bg-cyan-900/50"
             placeholder="SELECT * FROM read_parquet('data/raw/binance/BTCUSDT/15m.parquet') LIMIT 50..."
           />
         </div>
@@ -349,9 +349,9 @@ LIMIT 10`,
             <span className="text-slate-500">Showing top {Math.min(500, result.rows.length)} rows</span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-neutral-800 max-h-72 overflow-y-auto scrollbar-thin bg-[#070707]">
+          <div className="overflow-x-auto rounded-xl border border-[#161c28] max-h-72 overflow-y-auto scrollbar-thin bg-[#080a0f]">
             <table className="w-full text-left text-xs border-collapse font-mono">
-              <thead className="bg-[#111] text-slate-400 sticky top-0 border-b border-neutral-800">
+              <thead className="bg-[#0e121a] text-slate-400 sticky top-0 border-b border-[#161c28]">
                 <tr>
                   <th className="p-2.5 text-slate-600 font-normal w-10 text-center">#</th>
                   {result.columns.map((col) => (
@@ -366,9 +366,9 @@ LIMIT 10`,
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-900 text-slate-300">
+              <tbody className="divide-y divide-[#151a24] text-slate-300">
                 {result.rows.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-[#121212] transition">
+                  <tr key={idx} className="hover:bg-[#121722] transition">
                     <td className="p-2.5 text-center text-slate-600 text-[10px]">{idx + 1}</td>
                     {result.columns.map((col) => {
                       const val = row[col.name];

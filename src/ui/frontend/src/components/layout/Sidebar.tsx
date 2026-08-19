@@ -120,24 +120,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onSelectPage }) =>
   ];
 
   return (
-    <aside className="w-64 bg-black border-r border-[#1a1a1a] flex flex-col h-screen select-none shrink-0 z-20">
+    <aside className="w-64 bg-[#06070a] border-r border-[#151a24] flex flex-col h-screen select-none shrink-0 z-20">
       {/* Brand Header */}
-      <div className="p-4 border-b border-[#1a1a1a] flex items-center gap-3 bg-black">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-purple-700 to-indigo-500 flex items-center justify-center shadow-lg shadow-purple-900/40 text-white">
+      <div className="p-4 border-b border-[#151a24] flex items-center gap-3 bg-[#06070a]">
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-cyan-600 to-teal-400 flex items-center justify-center shadow-lg shadow-cyan-950/50 text-white">
           <Hexagon className="w-5 h-5 fill-white/20 stroke-white stroke-[2.2]" />
         </div>
         <div>
-          <div className="font-bold text-sm tracking-wider text-white flex items-center gap-1.5">
+          <div className="font-bold text-sm tracking-wider text-white flex items-center gap-1.5 font-mono">
             QUANT EDGE
           </div>
-          <div className="text-[10px] text-slate-400 font-medium tracking-tight">
+          <div className="text-[10px] text-cyan-400/80 font-medium tracking-tight">
             Research. Backtest. Discover Edge.
           </div>
         </div>
       </div>
 
       {/* Navigation Links (Scrollable) */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 text-xs bg-black">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4 text-xs bg-[#06070a]">
         {navigation.map((section, sIdx) => (
           <div key={sIdx} className="space-y-1">
             {section.title && (
@@ -154,18 +154,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onSelectPage }) =>
                   onClick={() => onSelectPage(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-150 text-left group ${
                     isActive
-                      ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-sm shadow-purple-900/20'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#121212]'
+                      ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 shadow-sm shadow-cyan-950/40 font-bold'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#0e121a]'
                   }`}
                 >
                   <Icon
                     className={`w-4 h-4 transition-colors ${
-                      isActive ? 'text-purple-400' : 'text-slate-400 group-hover:text-slate-300'
+                      isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-300'
                     }`}
                   />
                   <span className="truncate">{item.label}</span>
                   {item.badge && (
-                    <span className="ml-auto px-1.5 py-0.5 text-[9px] font-semibold bg-purple-500/20 text-purple-300 rounded border border-purple-500/30">
+                    <span className="ml-auto px-1.5 py-0.5 text-[9px] font-semibold bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/30">
                       {item.badge}
                     </span>
                   )}
@@ -177,14 +177,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onSelectPage }) =>
       </div>
 
       {/* User Profile Footer */}
-      <div className="p-3 border-t border-[#1a1a1a] bg-black">
-        <div className="flex items-center gap-2.5 p-2 rounded-lg bg-[#080808] border border-[#1c1c1c] hover:border-neutral-700 cursor-pointer transition">
-          <div className="w-7 h-7 rounded bg-purple-600/30 border border-purple-500/40 text-purple-300 font-bold text-xs flex items-center justify-center">
+      <div className="p-3 border-t border-[#151a24] bg-[#06070a]">
+        <div className="flex items-center gap-2.5 p-2 rounded-lg bg-[#0b0e14] border border-[#161c28] hover:border-cyan-800/60 cursor-pointer transition">
+          <div className="w-7 h-7 rounded bg-cyan-600/20 border border-cyan-500/40 text-cyan-300 font-bold text-xs flex items-center justify-center font-mono">
             QT
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold text-white truncate">Quant Trader</div>
-            <div className="text-[10px] text-slate-400 truncate">Professional Plan</div>
+            <div className="text-[10px] text-cyan-400/70 truncate font-mono">Professional Plan</div>
           </div>
           <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
         </div>

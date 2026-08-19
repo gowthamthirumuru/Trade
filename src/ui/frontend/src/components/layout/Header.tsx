@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* AI Quant Sparkle */}
         <button
-          className="p-2 rounded-lg bg-[#080808] border border-[#1c1c1c] text-purple-400 hover:text-purple-300 hover:border-purple-500/40 hover:bg-purple-950/20 transition relative shadow-sm"
+          className="p-2 rounded-lg bg-[#0b0e14] border border-[#161c28] text-cyan-400 hover:text-cyan-300 hover:border-cyan-500/40 hover:bg-cyan-950/20 transition relative shadow-sm"
           title="AI Quant Assistant"
         >
           <Sparkles className="w-4 h-4" />
@@ -68,26 +68,26 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Theme Toggle */}
         <button
-          className="p-2 rounded-lg bg-[#080808] border border-[#1c1c1c] text-slate-400 hover:text-slate-200 hover:border-neutral-700 transition"
-          title="Pure Black OLED Theme Active"
+          className="p-2 rounded-lg bg-[#0b0e14] border border-[#161c28] text-slate-400 hover:text-slate-200 hover:border-neutral-700 transition"
+          title="Deep Obsidian Cyan Theme Active"
         >
           <Sun className="w-4 h-4" />
         </button>
 
         {/* Notifications with Badge 12 */}
         <button
-          className="p-2 rounded-lg bg-[#080808] border border-[#1c1c1c] text-slate-400 hover:text-slate-200 hover:border-neutral-700 transition relative"
+          className="p-2 rounded-lg bg-[#0b0e14] border border-[#161c28] text-slate-400 hover:text-slate-200 hover:border-neutral-700 transition relative"
           title="Notifications"
         >
           <Bell className="w-4 h-4" />
-          <span className="absolute -top-1 -right-1 px-1.5 py-0.2 text-[9px] font-bold bg-purple-600 text-white rounded-full border border-black">
+          <span className="absolute -top-1 -right-1 px-1.5 py-0.2 text-[9px] font-bold bg-cyan-600 text-white rounded-full border border-black font-mono">
             12
           </span>
         </button>
 
         {/* System Settings Pill */}
         <button
-          className="p-2 rounded-lg bg-[#080808] border border-[#1c1c1c] text-slate-400 hover:text-slate-200 hover:border-neutral-700 transition"
+          className="p-2 rounded-lg bg-[#0b0e14] border border-[#161c28] text-slate-400 hover:text-slate-200 hover:border-neutral-700 transition"
           title="System Filter Defaults"
         >
           <SlidersHorizontal className="w-4 h-4" />

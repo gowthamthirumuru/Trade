@@ -30,7 +30,7 @@ import {
 } from './indicators';
 import { DrawingCanvas, DrawingMode } from './DrawingCanvas';
 import { ChartStyle } from './TradingViewToolbar';
-import { ShieldCheck, ShieldAlert, Sparkles, Target, Zap, Activity } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Sparkles, Target, Zap, Activity, RotateCcw } from 'lucide-react';
 
 export interface ChartTrade {
   trade_id: number;
@@ -214,6 +214,34 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
     },
     []
   );
+
+  // Manual Reset View Handler (Snaps viewport to latest price action with standard zoom)
+  const handleResetView = useCallback(() => {
+    if (chartRef.current) {
+      chartRef.current.timeScale().resetTimeScale();
+      chartRef.current.timeScale().scrollToRealTime();
+    }
+  }, []);
+
+  // Keyboard shortcut listener: 'Home' key or 'r' (when not in an input) resets view
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeTag = (document.activeElement?.tagName || '').toLowerCase();
+      if (activeTag === 'input' || activeTag === 'textarea') return;
+
+      if (e.key === 'Home' || (e.key === 'r' && !e.ctrlKey && !e.metaKey)) {
+        handleResetView();
+      }
+    };
+    const handleResetEvent = () => handleResetView();
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('chart-reset-view', handleResetEvent);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('chart-reset-view', handleResetEvent);
+    };
+  }, [handleResetView]);
 
   // 2. Initialize TradingView Main Chart
   useEffect(() => {
@@ -472,23 +500,19 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
       }));
     }
 
-    let savedTimeRange: { from: any; to: any } | null = null;
+    // 1. Capture logical range before updating data to prevent zoom/scroll jumps
+    let savedLogicalRange: { from: number; to: number } | null = null;
     try {
-      const vr = chart.timeScale().getVisibleRange();
-      if (vr) savedTimeRange = { from: vr.from, to: vr.to };
+      const lr = chart.timeScale().getVisibleLogicalRange();
+      if (lr) savedLogicalRange = { from: lr.from, to: lr.to };
     } catch {}
+
+    const currentLength = displayCandles.length;
+    const prevLength = prevCandlesLengthRef.current;
+    const addedBars = prevLength > 0 ? currentLength - prevLength : 0;
 
     const currentEarliest = displayCandles[0].time;
     const currentLatest = displayCandles[displayCandles.length - 1].time;
-    const prevEarliest = prevEarliestTimeRef.current;
-    const prevLatest = prevLatestTimeRef.current;
-
-    const isBackwardPrepend = (
-      prevEarliest !== null &&
-      prevLatest !== null &&
-      currentEarliest < prevEarliest &&
-      Math.abs(currentLatest - prevLatest) < 180
-    );
 
     mainSeriesRef.current.setData(seriesData);
 
@@ -551,14 +575,20 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
       volumeSeriesRef.current.setData(volData);
     }
 
-    if (isInitialLoadRef.current || !isBackwardPrepend) {
+    // Smooth range restoration: shift logical range by addedBars to keep candles frozen under cursor
+    if (isInitialLoadRef.current) {
       isInitialLoadRef.current = false;
       chart.timeScale().fitContent();
-    } else if (savedTimeRange) {
+    } else if (savedLogicalRange) {
+      const targetFrom = savedLogicalRange.from + addedBars;
+      const targetTo = savedLogicalRange.to + addedBars;
       requestAnimationFrame(() => {
         try {
           if (chartRef.current) {
-            chartRef.current.timeScale().setVisibleRange(savedTimeRange!);
+            chartRef.current.timeScale().setVisibleLogicalRange({
+              from: targetFrom,
+              to: targetTo,
+            });
           }
         } catch {}
       });
@@ -762,7 +792,6 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
         value: d.value,
       }));
       rsiSeriesRef.current.setData(rsiData);
-      rsiChartRef.current?.timeScale().fitContent();
     }
   }, [activeIndicators.rsi, displayCandles]);
 
@@ -908,12 +937,12 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
       {/* Floating TradingView HUD Legend */}
       <div className="absolute top-2 left-3 z-20 flex flex-col gap-0.5 pointer-events-none text-xs font-mono">
         {/* Main Ticker + OHLC Info + Research Zone Demarcation */}
-        <div className="flex flex-wrap items-center gap-2 bg-[#0a0a0a]/90 backdrop-blur px-2.5 py-1 rounded-lg border border-neutral-800/80 shadow-lg pointer-events-auto">
+        <div className="flex flex-wrap items-center gap-2 bg-[#080a0f]/90 backdrop-blur px-2.5 py-1 rounded-lg border border-[#161c28] shadow-lg pointer-events-auto">
           <span className="font-extrabold text-white text-sm">{pair}</span>
           <span className="text-slate-500">•</span>
           <span className="font-bold text-slate-300">{timeframe}</span>
           <span className="text-slate-500">•</span>
-          <span className="text-[10px] text-purple-400 font-bold">
+          <span className="text-[10px] text-cyan-400 font-bold">
             {pair.includes('USDT') ? 'BINANCE' : 'DUKASCOPY'}
           </span>
 
@@ -938,7 +967,7 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
           </span>
 
           {activeCandle && (
-            <div className="flex items-center gap-3 text-xs pl-2 border-l border-neutral-800">
+            <div className="flex items-center gap-3 text-xs pl-2 border-l border-[#161c28]">
               <span className="text-slate-400">
                 O <span className="text-white font-bold">{activeCandle.open?.toLocaleString()}</span>
               </span>
@@ -995,7 +1024,7 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
             </span>
           )}
           {activeIndicators.ema200 && (
-            <span className="text-purple-400 font-medium">
+            <span className="text-blue-400 font-medium">
               EMA 200: <span className="font-bold">{hoveredIndicatorValues.ema200?.toLocaleString() ?? '—'}</span>
             </span>
           )}
@@ -1028,8 +1057,8 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
       {/* Main Lightweight Charts Canvas Container */}
       <div className="relative flex-1 w-full min-h-[350px]">
         {isLoadingMore && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 px-3 py-1 bg-purple-950/90 border border-purple-600/80 text-purple-200 text-[11px] font-mono rounded-full shadow-2xl flex items-center gap-2 backdrop-blur-md animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 px-3 py-1 bg-cyan-950/90 border border-cyan-500/80 text-cyan-200 text-[11px] font-mono rounded-full shadow-2xl flex items-center gap-2 backdrop-blur-md animate-pulse">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
             <span>Streaming earlier Parquet bars from DuckDB Data Lake...</span>
           </div>
         )}
@@ -1067,6 +1096,17 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
           priceFromY={priceFromY}
           yFromPrice={yFromPrice}
         />
+
+        {/* Floating Quick Reset Zoom & Pan HUD Button */}
+        <button
+          onClick={handleResetView}
+          title="Reset View to Realtime & Restore Zoom (Home / R)"
+          className="absolute bottom-9 right-16 z-20 px-2.5 py-1 rounded-lg bg-[#0b0e14]/90 hover:bg-[#141b26] border border-[#161c28] hover:border-cyan-500/60 text-slate-300 hover:text-white text-[11px] font-mono shadow-2xl backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-95 group select-none"
+        >
+          <RotateCcw className="w-3 h-3 text-cyan-400 group-hover:rotate-[-90deg] transition-transform duration-200" />
+          <span className="font-bold">Reset Zoom</span>
+          <kbd className="text-[9px] bg-[#161c28] px-1 py-0.5 rounded text-slate-400 border border-[#222b3d]">Home</kbd>
+        </button>
       </div>
 
       {/* RSI Subpane Chart Container */}

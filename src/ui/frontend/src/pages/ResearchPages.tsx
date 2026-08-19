@@ -103,12 +103,12 @@ export const DataLabPage: React.FC = () => {
   const totalPartitions = summaryData?.total_partitions || 386;
 
   return (
-    <div className="p-6 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-150">
+    <div className="p-6 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-150 font-mono text-xs select-none">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Database className="w-5 h-5 text-purple-400" /> Data Lab & Parquet Lake Inspector
+            <Database className="w-5 h-5 text-cyan-400" /> Data Lab & Parquet Lake Inspector
           </h2>
           <p className="text-xs text-slate-400">
             Institutional TradingView Charting Terminal with zero-copy DuckDB Parquet streaming, SMC overlays, and bar replay simulation
@@ -121,7 +121,7 @@ export const DataLabPage: React.FC = () => {
           <button
             onClick={handleSyncDataLake}
             disabled={isSyncing}
-            className="flex items-center gap-2 px-3.5 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-neutral-800 text-white rounded-lg text-xs font-semibold shadow-md shadow-purple-900/30 transition"
+            className="flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:bg-neutral-800 text-black font-extrabold rounded-xl text-xs shadow-lg shadow-cyan-500/20 transition active:scale-95"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} /> {isSyncing ? 'Scanning Parquet Partitions...' : 'Sync Data Lake'}
           </button>
@@ -156,10 +156,10 @@ export const DataLabPage: React.FC = () => {
             badge: 'Multi-Asset Ready',
           },
         ].map((c, i) => (
-          <div key={i} className="quant-card p-4 flex flex-col justify-between">
+          <div key={i} className="quant-card p-4 flex flex-col justify-between border border-[#161c28] bg-[#0b0e14]">
             <div className="flex justify-between items-start">
               <div className="text-xs text-slate-400 font-medium">{c.title}</div>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-950/40 text-purple-400 border border-purple-800/40 font-mono">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950/70 text-cyan-300 border border-cyan-800/80 font-mono font-bold">
                 {c.badge}
               </span>
             </div>
@@ -179,7 +179,7 @@ export const DataLabPage: React.FC = () => {
 
       {/* Continuity & Gap Audit Panel for Active Symbol */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="quant-card p-4 space-y-3">
+        <div className="quant-card p-4 space-y-3 border border-[#161c28] bg-[#0b0e14]">
           <div className="flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Point-In-Time Continuity Audit
@@ -189,15 +189,15 @@ export const DataLabPage: React.FC = () => {
             </span>
           </div>
           <div className="space-y-2 text-xs font-mono">
-            <div className="flex justify-between text-slate-400 border-b border-neutral-900 pb-1.5">
+            <div className="flex justify-between text-slate-400 border-b border-[#151a24] pb-1.5">
               <span>Inspected Symbol:</span>
-              <span className="text-white font-bold">{selectedPair} ({selectedTf})</span>
+              <span className="text-cyan-300 font-bold">{selectedPair} ({selectedTf})</span>
             </div>
-            <div className="flex justify-between text-slate-400 border-b border-neutral-900 pb-1.5">
+            <div className="flex justify-between text-slate-400 border-b border-[#151a24] pb-1.5">
               <span>Total Bars In Partition:</span>
               <span className="text-slate-200 font-bold">{Number(gapAudit?.total_bars || 0).toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-slate-400 border-b border-neutral-900 pb-1.5">
+            <div className="flex justify-between text-slate-400 border-b border-[#151a24] pb-1.5">
               <span>Timestamp Completeness:</span>
               <span className="text-emerald-400 font-bold">{gapAudit?.completeness_pct ?? 100.0}%</span>
             </div>
@@ -210,17 +210,17 @@ export const DataLabPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="lg:col-span-2 quant-card p-4 space-y-3">
+        <div className="lg:col-span-2 quant-card p-4 space-y-3 border border-[#161c28] bg-[#0b0e14]">
           <div className="flex justify-between items-center">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider">
               Timestamp Discontinuity Log & Outlier Inspection
             </h3>
-            <span className="text-[10px] text-slate-500 font-mono">DuckDB Zero-Copy Vectorized Scan</span>
+            <span className="text-[10px] text-cyan-400/80 font-mono font-bold">DuckDB Zero-Copy Vectorized Scan</span>
           </div>
           {gapAudit?.anomalies && gapAudit.anomalies.length > 0 ? (
             <div className="space-y-1.5 text-xs font-mono max-h-[110px] overflow-y-auto pr-1">
               {gapAudit.anomalies.map((anom: any, idx: number) => (
-                <div key={idx} className="flex justify-between items-center bg-[#070707] px-3 py-1.5 rounded border border-neutral-900 text-[11px]">
+                <div key={idx} className="flex justify-between items-center bg-[#0e121a] px-3 py-1.5 rounded border border-[#1c2436] text-[11px]">
                   <span className="text-slate-400">
                     Gap from <span className="text-slate-200">{anom.from_time}</span> to <span className="text-slate-200">{anom.to_time}</span>
                   </span>
@@ -239,20 +239,20 @@ export const DataLabPage: React.FC = () => {
       </div>
 
       {/* Real Parquet Partitions Table (22 Instruments Scanned from Disk) */}
-      <div className="quant-card p-5">
+      <div className="quant-card p-5 border border-[#161c28] bg-[#0b0e14]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div>
             <h3 className="text-sm font-bold text-white">Parquet Storage Partitions & Ingestion Catalog</h3>
             <p className="text-[11px] text-slate-400">Direct disk inspection of `data/raw/binance/` and `data/raw/dukascopy/` snappy Parquets</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex bg-[#050505] p-1 rounded-lg border border-[#1c1c1c] text-xs">
+            <div className="flex bg-[#0e121a] p-1 rounded-lg border border-[#1c2436] text-xs">
               {(['ALL', 'Crypto', 'Forex'] as const).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setAssetFilter(cat)}
                   className={`px-2.5 py-1 rounded font-mono font-bold transition text-[11px] ${
-                    assetFilter === cat ? 'bg-purple-600 text-white' : 'text-slate-400 hover:text-white'
+                    assetFilter === cat ? 'bg-cyan-500 text-black font-extrabold' : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   {cat}
@@ -264,15 +264,15 @@ export const DataLabPage: React.FC = () => {
               placeholder="Search symbol (e.g. BTC, ETH, SOL)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#050505] border border-[#1c1c1c] rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none w-52 font-mono"
+              className="bg-[#0e121a] border border-[#1c2436] rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none w-52 font-mono focus:border-cyan-500"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto text-xs max-h-[420px] overflow-y-auto">
           <table className="w-full text-left">
-            <thead className="sticky top-0 bg-[#040404] z-10">
-              <tr className="border-b border-[#1c1c1c] text-slate-400 text-[11px]">
+            <thead className="sticky top-0 bg-[#07090e] z-10">
+              <tr className="border-b border-[#161c28] text-slate-400 text-[11px]">
                 <th className="py-2.5 px-3 font-medium">Pair / Symbol</th>
                 <th className="py-2.5 px-3 font-medium">Asset Class</th>
                 <th className="py-2.5 px-3 font-medium">Timeframe Partitions</th>
@@ -284,13 +284,13 @@ export const DataLabPage: React.FC = () => {
                 <th className="py-2.5 px-3 font-medium text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#171717] text-slate-200">
+            <tbody className="divide-y divide-[#151a24] text-slate-200">
               {filteredInstruments.map((row) => (
                 <tr
                   key={row.pair}
                   onClick={() => setSelectedPair(row.pair)}
-                  className={`hover:bg-[#121212] cursor-pointer transition ${
-                    selectedPair === row.pair ? 'bg-purple-950/30' : ''
+                  className={`hover:bg-[#0e121a] cursor-pointer transition ${
+                    selectedPair === row.pair ? 'bg-cyan-950/30 border-l-2 border-cyan-500' : ''
                   }`}
                 >
                   <td className="py-2.5 px-3 font-bold text-white font-mono flex items-center gap-1.5">
@@ -325,256 +325,10 @@ export const DataLabPage: React.FC = () => {
 };
 
 // ============================================================================
-// 2. STRATEGY LAB PAGE
+// 2. STRATEGY LAB PAGE (INSTITUTIONAL QUANT WORKBENCH)
 // ============================================================================
 
-
-export const StrategyLabPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'rules' | 'indicators' | 'exits' | 'risk'>('rules');
-  const [strategyName, setStrategyName] = useState('BB Reversion v4');
-  const [targetAsset, setTargetAsset] = useState('XAUUSD');
-  const [bbPeriod, setBbPeriod] = useState(20);
-  const [bbStd, setBbStd] = useState(2.0);
-  const [rsiPeriod, setRsiPeriod] = useState(14);
-  const [atrThreshold, setAtrThreshold] = useState(18.0);
-  const [saveAlert, setSaveAlert] = useState<string | null>(null);
-
-  const handleCompileStrategy = () => {
-    setSaveAlert(`Compiling strategy '${strategyName}' with zero-lookahead checks...`);
-    setTimeout(() => {
-      setSaveAlert(`✓ Strategy '${strategyName}' compiled successfully & registered in APEX registry.`);
-      setTimeout(() => setSaveAlert(null), 4000);
-    }, 800);
-  };
-
-  return (
-    <div className="p-6 space-y-5 max-w-[1680px] mx-auto animate-in fade-in duration-150">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <FlaskConical className="w-5 h-5 text-purple-400" /> Strategy Lab & Condition Composer
-          </h2>
-          <p className="text-xs text-slate-400">
-            Build multi-condition trigger formulas, tune indicator parameters, and configure institutional risk models
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {saveAlert && <span className="text-xs font-bold text-emerald-400 animate-pulse">{saveAlert}</span>}
-          <button
-            onClick={handleCompileStrategy}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold shadow-md shadow-purple-900/30 transition"
-          >
-            <Play className="w-3.5 h-3.5 fill-current" /> Compile & Register Strategy
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Left Column: Visual Rule Builder */}
-        <div className="lg:col-span-7 quant-card p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#1c1c1c] pb-3">
-            <h3 className="text-sm font-bold text-white">Visual Strategy Rule Composer</h3>
-            <div className="flex bg-[#050505] p-1 rounded-lg border border-[#1c1c1c] text-xs">
-              {[
-                { id: 'rules', label: 'Trigger Rules' },
-                { id: 'indicators', label: 'Parameters' },
-                { id: 'exits', label: 'Exit & Trailing' },
-                { id: 'risk', label: 'Risk Sizing' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3 py-1 rounded font-medium transition ${
-                    activeTab === tab.id ? 'bg-purple-600 text-white font-bold' : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {activeTab === 'rules' && (
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-slate-400 block mb-1">Strategy Name</label>
-                  <input
-                    type="text"
-                    value={strategyName}
-                    onChange={(e) => setStrategyName(e.target.value)}
-                    className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white font-bold outline-none focus:border-purple-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-slate-400 block mb-1">Asset & Primary Timeframe</label>
-                  <select
-                    value={targetAsset}
-                    onChange={(e) => setTargetAsset(e.target.value)}
-                    className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white outline-none"
-                  >
-                    <option value="XAUUSD">XAUUSD • 15m (London Session)</option>
-                    <option value="BTCUSDT">BTCUSDT • 1h (24/7)</option>
-                    <option value="EURUSD">EURUSD • 30m (London Open)</option>
-                    <option value="GBPUSD">GBPUSD • 15m (NY Session)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Entry Trigger Condition (Long)</label>
-                <textarea
-                  rows={2}
-                  defaultValue="close < lower_bb(20, 2.0) AND rsi(14) < 30"
-                  className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2.5 font-mono text-[11px] text-emerald-400 outline-none focus:border-purple-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Regime & Volatility Filter</label>
-                <textarea
-                  rows={2}
-                  defaultValue="atr(14) > 18.0 AND session == 'london' AND trend_4h == 'BULLISH'"
-                  className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2.5 font-mono text-[11px] text-cyan-400 outline-none focus:border-purple-500"
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'indicators' && (
-            <div className="space-y-4 text-xs">
-              <div className="space-y-2 p-3 bg-[#050505] rounded border border-[#1c1c1c]">
-                <div className="flex justify-between font-bold text-white">
-                  <span>Bollinger Bands Length: {bbPeriod}</span>
-                  <span className="font-mono text-purple-400">{bbPeriod} bars</span>
-                </div>
-                <input
-                  type="range"
-                  min={10}
-                  max={50}
-                  value={bbPeriod}
-                  onChange={(e) => setBbPeriod(Number(e.target.value))}
-                  className="w-full accent-purple-500"
-                />
-              </div>
-
-              <div className="space-y-2 p-3 bg-[#050505] rounded border border-[#1c1c1c]">
-                <div className="flex justify-between font-bold text-white">
-                  <span>Bollinger Bands StdDev: {bbStd}σ</span>
-                  <span className="font-mono text-purple-400">{bbStd.toFixed(1)}σ</span>
-                </div>
-                <input
-                  type="range"
-                  min={1.0}
-                  max={3.0}
-                  step={0.1}
-                  value={bbStd}
-                  onChange={(e) => setBbStd(Number(e.target.value))}
-                  className="w-full accent-purple-500"
-                />
-              </div>
-
-              <div className="space-y-2 p-3 bg-[#050505] rounded border border-[#1c1c1c]">
-                <div className="flex justify-between font-bold text-white">
-                  <span>ATR Volatility Filter Threshold: &gt; {atrThreshold}</span>
-                  <span className="font-mono text-cyan-400">{atrThreshold} pts</span>
-                </div>
-                <input
-                  type="range"
-                  min={5.0}
-                  max={35.0}
-                  step={0.5}
-                  value={atrThreshold}
-                  onChange={(e) => setAtrThreshold(Number(e.target.value))}
-                  className="w-full accent-cyan-500"
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'exits' && (
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="text-slate-400 block mb-1">Take Profit Target Condition</label>
-                <input
-                  type="text"
-                  defaultValue="close > upper_bb(20, 2.0) OR r_multiple >= 3.0"
-                  className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-emerald-400 font-mono text-[11px] outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-slate-400 block mb-1">Stop Loss Placement</label>
-                <input
-                  type="text"
-                  defaultValue="swing_low_15m - (0.5 * atr(14))"
-                  className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-rose-400 font-mono text-[11px] outline-none"
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'risk' && (
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="text-slate-400 block mb-1">Risk Per Trade (% of Portfolio)</label>
-                <input
-                  type="number"
-                  defaultValue={1.0}
-                  step={0.1}
-                  className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white font-mono outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-slate-400 block mb-1">Max Concurrent Positions</label>
-                <input
-                  type="number"
-                  defaultValue={3}
-                  className="w-full bg-[#050505] border border-[#1c1c1c] rounded p-2 text-white font-mono outline-none"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Registered Strategy Pool */}
-        <div className="lg:col-span-5 quant-card p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white">Registered Strategy Pool (24 Active)</h3>
-            <span className="text-[10px] text-slate-400 font-mono">APEX Layer 4</span>
-          </div>
-
-          <div className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1">
-            {[
-              { name: 'BB Reversion v4', pair: 'XAUUSD 15m', cat: 'Mean Reversion', exp: '+0.91R', pf: '2.18', dd: '8.4%', status: 'APPROVED' },
-              { name: 'Order Block v4', pair: 'XAUUSD 15m', cat: 'SMC Structure', exp: '+0.78R', pf: '1.92', dd: '9.1%', status: 'APPROVED' },
-              { name: 'Liquidity Sweep v3', pair: 'GBPUSD 15m', cat: 'SMC Liquidity', exp: '+0.66R', pf: '1.81', dd: '10.2%', status: 'APPROVED' },
-              { name: 'London Breakout v2', pair: 'EURUSD 30m', cat: 'Breakout', exp: '+0.59R', pf: '1.72', dd: '7.6%', status: 'APPROVED' },
-              { name: 'EMA Trend v2', pair: 'BTCUSDT 1h', cat: 'Trend Following', exp: '+0.42R', pf: '1.42', dd: '12.8%', status: 'TESTING' },
-            ].map((s, i) => (
-              <div
-                key={i}
-                className="p-3 rounded-lg bg-[#050505] border border-[#1c1c1c] hover:border-purple-500/40 cursor-pointer transition space-y-1.5 group"
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-white group-hover:text-purple-300 transition text-xs">{s.name}</span>
-                  <span className="px-2 py-0.5 text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded">
-                    {s.status}
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-400">{s.pair} • {s.cat}</div>
-                <div className="flex justify-between text-[11px] font-mono pt-1 border-t border-[#171717]">
-                  <span className="text-emerald-400 font-bold">{s.exp}</span>
-                  <span className="text-slate-300">PF {s.pf}</span>
-                  <span className="text-slate-400">DD {s.dd}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+export { StrategyLabPage } from '../components/strategy_lab/StrategyLabPage';
 
 // ============================================================================
 // 3. BACKTESTING ENGINE PAGE

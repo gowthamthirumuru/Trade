@@ -113,12 +113,17 @@ export const TradingViewTerminal: React.FC<TradingViewTerminalProps> = ({
       });
   }, [pair, timeframe, barLimit]);
 
-  // Ref-based loading guard — avoids stale closure issues in scroll listener
+  // Ref-based loading guards — avoids stale closure issues and boundary loops
   const isLoadingMoreRef = useRef(false);
+  const hasReachedBeginningRef = useRef(false);
+
+  useEffect(() => {
+    hasReachedBeginningRef.current = false;
+  }, [pair, timeframe]);
 
   // Infinite Scroll Handler: Load earlier historical chunks on left scroll
   const handleLoadMoreOlderBars = useCallback(() => {
-    if (isLoadingMoreRef.current || candles.length === 0) return;
+    if (isLoadingMoreRef.current || hasReachedBeginningRef.current || candles.length === 0) return;
     const earliestTime = candles[0].time;
     isLoadingMoreRef.current = true;
     setIsLoadingMore(true);
@@ -132,6 +137,8 @@ export const TradingViewTerminal: React.FC<TradingViewTerminalProps> = ({
             for (const c of prev) map.set(c.time, c);
             return Array.from(map.values()).sort((a, b) => a.time - b.time);
           });
+        } else {
+          hasReachedBeginningRef.current = true;
         }
         isLoadingMoreRef.current = false;
         setIsLoadingMore(false);
@@ -232,7 +239,7 @@ export const TradingViewTerminal: React.FC<TradingViewTerminalProps> = ({
   return (
     <div
       ref={terminalRef}
-      className={`w-full flex flex-col bg-[#080808] border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl ${
+      className={`w-full flex flex-col bg-[#0b0e14] border border-[#161c28] rounded-xl overflow-hidden shadow-2xl ${
         isFullscreen ? 'fixed inset-0 z-50 rounded-none h-screen' : 'h-[640px]'
       }`}
     >
@@ -272,19 +279,20 @@ export const TradingViewTerminal: React.FC<TradingViewTerminalProps> = ({
         barLimit={barLimit}
         onBarLimitChange={setBarLimit}
         onSelectEra={handleSelectEra}
+        onResetView={() => window.dispatchEvent(new CustomEvent('chart-reset-view'))}
       />
 
       {/* Main Terminal Body: Chart + Watchlist Drawer */}
       <div className="flex-1 flex overflow-hidden relative">
         {isLoading && candles.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-xs font-mono text-slate-400 bg-[#080808]">
+          <div className="flex-1 flex items-center justify-center text-xs font-mono text-slate-400 bg-[#080a0f]">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
               Streaming DuckDB Parquet bars for {pair} ({timeframe})...
             </div>
           </div>
         ) : candles.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-xs font-mono text-slate-400 bg-[#080808]">
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 text-xs font-mono text-slate-400 bg-[#080a0f]">
             <div className="text-slate-400">No candle data in current memory window.</div>
             <button
               onClick={() => {
@@ -302,7 +310,7 @@ export const TradingViewTerminal: React.FC<TradingViewTerminalProps> = ({
                   })
                   .catch(() => setIsLoading(false));
               }}
-              className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition shadow-lg"
+              className="px-3.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-extrabold rounded-lg text-xs transition shadow-lg shadow-cyan-500/20"
             >
               ⚡ Load Recent 5,000 Candles
             </button>
