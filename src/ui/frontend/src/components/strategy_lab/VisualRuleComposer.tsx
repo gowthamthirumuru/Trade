@@ -121,42 +121,45 @@ export const VisualRuleComposer: React.FC<VisualRuleComposerProps> = ({
     onUpdateRuleGroups([...ruleGroups, newGroup]);
   };
 
-  // Python / YAML DSL representation of the current strategy rules
-  const pythonDslCode = `# Project APEX — Zero-Lookahead Strategy DSL
+  // Dynamically generate Python / YAML DSL from active ruleGroups
+  const generatePythonDsl = (groups: RuleGroup[]) => {
+    let code = `# Project APEX — Zero-Lookahead Strategy DSL
 from src.strategy.base import ApexStrategy
 from src.features.indicators import bollinger_bands, rsi, ema, atr
 
-class BBReversionStrategy(ApexStrategy):
+class CompiledApexStrategy(ApexStrategy):
     """
-    Bollinger Band Mean Reversion Strategy with Multi-Timeframe Trend & Volatility Filter.
-    Hypothesis: Exploits oversold liquidity rebalances during London Open.
+    Dynamically compiled APEX Strategy evaluated bar-by-bar at bar t.
+    Zero lookahead bias guaranteed.
     """
     def __init__(self, config):
         super().__init__(config)
-        self.bb_length = config.get('bb_length', 20)
-        self.bb_std = config.get('bb_std', 2.0)
-        self.rsi_period = config.get('rsi_period', 14)
-        self.ema_fast = config.get('ema_fast', 50)
-        self.ema_slow = config.get('ema_slow', 200)
-        self.atr_min = config.get('atr_min', 18.0)
+        self.params = config
 
-    def evaluate_entry(self, bar_15m, bar_1h, session_tag) -> bool:
-        # Group 1: Primary Trigger & Context (ALL must be TRUE at bar t)
-        c1 = bar_15m.price_touches_lower_bb(self.bb_length, self.bb_std)
-        c2 = bar_15m.rsi(self.rsi_period) < 35
-        c3 = bar_1h.ema(self.ema_fast) > bar_1h.ema(self.ema_slow)  # 1H Macro Filter
-        c4 = bar_15m.atr(14) > self.atr_min
-        c5 = (session_tag == 'london')
-        
-        primary_trigger = c1 and c2 and c3 and c4 and c5
-        
-        # Group 2: Confluence Boost (Optional)
-        confluence_boost = bar_15m.volume > (1.2 * bar_15m.sma_volume(20))
-        
-        if primary_trigger:
-            return self.order_market(direction='LONG', size_weight=1.25 if confluence_boost else 1.0)
+    def evaluate_entry(self, bar, macro_bar, session_tag) -> bool:
+`;
+
+    groups.forEach((g, gIdx) => {
+      code += `        # Group ${gIdx + 1}: ${g.name || 'Rule Group'} (${g.matchType})\n`;
+      const condVars: string[] = [];
+      g.conditions.forEach((c, cIdx) => {
+        const vName = `c${gIdx + 1}_${cIdx + 1}`;
+        condVars.push(vName);
+        code += `        ${vName} = bar.check_condition(field="${c.field}", op="${c.operator}", target="${c.target}", tf="${c.timeframe}")\n`;
+      });
+      const op = g.matchType === 'ANY' ? ' or ' : ' and ';
+      code += `        group_${gIdx + 1}_pass = ${condVars.length > 0 ? condVars.join(op) : 'True'}\n\n`;
+    });
+
+    code += `        # Execution Decision
+        if group_1_pass:
+            return self.order_market(direction='LONG')
         return None
 `;
+    return code;
+  };
+
+  const pythonDslCode = generatePythonDsl(ruleGroups);
 
   return (
     <div className="quant-card p-5 border border-[#161c28] bg-[#0b0e14] font-mono text-xs select-none space-y-4">

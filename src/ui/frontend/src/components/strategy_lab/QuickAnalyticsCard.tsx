@@ -32,13 +32,16 @@ export interface StrategyAnalytics {
 interface QuickAnalyticsCardProps {
   strategyName: string;
   analytics: StrategyAnalytics;
+  selectedTimeframe?: string;
+  onTimeframeChange?: (tf: string) => void;
 }
 
 export const QuickAnalyticsCard: React.FC<QuickAnalyticsCardProps> = ({
   strategyName,
   analytics,
+  selectedTimeframe = '15m',
+  onTimeframeChange,
 }) => {
-  const [selectedTf, setSelectedTf] = useState('15m');
   const [hoveredPoint, setHoveredPoint] = useState<{ date: string; equity_r: number; x: number; y: number } | null>(null);
 
   const points = analytics.equity_curve || [
@@ -56,14 +59,18 @@ export const QuickAnalyticsCard: React.FC<QuickAnalyticsCardProps> = ({
     { date: "May '25", equity_r: 3.65 },
   ];
 
-  // SVG dimensions for equity curve
+  // Dynamic SVG dimensions and scaling for equity curve
   const width = 440;
   const height = 90;
   const paddingX = 20;
   const paddingY = 15;
 
-  const minVal = -0.5;
-  const maxVal = 4.0;
+  const values = points.map((p) => p.equity_r);
+  const dataMin = Math.min(0, ...values);
+  const dataMax = Math.max(0.5, ...values);
+  const valRange = dataMax - dataMin || 1.0;
+  const minVal = dataMin - valRange * 0.1;
+  const maxVal = dataMax + valRange * 0.1;
 
   const scaleX = (idx: number) => paddingX + (idx / Math.max(1, points.length - 1)) * (width - 2 * paddingX);
   const scaleY = (val: number) => height - paddingY - ((val - minVal) / (maxVal - minVal)) * (height - 2 * paddingY);
@@ -92,9 +99,9 @@ export const QuickAnalyticsCard: React.FC<QuickAnalyticsCardProps> = ({
           {['15m', '1H', '4H', '1D'].map((tf) => (
             <button
               key={tf}
-              onClick={() => setSelectedTf(tf)}
+              onClick={() => onTimeframeChange?.(tf)}
               className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
-                selectedTf === tf
+                selectedTimeframe.toLowerCase() === tf.toLowerCase()
                   ? 'bg-cyan-500 text-black font-extrabold shadow-sm'
                   : 'text-slate-400 hover:text-white'
               }`}

@@ -19,6 +19,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from src.ui.server.services.live_data_engine import LiveDataEngine
+from src.ui.server.services.strategy_engine import StrategyEngine
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,10 @@ router = APIRouter(prefix="/api/v1/research", tags=["Research"])
 
 def get_engine() -> LiveDataEngine:
     return LiveDataEngine()
+
+
+def get_strategy_engine() -> StrategyEngine:
+    return StrategyEngine()
 
 
 # -----------------------------------------------------------------------------
@@ -128,104 +133,19 @@ def execute_sql_query(payload: SqlQueryRequest) -> Dict[str, Any]:
 
 
 # -----------------------------------------------------------------------------
-# 2. STRATEGY LAB ENDPOINTS (100% REAL DUCKDB POOL)
+# 2. STRATEGY LAB ENDPOINTS (100% REAL DUCKDB SIMULATION & REGISTRY)
 # -----------------------------------------------------------------------------
 
-class StrategyConfigModel(BaseModel):
-    id: str = "strat-custom"
-    name: str = "BB Reversion v4"
-    category: str = "Mean Reversion"
-    pair: str = "XAUUSD"
-    timeframe: str = "15m"
-    trigger_condition: str = "close < lower_bb(20, 2.0) AND rsi(14) < 30"
-    filter_condition: str = "atr(14) > 18.0 AND trend_4h == 'BULLISH'"
-    exit_condition: str = "close > upper_bb(20, 2.0) OR time_stop == 24"
-    stop_loss_atr_mult: float = 1.5
-    take_profit_atr_mult: float = 3.0
-    status: str = "active"
+@router.get("/strategies/library")
+def get_building_blocks_library() -> List[Dict[str, Any]]:
+    """Returns metadata and schemas for all 52 institutional building blocks (T01-T24, F01-F18, X01-X10)."""
+    return get_strategy_engine().get_building_blocks_library()
 
 
 @router.get("/strategies")
 def list_strategies() -> List[Dict[str, Any]]:
-    """Lists all registered strategies directly from DuckDB `trades` and `runs` tables."""
-    con = get_engine().get_connection()
-    rows = con.execute("""
-        SELECT 
-            strategy,
-            pair,
-            COUNT(*) as n_trades,
-            ROUND(AVG(pnl_r), 2) as expectancy_r,
-            ROUND(SUM(CASE WHEN pnl_quote > 0 THEN pnl_quote ELSE 0 END) / NULLIF(ABS(SUM(CASE WHEN pnl_quote < 0 THEN pnl_quote ELSE 0 END)), 0), 2) as profit_factor
-        FROM trades
-        GROUP BY strategy, pair
-        ORDER BY n_trades DESC
-    """).fetchall()
-    con.close()
-
-    result = []
-    for idx, r in enumerate(rows):
-        strat_name = str(r[0])
-        pair_name = str(r[1])
-        n_tr = int(r[2])
-        exp_r = float(r[3] or 0.0)
-        pf_val = float(r[4] or 1.5)
-
-        category = "Mean Reversion" if "BB" in strat_name or "T04" in strat_name else ("SMC / Structural" if "OB" in strat_name or "T09" in strat_name else "Trend Following")
-        result.append({
-            "id": f"strat-{idx+1}",
-            "name": strat_name,
-            "category": category,
-            "pair": pair_name,
-            "timeframe": "15m",
-            "trigger": "close < lower_bb(20, 2.0) AND rsi(14) < 30",
-            "filter": "atr(14) > 18.0 AND session == 'london'",
-            "exit": "close > upper_bb(20, 2.0)",
-            "expectancy_r": exp_r,
-            "profit_factor": pf_val,
-            "max_dd_pct": 8.4,
-            "status": "APPROVED" if exp_r >= 0.5 else "TESTING",
-        })
-
-    if len(result) < 5:
-
-        defaults = [
-            ("BB Reversion v4", "Mean Reversion", "XAUUSD", "15m", 0.91, 2.18, 8.4, "APPROVED"),
-            ("Order Block v4", "SMC / Structural", "XAUUSD", "15m", 0.78, 1.92, 9.1, "APPROVED"),
-            ("Liquidity Sweep v3", "SMC / Liquidity", "GBPUSD", "15m", 0.66, 1.81, 10.2, "APPROVED"),
-            ("London Breakout v2", "Breakout Momentum", "EURUSD", "30m", 0.59, 1.72, 7.6, "APPROVED"),
-            ("EMA Trend v2", "Trend Following", "BTCUSDT", "1h", 0.42, 1.42, 12.8, "TESTING"),
-        ]
-        seen = {r["name"] for r in result}
-        for name, cat, pair, tf, exp, pf, dd, stat in defaults:
-            if name not in seen:
-                result.append({
-                    "id": f"strat-{len(result)+1}",
-                    "name": name,
-                    "category": cat,
-                    "pair": pair,
-                    "timeframe": tf,
-                    "trigger": "close < lower_bb(20, 2.0) AND rsi(14) < 30",
-                    "filter": "atr(14) > 18.0 AND session == 'london'",
-                    "exit": "close > upper_bb(20, 2.0)",
-                    "expectancy_r": exp,
-                    "profit_factor": pf,
-                    "max_dd_pct": dd,
-                    "status": stat,
-                })
-
-    return result
-
-
-
-@router.post("/strategies/register")
-def register_strategy(cfg: StrategyConfigModel) -> Dict[str, Any]:
-    """Compiles and registers a new strategy into the APEX registry."""
-    return {
-        "status": "SUCCESS",
-        "message": f"Strategy '{cfg.name}' successfully compiled and registered in APEX registry.",
-        "config": cfg.model_dump(),
-        "zero_lookahead_verified": True,
-    }
+    """Lists real registered strategies aggregated from DuckDB `trades`, `runs`, and `edge_cards` tables."""
+    return get_strategy_engine().get_registered_strategy_pool()
 
 
 class StrategyFastTestRequest(BaseModel):
@@ -240,88 +160,39 @@ class StrategyFastTestRequest(BaseModel):
 
 @router.post("/strategies/fast-test")
 def fast_test_strategy(req: StrategyFastTestRequest) -> Dict[str, Any]:
-    """Runs an instant vectorized DuckDB backtest across historical bars and returns live institutional edge metrics."""
-    con = get_engine().get_connection()
-    try:
-        trade_rows = con.execute("""
-            SELECT 
-                trade_id, 
-                entry_time, 
-                exit_time, 
-                direction, 
-                entry_price, 
-                exit_price, 
-                pnl_quote, 
-                pnl_r, 
-                exit_reason
-            FROM trades
-            WHERE pair = ? OR ? IS NULL
-            ORDER BY entry_time ASC
-        """, [req.pair, req.pair]).fetchall()
-    except Exception:
-        trade_rows = []
-    finally:
-        con.close()
+    """Runs a real vectorized backtest across Parquet bars in DuckDB with cost modeling and In-Sample vs OOS breakdown."""
+    return get_strategy_engine().run_fast_test_simulation(
+        strategy_name=req.name,
+        pair=req.pair,
+        timeframe=req.timeframe,
+        parameters=req.parameters,
+        risk_pct=req.risk_pct,
+        slippage_pips=req.slippage_pips,
+    )
 
-    total_trades = len(trade_rows) if trade_rows else 4821
-    if trade_rows:
-        pnl_rs = [float(r[7] or 0.0) for r in trade_rows]
-        wins = [r for r in pnl_rs if r > 0]
-        losses = [r for r in pnl_rs if r <= 0]
-        win_rate = round(len(wins) * 100.0 / max(1, len(pnl_rs)), 1)
-        expectancy_r = round(float(np.mean(pnl_rs)), 2) if pnl_rs else 0.91
-        
-        # In-sample vs Out-of-sample split
-        is_trades = [float(r[7] or 0.0) for r in trade_rows if str(r[1]) < "2023-01-01"]
-        oos_trades = [float(r[7] or 0.0) for r in trade_rows if str(r[1]) >= "2023-01-01"]
-        oos_expectancy_r = round(float(np.mean(oos_trades)), 2) if oos_trades else 0.74
-        
-        gross_win = sum(wins)
-        gross_loss = abs(sum(losses)) if losses else 1.0
-        profit_factor = round(gross_win / max(0.01, gross_loss), 2)
-    else:
-        expectancy_r = 0.91
-        oos_expectancy_r = 0.74
-        profit_factor = 2.18
-        win_rate = 67.4
 
-    # Generate 12-month / multi-year equity curve in R-multiples
-    equity_curve = [
-        {"date": "Jan '20", "equity_r": 0.0},
-        {"date": "Jul '20", "equity_r": 0.42},
-        {"date": "Jan '21", "equity_r": 0.78},
-        {"date": "Jul '21", "equity_r": 0.65},
-        {"date": "Jan '22", "equity_r": 1.25},
-        {"date": "Jul '22", "equity_r": 1.58},
-        {"date": "Jan '23", "equity_r": 1.95},  # Research Wall
-        {"date": "Jul '23", "equity_r": 2.20},
-        {"date": "Jan '24", "equity_r": 2.64},
-        {"date": "Jul '24", "equity_r": 2.89},
-        {"date": "Jan '25", "equity_r": 3.42},
-        {"date": "May '25", "equity_r": 3.65},
-    ]
+class StrategyOptimizeRequest(BaseModel):
+    name: str = "BB Reversion v4"
+    pair: str = "XAUUSD"
+    timeframe: str = "15m"
+    parameters: List[Dict[str, Any]] = Field(default_factory=list)
 
-    return {
-        "status": "SUCCESS",
-        "strategy": req.name,
-        "pair": req.pair,
-        "timeframe": req.timeframe,
-        "expectancy_r": expectancy_r,
-        "oos_expectancy_r": oos_expectancy_r,
-        "profit_factor": profit_factor,
-        "win_rate": win_rate,
-        "max_drawdown_pct": 8.4,
-        "trades_count": total_trades,
-        "sharpe_ratio": 1.85,
-        "robustness_score": 87,
-        "equity_curve": equity_curve,
-        "regime_breakdown": {
-            "trending": 1.14,
-            "volatile": 0.62,
-            "ranging": -0.18,
-        },
-        "zero_lookahead_verified": True,
-    }
+
+@router.post("/strategies/optimize")
+def optimize_strategy_parameters(req: StrategyOptimizeRequest) -> Dict[str, Any]:
+    """Executes a real parameter sweep across Parquet partitions and returns the optimal bounds."""
+    return get_strategy_engine().run_parameter_optimization(
+        strategy_name=req.name,
+        pair=req.pair,
+        timeframe=req.timeframe,
+        parameters=req.parameters,
+    )
+
+
+@router.post("/strategies/register")
+def register_strategy(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Compiles and registers a new strategy into `runs/` folder and `db/apex.duckdb`."""
+    return get_strategy_engine().register_strategy(payload=payload)
 
 
 # -----------------------------------------------------------------------------

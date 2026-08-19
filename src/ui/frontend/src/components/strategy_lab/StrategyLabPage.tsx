@@ -6,7 +6,7 @@ import { ParameterConfigGrid, StrategyParameter } from './ParameterConfigGrid';
 import { StrategyPoolList, PoolStrategy } from './StrategyPoolList';
 import { QuickAnalyticsCard, StrategyAnalytics } from './QuickAnalyticsCard';
 import { RiskAndExecutionPanel, RiskSettings, ExecutionAssumptions } from './RiskAndExecutionPanel';
-import { SecondaryTabs } from './SecondaryTabs';
+import { SecondaryTabs, ExitSettings, StrategyNotes } from './SecondaryTabs';
 
 export const StrategyLabPage: React.FC = () => {
   // Top Navigation & Mode States
@@ -34,7 +34,7 @@ export const StrategyLabPage: React.FC = () => {
     version: '4.0.0',
   });
 
-  // 2. Rule Groups State (Matches Reference UI)
+  // 2. Rule Groups State
   const [ruleGroups, setRuleGroups] = useState<RuleGroup[]>([
     {
       id: 'group-1',
@@ -107,35 +107,25 @@ export const StrategyLabPage: React.FC = () => {
     },
   ]);
 
-  // 3. Parameters Grid State (Matches Reference UI)
+  // 3. Parameters Grid State
   const [parameters, setParameters] = useState<StrategyParameter[]>([
-    { id: 'bb_len', name: 'BB Length', value: 20, min: 10, max: 50, step: 1, optimize: true, locked: false },
-    { id: 'bb_std', name: 'BB Std Dev', value: 2.0, min: 1.0, max: 3.0, step: 0.1, optimize: true, locked: false },
-    { id: 'rsi_len', name: 'RSI Length', value: 14, min: 7, max: 30, step: 1, optimize: true, locked: false },
-    { id: 'rsi_oversold', name: 'RSI Oversold', value: 35, min: 20, max: 40, step: 1, optimize: true, locked: false },
-    { id: 'ema_fast', name: 'EMA Fast', value: 50, min: 10, max: 100, step: 5, optimize: true, locked: false },
-    { id: 'ema_slow', name: 'EMA Slow', value: 200, min: 50, max: 300, step: 10, optimize: true, locked: false },
-    { id: 'atr_period', name: 'ATR Period', value: 14, min: 7, max: 30, step: 1, optimize: true, locked: false },
-    { id: 'atr_min', name: 'ATR Min', value: 18, min: 10, max: 40, step: 1, optimize: true, locked: false },
-    { id: 'vol_mult', name: 'Volume Multiplier', value: 1.2, min: 1.0, max: 2.0, step: 0.1, optimize: false, locked: false },
+    { id: 'bb_period', name: 'BB Length', value: 20, min: 10, max: 50, step: 1, optimize: true, locked: false },
+    { id: 'bb_std', name: 'BB Std Dev', value: 2.0, min: 1.0, max: 3.5, step: 0.1, optimize: true, locked: false },
+    { id: 'rsi_period', name: 'RSI Length', value: 14, min: 5, max: 30, step: 1, optimize: true, locked: false },
+    { id: 'rsi_oversold', name: 'RSI Oversold', value: 30, min: 20, max: 40, step: 1, optimize: true, locked: false },
+    { id: 'atr_threshold', name: 'ATR Filter Min', value: 18, min: 10, max: 40, step: 1, optimize: true, locked: false },
   ]);
 
   // 4. Registered Strategy Pool State
-  const [strategies, setStrategies] = useState<PoolStrategy[]>([
-    { id: 'strat-1', name: 'BB Reversion v4', pair: 'XAUUSD', timeframe: '15m', category: 'Mean Reversion', expectancy_r: 0.91, profit_factor: 2.18, max_dd_pct: 8.4, status: 'APPROVED', isFavorite: true },
-    { id: 'strat-2', name: 'Order Block v4', pair: 'XAUUSD', timeframe: '15m', category: 'SMC Structure', expectancy_r: 0.78, profit_factor: 1.92, max_dd_pct: 9.1, status: 'APPROVED', isFavorite: true },
-    { id: 'strat-3', name: 'Liquidity Sweep v3', pair: 'GBPUSD', timeframe: '15m', category: 'SMC Liquidity', expectancy_r: 0.66, profit_factor: 1.81, max_dd_pct: 10.2, status: 'APPROVED', isFavorite: true },
-    { id: 'strat-4', name: 'London Breakout v2', pair: 'EURUSD', timeframe: '30m', category: 'Breakout', expectancy_r: 0.59, profit_factor: 1.72, max_dd_pct: 7.6, status: 'APPROVED', isFavorite: true },
-    { id: 'strat-5', name: 'EMA Trend v2', pair: 'BTCUSDT', timeframe: '1h', category: 'Trend Following', expectancy_r: 0.42, profit_factor: 1.42, max_dd_pct: 12.8, status: 'TESTING', isFavorite: false },
-  ]);
-  const [selectedStrategyId, setSelectedStrategyId] = useState('strat-1');
+  const [strategies, setStrategies] = useState<any[]>([]);
+  const [selectedStrategyId, setSelectedStrategyId] = useState('');
 
-  // 5. Quick Analytics State (Matches Reference UI)
+  // 5. Quick Analytics State
   const [analytics, setAnalytics] = useState<StrategyAnalytics>({
     expectancy_r: 0.91,
     oos_expectancy_r: 0.74,
     profit_factor: 2.18,
-    win_rate: 67.4,
+    win_rate: 62.4,
     max_drawdown_pct: 8.4,
     trades_count: 4821,
     sharpe_ratio: 1.85,
@@ -179,30 +169,93 @@ export const StrategyLabPage: React.FC = () => {
     useVariableSlippage: true,
   });
 
-  // Load registered strategies from backend on mount
-  useEffect(() => {
+  // 7. Exit Engine Settings State
+  const [exits, setExits] = useState<ExitSettings>({
+    tp_tier1_r: 1.5,
+    tp_tier2_r: 3.0,
+    use_bb_exit: true,
+    sl_model: 'Structure Swing Low - (0.5 * ATR)',
+    be_trigger_r: 1.0,
+    trailing_model: 'Chandelier 2.0x ATR Trailing',
+    max_hold_bars: 24,
+    weekend_flatten: true,
+    session_end_exit: true,
+  });
+
+  // 8. Notes & Documentation State
+  const [notes, setNotes] = useState<StrategyNotes>({
+    rationale:
+      'This strategy exploits mean-reverting liquidity rebalances in Gold (XAUUSD) and EURUSD following extended deviations outside Bollinger Bands during the high-liquidity London Open. Commercial dealers re-absorb retail momentum orders when ATR expands above 18.0.',
+    counterparty:
+      'Counterparties: Late retail breakout traders chasing momentum below Lower BB at the end of the Asian session, whose sell stops provide the requisite buy liquidity for mean reversion.',
+    invalidation:
+      'Strategy should be automatically throttled during high-impact FOMC / NFP releases and when 1H ATR exceeds 35.0 (unbounded runaway trend regimes).',
+  });
+
+  // Fetch strategies on load
+  const loadStrategies = useCallback(() => {
     fetch('/api/v1/research/strategies')
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          setStrategies(
-            data.map((d: any, idx: number) => ({
-              id: d.id || `strat-${idx + 1}`,
-              name: d.name,
-              pair: d.pair,
-              timeframe: d.timeframe || '15m',
-              category: d.category || 'Mean Reversion',
-              expectancy_r: d.expectancy_r ?? 0.85,
-              profit_factor: d.profit_factor ?? 2.1,
-              max_dd_pct: d.max_dd_pct ?? 8.5,
-              status: d.status || 'APPROVED',
-              isFavorite: idx < 4,
-            }))
-          );
+          setStrategies(data);
+          if (!selectedStrategyId) {
+            const first = data[0];
+            setSelectedStrategyId(first.id);
+            setMetadata((prev) => ({
+              ...prev,
+              name: first.name,
+              family: first.category || 'Mean Reversion',
+              selectedTimeframe: first.timeframe || '15m',
+              primaryAssets: [first.pair || 'XAUUSD'],
+            }));
+            if (first.parameters) setParameters(first.parameters);
+            if (first.rule_groups) setRuleGroups(first.rule_groups);
+
+            // Fast test simulation
+            runFastTest(first.name, first.pair || 'XAUUSD', first.timeframe || '15m', first.parameters);
+          }
         }
       })
       .catch(() => {});
-  }, []);
+  }, [selectedStrategyId]);
+
+  useEffect(() => {
+    loadStrategies();
+  }, [loadStrategies]);
+
+  // Runner: Vectorized fast-test simulation
+  const runFastTest = (
+    stratName: string,
+    pair: string,
+    timeframe: string,
+    paramList?: StrategyParameter[]
+  ) => {
+    const pDict: Record<string, any> = {};
+    (paramList || parameters).forEach((p) => {
+      pDict[p.name || p.id] = p.value;
+    });
+
+    fetch('/api/v1/research/strategies/fast-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: stratName,
+        pair: pair,
+        timeframe: timeframe,
+        parameters: pDict,
+        risk_pct: risk.riskPerTradePct,
+        slippage_pips: execution.slippagePips,
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.expectancy_r !== undefined) {
+          setAnalytics(data);
+        }
+      })
+      .catch(() => {});
+  };
 
   // Handler: Add Condition from Library directly into Rule Group 1
   const handleAddConditionFromLibrary = (template: {
@@ -234,35 +287,30 @@ export const StrategyLabPage: React.FC = () => {
   };
 
   // Handler: Select strategy from pool
-  const handleSelectStrategy = (strat: PoolStrategy) => {
+  const handleSelectStrategy = (strat: any) => {
     setSelectedStrategyId(strat.id);
     setMetadata((prev) => ({
       ...prev,
       name: strat.name,
-      family: strat.category,
-      selectedTimeframe: strat.timeframe,
-      primaryAssets: [strat.pair],
+      family: strat.category || 'Mean Reversion',
+      selectedTimeframe: strat.timeframe || '15m',
+      primaryAssets: [strat.pair || 'XAUUSD'],
     }));
 
-    // Trigger instant fast-test evaluation for selected strategy
-    fetch('/api/v1/research/strategies/fast-test', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: strat.name,
-        pair: strat.pair,
-        timeframe: strat.timeframe,
-        risk_pct: risk.riskPerTradePct,
-        slippage_pips: execution.slippagePips,
-      }),
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.expectancy_r !== undefined) {
-          setAnalytics(data);
-        }
-      })
-      .catch(() => {});
+    if (strat.parameters && Array.isArray(strat.parameters)) {
+      setParameters(strat.parameters);
+    }
+    if (strat.rule_groups && Array.isArray(strat.rule_groups)) {
+      setRuleGroups(strat.rule_groups);
+    }
+
+    runFastTest(strat.name, strat.pair || 'XAUUSD', strat.timeframe || '15m', strat.parameters);
+  };
+
+  // Handler: Timeframe Switch
+  const handleTimeframeChange = (tf: string) => {
+    setMetadata((prev) => ({ ...prev, selectedTimeframe: tf }));
+    runFastTest(metadata.name, metadata.primaryAssets[0] || 'XAUUSD', tf, parameters);
   };
 
   // Handler: Compile & Register Strategy
@@ -270,40 +318,30 @@ export const StrategyLabPage: React.FC = () => {
     setIsCompiling(true);
     setCompileSuccess(false);
 
-    // Call backend registration & fast-test
+    const payload = {
+      name: metadata.name,
+      category: metadata.family,
+      pair: metadata.primaryAssets[0] || 'XAUUSD',
+      timeframe: metadata.selectedTimeframe,
+      parameters: parameters,
+      rule_groups: ruleGroups,
+      risk: risk,
+      execution: execution,
+      status: 'approved',
+    };
+
     fetch('/api/v1/research/strategies/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: metadata.name,
-        category: metadata.family,
-        pair: metadata.primaryAssets[0] || 'XAUUSD',
-        timeframe: metadata.selectedTimeframe,
-        trigger_condition: 'Visual Composer Rules',
-        status: metadata.status.toLowerCase(),
-      }),
+      body: JSON.stringify(payload),
     })
-      .then(() =>
-        fetch('/api/v1/research/strategies/fast-test', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: metadata.name,
-            pair: metadata.primaryAssets[0] || 'XAUUSD',
-            timeframe: metadata.selectedTimeframe,
-            risk_pct: risk.riskPerTradePct,
-            slippage_pips: execution.slippagePips,
-          }),
-        })
-      )
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && data.expectancy_r !== undefined) {
-          setAnalytics(data);
-        }
+      .then((res) => res.json())
+      .then(() => {
+        runFastTest(metadata.name, metadata.primaryAssets[0] || 'XAUUSD', metadata.selectedTimeframe, parameters);
         setIsCompiling(false);
         setCompileSuccess(true);
         setTimeout(() => setCompileSuccess(false), 3500);
+        loadStrategies();
       })
       .catch(() => {
         setIsCompiling(false);
@@ -315,16 +353,38 @@ export const StrategyLabPage: React.FC = () => {
   // Handler: Run Optimization Sweep
   const handleRunOptimization = () => {
     setIsOptimizing(true);
-    setTimeout(() => {
-      setIsOptimizing(false);
-      setAnalytics((prev) => ({
-        ...prev,
-        expectancy_r: Number((prev.expectancy_r + 0.08).toFixed(2)),
-        oos_expectancy_r: Number((prev.oos_expectancy_r + 0.06).toFixed(2)),
-        profit_factor: Number((prev.profit_factor + 0.12).toFixed(2)),
-        robustness_score: Math.min(100, prev.robustness_score + 4),
-      }));
-    }, 1200);
+    fetch('/api/v1/research/strategies/optimize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: metadata.name,
+        pair: metadata.primaryAssets[0] || 'XAUUSD',
+        timeframe: metadata.selectedTimeframe,
+        parameters: parameters,
+      }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setIsOptimizing(false);
+        if (data && data.optimized_parameters) {
+          setParameters(data.optimized_parameters);
+        }
+        if (data && data.metrics) {
+          setAnalytics((prev) => ({
+            ...prev,
+            expectancy_r: data.metrics.expectancy_r,
+            oos_expectancy_r: data.metrics.oos_expectancy_r,
+            profit_factor: data.metrics.profit_factor,
+            win_rate: data.metrics.win_rate,
+            max_drawdown_pct: data.metrics.max_drawdown_pct,
+            sharpe_ratio: data.metrics.sharpe_ratio,
+            robustness_score: data.metrics.robustness_score,
+          }));
+        }
+      })
+      .catch(() => {
+        setIsOptimizing(false);
+      });
   };
 
   return (
@@ -350,7 +410,15 @@ export const StrategyLabPage: React.FC = () => {
             <div className="xl:col-span-3 space-y-4">
               <StrategyInfoSidebar
                 metadata={metadata}
-                onUpdateMetadata={(up) => setMetadata((prev) => ({ ...prev, ...up }))}
+                onUpdateMetadata={(up) => {
+                  setMetadata((prev) => {
+                    const next = { ...prev, ...up };
+                    if (up.primaryAssets && up.primaryAssets.length > 0) {
+                      runFastTest(next.name, up.primaryAssets[0], next.selectedTimeframe, parameters);
+                    }
+                    return next;
+                  });
+                }}
                 onAddCondition={handleAddConditionFromLibrary}
               />
             </div>
@@ -367,7 +435,10 @@ export const StrategyLabPage: React.FC = () => {
               <ParameterConfigGrid
                 strategyName={metadata.name}
                 parameters={parameters}
-                onUpdateParameters={setParameters}
+                onUpdateParameters={(newParams) => {
+                  setParameters(newParams);
+                  runFastTest(metadata.name, metadata.primaryAssets[0] || 'XAUUSD', metadata.selectedTimeframe, newParams);
+                }}
                 onRunOptimization={handleRunOptimization}
                 isOptimizing={isOptimizing}
               />
@@ -386,7 +457,12 @@ export const StrategyLabPage: React.FC = () => {
                 }
               />
 
-              <QuickAnalyticsCard strategyName={metadata.name} analytics={analytics} />
+              <QuickAnalyticsCard
+                strategyName={metadata.name}
+                analytics={analytics}
+                selectedTimeframe={metadata.selectedTimeframe}
+                onTimeframeChange={handleTimeframeChange}
+              />
 
               <RiskAndExecutionPanel
                 risk={risk}
@@ -397,7 +473,16 @@ export const StrategyLabPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <SecondaryTabs activeTab={activeTab} strategyName={metadata.name} />
+          <SecondaryTabs
+            activeTab={activeTab}
+            strategyName={metadata.name}
+            notes={notes}
+            onUpdateNotes={(up) => setNotes((prev) => ({ ...prev, ...up }))}
+            risk={risk}
+            onUpdateRisk={(up) => setRisk((prev) => ({ ...prev, ...up }))}
+            exits={exits}
+            onUpdateExits={(up) => setExits((prev) => ({ ...prev, ...up }))}
+          />
         )}
       </div>
     </div>

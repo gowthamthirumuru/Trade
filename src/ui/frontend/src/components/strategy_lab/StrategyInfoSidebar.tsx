@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
   Plus,
@@ -67,6 +67,33 @@ export const StrategyInfoSidebar: React.FC<StrategyInfoSidebarProps> = ({
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [isAddingAsset, setIsAddingAsset] = useState(false);
   const [newAssetInput, setNewAssetInput] = useState('');
+  const [backendBlocks, setBackendBlocks] = useState<Record<string, Array<{ name: string; template: any }>>>({});
+
+  useEffect(() => {
+    fetch('/api/v1/research/strategies/library')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const grouped: Record<string, Array<{ name: string; template: any }>> = {};
+          data.forEach((b: any) => {
+            const cat = b.category || 'Price Action';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push({
+              name: `[${b.code}] ${b.name}`,
+              template: {
+                field: b.field || b.name,
+                operator: b.operator || 'equals',
+                target: b.target || 'Threshold',
+                params: b.default_params || '()',
+                timeframe: metadata.selectedTimeframe,
+              },
+            });
+          });
+          setBackendBlocks(grouped);
+        }
+      })
+      .catch(() => {});
+  }, [metadata.selectedTimeframe]);
 
   // 9 Categories of Quant Conditions with institutional templates
   const conditionLibrary: Record<ConditionCategory, Array<{ name: string; template: any }>> = {
@@ -128,7 +155,9 @@ export const StrategyInfoSidebar: React.FC<StrategyInfoSidebarProps> = ({
     ],
   };
 
-  const currentConditions = conditionLibrary[activeCategory] || [];
+  const defaultConditions = conditionLibrary[activeCategory] || [];
+  const extraBlocks = backendBlocks[activeCategory] || [];
+  const currentConditions = [...extraBlocks, ...defaultConditions];
   const filteredConditions = currentConditions.filter((c) =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
