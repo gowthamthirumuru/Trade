@@ -195,6 +195,13 @@ def register_strategy(payload: Dict[str, Any]) -> Dict[str, Any]:
     return get_strategy_engine().register_strategy(payload=payload)
 
 
+from src.ui.server.services.backtest_engine import BacktestEngine
+
+
+def get_backtest_engine() -> BacktestEngine:
+    return BacktestEngine()
+
+
 # -----------------------------------------------------------------------------
 # 3. BACKTESTING ENGINE ENDPOINTS
 # -----------------------------------------------------------------------------
@@ -205,115 +212,29 @@ class BacktestRunRequest(BaseModel):
     timeframe: str = "15m"
     engine: str = "VectorBT"  # VectorBT or Nautilus
     initial_capital: float = 10000.0
+    risk_per_trade_pct: float = 0.50
+    compounding: bool = True
     taker_fee_bps: float = 5.0
     slippage_bps: float = 2.0
-    start_date: str = "2023-01-01"
-    end_date: str = "2024-01-01"
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
 
 
 @router.post("/backtest/run")
 def execute_backtest(req: BacktestRunRequest) -> Dict[str, Any]:
     """Executes a realistic cost-aware multi-asset backtest with VectorBT or Nautilus."""
-    con = get_engine().get_connection()
-    trade_rows = []
-    daily_rows = []
-
-    try:
-        trade_rows = con.execute("""
-            SELECT trade_id, entry_time, exit_time, direction, entry_price, exit_price, pnl_quote, pnl_r, exit_reason
-            FROM trades
-            ORDER BY entry_time ASC
-            LIMIT 20
-        """).fetchall()
-    except Exception:
-        pass
-
-    try:
-        daily_rows = con.execute("""
-            SELECT strftime('%b ''%y', entry_time) as m_label, SUM(pnl_quote) as m_pnl
-            FROM trades
-            WHERE entry_time IS NOT NULL
-            GROUP BY strftime('%Y-%m', entry_time), strftime('%b ''%y', entry_time)
-            ORDER BY strftime('%Y-%m', entry_time) ASC
-            LIMIT 12
-        """).fetchall()
-    except Exception:
-        pass
-    con.close()
-
-
-    equity_points = []
-    running_eq = req.initial_capital
-    peak_eq = req.initial_capital
-
-    for dr in daily_rows:
-        m_label = str(dr[0])
-        m_pnl = float(dr[1] or 500.0)
-        running_eq += m_pnl
-        peak_eq = max(peak_eq, running_eq)
-        dd_pct = round(((running_eq - peak_eq) / peak_eq) * 100.0, 2)
-    if len(equity_points) < 12:
-        months = ["Jan '23", "Feb '23", "Mar '23", "Apr '23", "May '23", "Jun '23", "Jul '23", "Aug '23", "Sep '23", "Oct '23", "Nov '23", "Dec '23"]
-        equities = [10000, 10840, 11420, 12100, 11800, 13400, 14200, 15100, 16300, 17200, 18450, 19200]
-        drawdowns = [0.0, -1.2, -0.8, -2.4, -6.8, -1.4, -0.9, -3.1, -1.8, -0.5, -4.2, -1.1]
-        equity_points = [{"date": m, "equity": eq, "drawdown_pct": dd} for m, eq, dd in zip(months, equities, drawdowns)]
-
-    trade_logs = []
-    for tr in trade_rows:
-        trade_logs.append({
-            "id": int(tr[0]),
-            "entry_time": str(tr[1])[:16],
-            "exit_time": str(tr[2])[:16],
-            "side": str(tr[3]),
-            "entry_price": float(tr[4] or 0.0),
-            "exit_price": float(tr[5] or 0.0),
-            "pnl_quote": float(tr[6] or 0.0),
-            "pnl_r": float(tr[7] or 0.0),
-            "result": "WIN" if float(tr[7] or 0.0) > 0 else "LOSS",
-            "exit_reason": str(tr[8] or "TP_HIT"),
-        })
-
-    if len(trade_logs) < 5:
-        trade_logs = [
-            {"id": 1001, "entry_time": "2023-01-04 08:30", "exit_time": "2023-01-04 11:15", "side": "LONG", "entry_price": 1842.50, "exit_price": 1858.20, "pnl_quote": 785.0, "pnl_r": 2.10, "result": "WIN", "exit_reason": "TP_HIT"},
-            {"id": 1002, "entry_time": "2023-01-07 09:15", "exit_time": "2023-01-07 10:45", "side": "LONG", "entry_price": 1854.10, "exit_price": 1846.60, "pnl_quote": -375.0, "pnl_r": -1.00, "result": "LOSS", "exit_reason": "SL_HIT"},
-            {"id": 1003, "entry_time": "2023-01-11 13:00", "exit_time": "2023-01-11 16:30", "side": "LONG", "entry_price": 1860.00, "exit_price": 1882.40, "pnl_quote": 1120.0, "pnl_r": 3.00, "result": "WIN", "exit_reason": "TP_HIT"},
-            {"id": 1004, "entry_time": "2023-01-15 08:00", "exit_time": "2023-01-15 09:45", "side": "SHORT", "entry_price": 1885.30, "exit_price": 1871.10, "pnl_quote": 710.0, "pnl_r": 1.90, "result": "WIN", "exit_reason": "TP_HIT"},
-            {"id": 1005, "entry_time": "2023-01-19 14:30", "exit_time": "2023-01-19 15:15", "side": "SHORT", "entry_price": 1876.80, "exit_price": 1884.30, "pnl_quote": -375.0, "pnl_r": -1.00, "result": "LOSS", "exit_reason": "SL_HIT"},
-        ]
-
-
-    return {
-        "status": "COMPLETED",
-        "strategy": req.strategy_name,
-        "pair": req.pair,
-        "timeframe": req.timeframe,
-        "engine": req.engine,
-        "metrics": {
-            "cagr_pct": 38.4,
-            "sharpe_ratio": 2.18,
-            "sortino_ratio": 3.42,
-            "calmar_ratio": 4.57,
-            "max_drawdown_pct": 8.4,
-            "win_rate_pct": 62.4,
-            "profit_factor": 2.18,
-            "expectancy_r": 0.91,
-            "total_trades": len(trade_logs) * 240,
-            "win_trades": int(len(trade_logs) * 240 * 0.624),
-            "loss_trades": int(len(trade_logs) * 240 * 0.376),
-            "avg_win_r": 1.84,
-            "avg_loss_r": -1.00,
-            "total_fees_paid": 2410.5,
-            "total_slippage_paid": 964.2,
-        },
-        "equity_curve": equity_points,
-        "trade_logs": trade_logs,
-        "cost_model": {
-            "taker_fee_bps": req.taker_fee_bps,
-            "slippage_bps": req.slippage_bps,
-            "intrabar_conservatism": "PESSIMISTIC_SL_FIRST",
-        },
-    }
+    return get_backtest_engine().run_backtest(
+        strategy_name=req.strategy_name,
+        pair=req.pair,
+        timeframe=req.timeframe,
+        initial_capital=req.initial_capital,
+        risk_per_trade_pct=req.risk_per_trade_pct,
+        compounding=req.compounding,
+        taker_fee_bps=req.taker_fee_bps,
+        slippage_pips=req.slippage_bps / 10.0,
+        start_date=req.start_date,
+        end_date=req.end_date,
+    )
 
 
 # -----------------------------------------------------------------------------

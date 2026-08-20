@@ -423,25 +423,29 @@ export const StrategyLabPage: React.FC = () => {
               />
             </div>
 
-            {/* Center Column (Visual Rule Composer + Parameter Configuration) */}
+            {/* Center Column (Visual Rule Composer OR Parameter Configuration based on active tab) */}
             <div className="xl:col-span-5 space-y-4">
-              <VisualRuleComposer
-                ruleGroups={ruleGroups}
-                onUpdateRuleGroups={setRuleGroups}
-                isCodeMode={isCodeMode}
-                onToggleCodeMode={() => setIsCodeMode(!isCodeMode)}
-              />
+              {activeTab === 'builder' && (
+                <VisualRuleComposer
+                  ruleGroups={ruleGroups}
+                  onUpdateRuleGroups={setRuleGroups}
+                  isCodeMode={isCodeMode}
+                  onToggleCodeMode={() => setIsCodeMode(!isCodeMode)}
+                />
+              )}
 
-              <ParameterConfigGrid
-                strategyName={metadata.name}
-                parameters={parameters}
-                onUpdateParameters={(newParams) => {
-                  setParameters(newParams);
-                  runFastTest(metadata.name, metadata.primaryAssets[0] || 'XAUUSD', metadata.selectedTimeframe, newParams);
-                }}
-                onRunOptimization={handleRunOptimization}
-                isOptimizing={isOptimizing}
-              />
+              {activeTab === 'parameters' && (
+                <ParameterConfigGrid
+                  strategyName={metadata.name}
+                  parameters={parameters}
+                  onUpdateParameters={(newParams) => {
+                    setParameters(newParams);
+                    runFastTest(metadata.name, metadata.primaryAssets[0] || 'XAUUSD', metadata.selectedTimeframe, newParams);
+                  }}
+                  onRunOptimization={handleRunOptimization}
+                  isOptimizing={isOptimizing}
+                />
+              )}
             </div>
 
             {/* Right Column (Strategy Pool + Quick Analytics + Risk & Execution) */}
