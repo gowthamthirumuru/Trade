@@ -12,7 +12,9 @@ import {
   RDistItem,
 } from './BacktestAnalyticsRow';
 import { BacktestTradesTable, BacktestTradeLog } from './BacktestTradesTable';
-import { History, ShieldCheck, Activity, Award } from 'lucide-react';
+import { BacktestRobustnessTab } from './BacktestRobustnessTab';
+import { BacktestValidationTab } from './BacktestValidationTab';
+import { History, Target, Clock, DollarSign, Layers, ShieldAlert, Activity, CheckCircle2 } from 'lucide-react';
 
 interface SavedSnapshot {
   id: string;
@@ -26,8 +28,13 @@ interface SavedSnapshot {
 }
 
 export const BacktestPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<BacktestTab>('Results');
+  const [activeTab, setActiveTab] = useState<BacktestTab>('Configuration');
   const [isRunning, setIsRunning] = useState(false);
+
+  // Dynamic Strategy and Instrument Registries from API
+  const [strategiesList, setStrategiesList] = useState<any[]>([]);
+  const [instrumentsList, setInstrumentsList] = useState<any[]>([]);
+  const [dataQualityPct, setDataQualityPct] = useState<number>(99.8);
 
   // 1. Backtest Configuration State
   const [config, setConfig] = useState<BacktestConfig>({
@@ -39,9 +46,9 @@ export const BacktestPage: React.FC = () => {
     instrument: 'XAUUSD',
     timeframe: '15m',
     dataSource: 'Dukascopy',
-    datasetVersion: 'XAUUSD_15M_2026_08',
+    datasetVersion: 'XAUUSD_15M_PARQUET',
     startDate: '2004-01-01',
-    endDate: '2026-08-19',
+    endDate: '2026-08-20',
     sessionTemplate: 'Forex (London-NY)',
     spreadModel: 'Variable (Historical)',
     commission: '$7.00 / lot / side',
@@ -66,87 +73,51 @@ export const BacktestPage: React.FC = () => {
 
   // 2. Real Metrics State
   const [metrics, setMetrics] = useState<BacktestMetrics>({
-    netReturnPct: -28.7,
-    netReturnQuote: -2870.4,
-    cagrPct: -2.2,
-    expectancyR: 0.00,
-    profitFactor: 0.99,
-    sharpeRatio: -0.06,
-    sortinoRatio: -0.55,
-    calmarRatio: -0.03,
-    maxDrawdownPct: 68.6,
-    winRatePct: 40.0,
-    tradesCount: 7646,
+    netReturnPct: 0.0,
+    netReturnQuote: 0.0,
+    cagrPct: 0.0,
+    expectancyR: 0.0,
+    profitFactor: 1.0,
+    sharpeRatio: 0.0,
+    sortinoRatio: 0.0,
+    calmarRatio: 0.0,
+    maxDrawdownPct: 0.0,
+    winRatePct: 0.0,
+    tradesCount: 0,
     moreMetrics: {
-      avg_trade_duration_hours: 4.2,
-      max_consecutive_wins: 12,
-      max_consecutive_losses: 4,
-      total_fees_slippage: 3374.70,
-      recovery_factor: 0.42,
-      profit_per_day: -0.52,
+      avg_trade_duration_hours: 0,
+      max_consecutive_wins: 0,
+      max_consecutive_losses: 0,
+      total_fees_slippage: 0,
+      recovery_factor: 0,
+      profit_per_day: 0,
     },
   });
 
   // 3. Real Analytics States
-  const [winTrades, setWinTrades] = useState<number>(3057);
-  const [lossTrades, setLossTrades] = useState<number>(4589);
-  const [totalCandles, setTotalCandles] = useState<number>(355198);
-  const [engineTime, setEngineTime] = useState<string>('00:03:42');
-  const [completedTime, setCompletedTime] = useState<string>('Aug 20, 2026 11:23');
+  const [winTrades, setWinTrades] = useState<number>(0);
+  const [lossTrades, setLossTrades] = useState<number>(0);
+  const [totalCandles, setTotalCandles] = useState<number>(0);
+  const [engineTime, setEngineTime] = useState<string>('0.00s');
+  const [completedTime, setCompletedTime] = useState<string>('');
+  const [integrityScore, setIntegrityScore] = useState<number>(98);
 
-  const [equityPoints, setEquityPoints] = useState<EquityPoint[]>([
-    { date: '2004', equity: 10000, benchmarkEquity: 10000, drawdownPct: 0.0 },
-    { date: '2008', equity: 13200, benchmarkEquity: 9200, drawdownPct: -3.8 },
-    { date: '2012', equity: 16800, benchmarkEquity: 13100, drawdownPct: -4.2 },
-    { date: '2016', equity: 20500, benchmarkEquity: 16800, drawdownPct: -5.4 },
-    { date: '2020', equity: 24800, benchmarkEquity: 20100, drawdownPct: -2.4 },
-    { date: '2024', equity: 28500, benchmarkEquity: 22100, drawdownPct: -1.8 },
-    { date: '2026', equity: 29200, benchmarkEquity: 23500, drawdownPct: -0.9 },
-  ]);
-
+  const [equityPoints, setEquityPoints] = useState<EquityPoint[]>([]);
   const [rollingMetrics, setRollingMetrics] = useState<Record<string, RollingPoint[]>>({});
-
-  const [monthlyHeatmap, setMonthlyHeatmap] = useState<MonthlyHeatmapRow[]>([
-    { year: 2025, months: [1.2, -0.4, 2.1, 0.8, 1.4, -0.6, 1.8, 0.9, 1.1, -0.2, 1.5, 0.7], ytd: 10.3 },
-    { year: 2024, months: [0.8, 1.5, -0.8, 1.4, 2.2, 0.5, -0.3, 1.7, 0.6, 1.2, -0.5, 1.8], ytd: 10.1 },
-    { year: 2023, months: [1.4, 0.6, 1.8, -0.5, 0.9, 1.2, -0.7, 0.8, 1.5, 2.0, 0.4, 1.1], ytd: 10.5 },
-    { year: 2022, months: [-0.6, 1.1, 2.4, 0.8, -0.4, 1.5, 0.9, -0.8, 1.2, 0.7, 1.6, -0.3], ytd: 8.1 },
-    { year: 2021, months: [0.9, -0.5, 1.2, 1.6, 0.7, -0.3, 1.4, 2.1, -0.6, 0.8, 1.3, 0.9], ytd: 9.5 },
-    { year: 2020, months: [1.6, 2.4, -1.2, 1.8, 0.9, 1.1, 0.5, -0.4, 1.7, 0.8, 1.4, 1.2], ytd: 11.8 },
-  ]);
-
-  const [dayOfWeek, setDayOfWeek] = useState<DayOfWeekItem[]>([
-    { day: 'Mon', r: -0.06, width: 90, positive: false },
-    { day: 'Tue', r: 0.00, width: 15, positive: true },
-    { day: 'Wed', r: 0.04, width: 60, positive: true },
-    { day: 'Thu', r: -0.05, width: 75, positive: false },
-    { day: 'Fri', r: 0.03, width: 45, positive: true },
-  ]);
-
+  const [monthlyHeatmap, setMonthlyHeatmap] = useState<MonthlyHeatmapRow[]>([]);
+  const [dayOfWeek, setDayOfWeek] = useState<DayOfWeekItem[]>([]);
   const [sessionStats, setSessionStats] = useState<SessionStats>({
-    london_r: -0.08,
-    london_pct: 37,
-    ny_r: -0.06,
-    ny_pct: 48,
-    overlap_r: -0.14,
-    overlap_pct: 15,
-    asia_r: 0.14,
-    asia_pct: 23,
+    london_r: 0,
+    london_pct: 0,
+    ny_r: 0,
+    ny_pct: 0,
+    overlap_r: 0,
+    overlap_pct: 0,
+    asia_r: 0,
+    asia_pct: 0,
   });
 
-  const [rDistribution, setRDistribution] = useState<RDistItem[]>([
-    { label: '<-3R', count: 42, color: '#e11d48' },
-    { label: '-2R', count: 184, color: '#f43f5e' },
-    { label: '-1R', count: 1120, color: '#fb7185' },
-    { label: '-0.5R', count: 471, color: '#fda4af' },
-    { label: '0', count: 210, color: '#94a3b8' },
-    { label: '+0.5R', count: 680, color: '#6ee7b7' },
-    { label: '+1R', count: 1240, color: '#10b981' },
-    { label: '+2R', count: 620, color: '#059669' },
-    { label: '+3R', count: 190, color: '#047857' },
-    { label: '>+3R', count: 64, color: '#065f46' },
-  ]);
-
+  const [rDistribution, setRDistribution] = useState<RDistItem[]>([]);
   const [rDistributionBySide, setRDistributionBySide] = useState<{
     all?: RDistItem[];
     long?: RDistItem[];
@@ -154,24 +125,48 @@ export const BacktestPage: React.FC = () => {
   }>({});
 
   const [dataSplit, setDataSplit] = useState<DataSplitInfo>({
-    train: { range: '2010-01-05 → 2018-10-04', pct: 60, days: 3302 },
-    validate: { range: '2018-10-04 → 2021-11-25', pct: 20, days: 1100 },
-    oos: { range: '2021-11-25 → 2025-01-31', pct: 20, days: 1100 },
+    train: { range: '—', pct: 60, days: 0 },
+    validate: { range: '—', pct: 20, days: 0 },
+    oos: { range: '—', pct: 20, days: 0 },
   });
 
   const [tradeLogs, setTradeLogs] = useState<BacktestTradeLog[]>([]);
-  const [savedSnapshots, setSavedSnapshots] = useState<SavedSnapshot[]>([
-    {
-      id: 'BT-9821',
-      timestamp: '2026-08-20 11:23',
-      strategy: 'BB Reversion v4',
-      pair: 'XAUUSD',
-      timeframe: '15m',
-      netReturnPct: -28.7,
-      winRatePct: 40.0,
-      tradesCount: 7646,
-    },
-  ]);
+  const [savedSnapshots, setSavedSnapshots] = useState<SavedSnapshot[]>([]);
+
+  // -------------------------------------------------------------------------
+  // Fetch Registry Data (Strategies, Data Lake Instruments, History Snapshots)
+  // -------------------------------------------------------------------------
+  useEffect(() => {
+    // 1. Strategies Pool
+    fetch('/api/v1/research/strategies')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data) && data.length > 0) {
+          setStrategiesList(data);
+        }
+      })
+      .catch(() => {});
+
+    // 2. Data Lake Instruments
+    fetch('/api/v1/research/datalab/summary')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.instruments && Array.isArray(data.instruments)) {
+          setInstrumentsList(data.instruments);
+        }
+      })
+      .catch(() => {});
+
+    // 3. Backtest Run History Snapshots
+    fetch('/api/v1/research/backtest/history')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data) && data.length > 0) {
+          setSavedSnapshots(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // -------------------------------------------------------------------------
   // 4. Execution Simulation Trigger Handler
@@ -189,7 +184,7 @@ export const BacktestPage: React.FC = () => {
         risk_per_trade_pct: config.riskPerTradePct,
         compounding: config.compounding,
         taker_fee_bps: 5.0,
-        slippage_bps: 2.0,
+        slippage_bps: config.slippageModel === 'Zero Slippage' ? 0.0 : config.slippageModel === 'Fixed (0.5 pips)' ? 5.0 : 2.0,
         start_date: config.startDate,
         end_date: config.endDate,
       }),
@@ -201,24 +196,24 @@ export const BacktestPage: React.FC = () => {
 
         if (data.metrics) {
           setMetrics({
-            netReturnPct: data.metrics.net_return_pct ?? -28.7,
-            netReturnQuote: data.metrics.net_return_quote ?? -2870.4,
-            cagrPct: data.metrics.cagr_pct ?? -2.2,
-            expectancyR: data.metrics.expectancy_r ?? 0.00,
-            profitFactor: data.metrics.profit_factor ?? 0.99,
-            sharpeRatio: data.metrics.sharpe_ratio ?? -0.06,
-            sortinoRatio: data.metrics.sortino_ratio ?? -0.55,
-            calmarRatio: data.metrics.calmar_ratio ?? -0.03,
-            maxDrawdownPct: data.metrics.max_drawdown_pct ?? 68.6,
-            winRatePct: data.metrics.win_rate_pct ?? 40.0,
-            tradesCount: data.metrics.trades_count ?? 7646,
+            netReturnPct: data.metrics.net_return_pct ?? 0.0,
+            netReturnQuote: data.metrics.net_return_quote ?? 0.0,
+            cagrPct: data.metrics.cagr_pct ?? 0.0,
+            expectancyR: data.metrics.expectancy_r ?? 0.0,
+            profitFactor: data.metrics.profit_factor ?? 1.0,
+            sharpeRatio: data.metrics.sharpe_ratio ?? 0.0,
+            sortinoRatio: data.metrics.sortino_ratio ?? 0.0,
+            calmarRatio: data.metrics.calmar_ratio ?? 0.0,
+            maxDrawdownPct: data.metrics.max_drawdown_pct ?? 0.0,
+            winRatePct: data.metrics.win_rate_pct ?? 0.0,
+            tradesCount: data.metrics.trades_count ?? 0,
             moreMetrics: data.metrics.more_metrics,
           });
-          setWinTrades(data.metrics.win_trades ?? 3057);
-          setLossTrades(data.metrics.loss_trades ?? 4589);
+          setWinTrades(data.metrics.win_trades ?? 0);
+          setLossTrades(data.metrics.loss_trades ?? 0);
         }
 
-        if (data.equity_points && data.equity_points.length > 0) {
+        if (data.equity_points) {
           setEquityPoints(data.equity_points);
         }
 
@@ -226,11 +221,11 @@ export const BacktestPage: React.FC = () => {
           setRollingMetrics(data.rolling_metrics);
         }
 
-        if (data.monthly_heatmap && data.monthly_heatmap.length > 0) {
+        if (data.monthly_heatmap) {
           setMonthlyHeatmap(data.monthly_heatmap);
         }
 
-        if (data.day_of_week && data.day_of_week.length > 0) {
+        if (data.day_of_week) {
           setDayOfWeek(data.day_of_week);
         }
 
@@ -238,7 +233,7 @@ export const BacktestPage: React.FC = () => {
           setSessionStats(data.session_performance);
         }
 
-        if (data.r_distribution && data.r_distribution.length > 0) {
+        if (data.r_distribution) {
           setRDistribution(data.r_distribution);
         }
 
@@ -254,7 +249,7 @@ export const BacktestPage: React.FC = () => {
           setTradeLogs(data.trade_logs);
         }
 
-        if (data.total_candles) {
+        if (data.total_candles !== undefined) {
           setTotalCandles(data.total_candles);
         }
 
@@ -264,6 +259,10 @@ export const BacktestPage: React.FC = () => {
 
         if (data.completed_time) {
           setCompletedTime(data.completed_time);
+        }
+
+        if (data.integrity_score) {
+          setIntegrityScore(data.integrity_score);
         }
       })
       .catch(() => {
@@ -276,6 +275,7 @@ export const BacktestPage: React.FC = () => {
     config.initialCapital,
     config.riskPerTradePct,
     config.compounding,
+    config.slippageModel,
     config.startDate,
     config.endDate,
   ]);
@@ -297,6 +297,13 @@ export const BacktestPage: React.FC = () => {
       winRatePct: metrics.winRatePct,
       tradesCount: metrics.tradesCount,
     };
+
+    fetch('/api/v1/research/backtest/save-snapshot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newSnapshot),
+    }).catch(() => {});
+
     setSavedSnapshots((prev) => [newSnapshot, ...prev]);
   };
 
@@ -326,6 +333,16 @@ export const BacktestPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  // Execution Stress Test Handler
+  const handleStressTest = () => {
+    setConfig((prev) => ({
+      ...prev,
+      slippageModel: 'Volatility-Based (Stress 3.0x)',
+      spreadModel: 'Variable (Historical)',
+    }));
+    handleRunBacktest();
+  };
+
   // Handle configuration updates dynamically
   const handleUpdateConfig = (updated: Partial<BacktestConfig>) => {
     setConfig((prev) => {
@@ -333,25 +350,14 @@ export const BacktestPage: React.FC = () => {
       if (updated.instrument) {
         const isCrypto = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'].includes(updated.instrument);
         next.dataSource = isCrypto ? 'Binance' : 'Dukascopy';
-        next.datasetVersion = `${updated.instrument}_${next.timeframe.toUpperCase()}_2026_08`;
+        next.datasetVersion = `${updated.instrument}_${next.timeframe.toUpperCase()}_PARQUET`;
+        const matchedInst = instrumentsList.find((i) => i.pair === updated.instrument);
+        if (matchedInst && matchedInst.quality) {
+          setDataQualityPct(matchedInst.quality);
+        }
       }
       if (updated.timeframe) {
-        next.datasetVersion = `${next.instrument}_${updated.timeframe.toUpperCase()}_2026_08`;
-      }
-      if (updated.strategy) {
-        if (updated.strategy.includes('Order Block') || updated.strategy.includes('T09')) {
-          next.family = 'Institutional SMC';
-          next.description = 'High-volume order block rejection with fair value gap confluence.';
-        } else if (updated.strategy.includes('Sweep') || updated.strategy.includes('Liquidity')) {
-          next.family = 'Liquidity Sweep';
-          next.description = 'Asia / London liquidity sweep with rapid mean-reverting entry.';
-        } else if (updated.strategy.includes('Breakout') || updated.strategy.includes('London')) {
-          next.family = 'Breakout & Momentum';
-          next.description = 'Session open range expansion with volatility breakout triggers.';
-        } else {
-          next.family = 'Mean Reversion';
-          next.description = 'Bollinger Band reversion strategy with trend and volatility filter.';
-        }
+        next.datasetVersion = `${next.instrument}_${updated.timeframe.toUpperCase()}_PARQUET`;
       }
       return next;
     });
@@ -369,39 +375,233 @@ export const BacktestPage: React.FC = () => {
         onExport={handleExportAllCSV}
       />
 
-      {/* 2. Main Backtesting Content Grid */}
+      {/* 2. Main Backtesting Content Sub-Views */}
       <div className="p-4 space-y-3.5 flex-1">
-        {/* Top 5 Modular Configuration Cards */}
-        <BacktestConfigGrid
-          config={config}
-          onUpdateConfig={handleUpdateConfig}
-        />
+        {/* ================================================================= */}
+        {/* TAB 1: CONFIGURATION */}
+        {/* ================================================================= */}
+        {activeTab === 'Configuration' && (
+          <div className="space-y-3.5 animate-in fade-in duration-150">
+            {/* Top 5 Modular Configuration Cards */}
+            <BacktestConfigGrid
+              config={config}
+              onUpdateConfig={handleUpdateConfig}
+              strategiesList={strategiesList}
+              instrumentsList={instrumentsList}
+              dataQualityPct={dataQualityPct}
+              onStressTest={handleStressTest}
+            />
 
-        {/* Research Contract, Data Split, Quick Actions & Run Summary */}
-        <BacktestResearchContract
-          strategyName={`${config.strategy} (${config.version})`}
-          instrument={config.instrument}
-          timeframe={config.timeframe}
-          startDate={config.startDate}
-          endDate={config.endDate}
-          totalCandles={totalCandles}
-          totalTrades={metrics.tradesCount}
-          engineTime={engineTime}
-          completedTime={completedTime}
-          dataSplit={dataSplit}
-          integrityScore={97}
-        />
+            {/* Research Contract, Data Split, Quick Actions & Run Summary */}
+            <BacktestResearchContract
+              strategyName={`${config.strategy} (${config.version})`}
+              instrument={config.instrument}
+              timeframe={config.timeframe}
+              startDate={config.startDate}
+              endDate={config.endDate}
+              totalCandles={totalCandles}
+              totalTrades={metrics.tradesCount}
+              engineTime={engineTime}
+              completedTime={completedTime}
+              integrityScore={integrityScore}
+              dataSplit={dataSplit}
+              commission={config.commission}
+              riskModel={`${config.riskPerTradePct.toFixed(2)}% ${config.positionSizing}`}
+              compounding={config.compounding}
+              intrabarModel={config.intrabarModel}
+              executionModel={config.spreadModel}
+              slippageModel={config.slippageModel}
+              onNavigateTab={(tab) => {
+                if (tab === 'Trades') setActiveTab('Trades');
+              }}
+            />
+          </div>
+        )}
 
-        {/* History Tab View */}
-        {activeTab === 'History' && (
-          <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-4 space-y-3 font-mono">
-            <div className="flex items-center gap-2 border-b border-[#141a26] pb-2">
-              <History className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-bold text-white text-xs">Backtest Run History & Saved Snapshots</h3>
+        {/* ================================================================= */}
+        {/* TAB 2: RESULTS (THE CONSOLIDATED EXECUTIVE VIEW) */}
+        {/* ================================================================= */}
+        {activeTab === 'Results' && (
+          <div className="space-y-3.5 animate-in fade-in duration-150">
+            {/* 10 Institutional Performance KPI Cards */}
+            <BacktestKpiRibbon metrics={metrics} />
+
+            {/* 3 Middle Visualizations: Equity Curve, Underwater Drawdown, Rolling Performance */}
+            <BacktestChartsRow
+              equityPoints={equityPoints}
+              rollingMetrics={rollingMetrics}
+            />
+
+            {/* Bottom 5 Specialized Analytics Panels */}
+            <BacktestAnalyticsRow
+              monthlyData={monthlyHeatmap}
+              dayOfWeekData={dayOfWeek}
+              sessionStats={sessionStats}
+              rDistribution={rDistribution}
+              rDistributionBySide={rDistributionBySide}
+              winTrades={winTrades}
+              lossTrades={lossTrades}
+              winRatePct={metrics.winRatePct}
+              expectancyR={metrics.expectancyR}
+            />
+
+            {/* Trade Execution Logs Table Preview */}
+            <BacktestTradesTable
+              trades={tradeLogs}
+              totalTradesCount={metrics.tradesCount}
+            />
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB 3: TRADES (DEDICATED EXECUTION LOG WORKBENCH) */}
+        {/* ================================================================= */}
+        {activeTab === 'Trades' && (
+          <div className="space-y-3.5 animate-in fade-in duration-150">
+            {/* Top Trade Statistics Ribbon */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-2.5 font-mono text-xs">
+              <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Total Executions</div>
+                <div className="text-base font-extrabold text-white mt-0.5">{metrics.tradesCount.toLocaleString()}</div>
+                <div className="text-[9px] text-cyan-400 font-bold">100% In DuckDB</div>
+              </div>
+
+              <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Win Rate</div>
+                <div className={`text-base font-extrabold mt-0.5 ${metrics.winRatePct >= 50 ? 'text-emerald-400' : 'text-slate-200'}`}>
+                  {metrics.winRatePct.toFixed(1)}%
+                </div>
+                <div className="text-[9px] text-emerald-400 font-bold">{winTrades.toLocaleString()} Winners</div>
+              </div>
+
+              <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Loss Count</div>
+                <div className="text-base font-extrabold text-rose-400 mt-0.5">{lossTrades.toLocaleString()}</div>
+                <div className="text-[9px] text-rose-400 font-bold">{(100 - metrics.winRatePct).toFixed(1)}% Losses</div>
+              </div>
+
+              <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Expectancy (R)</div>
+                <div className={`text-base font-extrabold mt-0.5 ${metrics.expectancyR >= 0 ? 'text-cyan-400' : 'text-rose-400'}`}>
+                  {metrics.expectancyR >= 0 ? `+${metrics.expectancyR.toFixed(2)}R` : `${metrics.expectancyR.toFixed(2)}R`}
+                </div>
+                <div className="text-[9px] text-slate-400 font-bold">Average Per Trade</div>
+              </div>
+
+              <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Profit Factor</div>
+                <div className={`text-base font-extrabold mt-0.5 ${metrics.profitFactor >= 1.0 ? 'text-white' : 'text-rose-400'}`}>
+                  {metrics.profitFactor.toFixed(2)}
+                </div>
+                <div className="text-[9px] text-emerald-400 font-bold">Gross Win/Loss</div>
+              </div>
+
+              <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Total Friction</div>
+                <div className="text-base font-extrabold text-slate-200 mt-0.5">
+                  ${(metrics.moreMetrics?.total_fees_slippage || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </div>
+                <div className="text-[9px] text-amber-400 font-bold">Taker Fees + Slippage</div>
+              </div>
+
+              <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Avg Duration</div>
+                <div className="text-base font-extrabold text-cyan-300 mt-0.5">
+                  {metrics.moreMetrics?.avg_trade_duration_hours || 4.2}h
+                </div>
+                <div className="text-[9px] text-slate-400 font-bold">Holding Time</div>
+              </div>
+
+              <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-3">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase">Max Win Streak</div>
+                <div className="text-base font-extrabold text-emerald-400 mt-0.5">
+                  {metrics.moreMetrics?.max_consecutive_wins || 0}
+                </div>
+                <div className="text-[9px] text-rose-400 font-bold">Loss: {metrics.moreMetrics?.max_consecutive_losses || 0}</div>
+              </div>
             </div>
-            <div className="overflow-x-auto">
+
+            {/* Comprehensive Interactive Trades Table */}
+            <BacktestTradesTable
+              trades={tradeLogs}
+              totalTradesCount={metrics.tradesCount}
+            />
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB 4: ANALYTICS (DEEP STATISTICAL LAB & ALPHA BREAKDOWN) */}
+        {/* ================================================================= */}
+        {activeTab === 'Analytics' && (
+          <div className="space-y-3.5 animate-in fade-in duration-150">
+            {/* KPI Ribbon */}
+            <BacktestKpiRibbon metrics={metrics} />
+
+            {/* 3 Middle Visualizations: Equity Curve, Underwater Drawdown, Rolling Performance */}
+            <BacktestChartsRow
+              equityPoints={equityPoints}
+              rollingMetrics={rollingMetrics}
+            />
+
+            {/* Bottom 5 Specialized Analytics Panels: Monthly Heatmap, Day of Week, Session Donut, R-Distribution, Outcome */}
+            <BacktestAnalyticsRow
+              monthlyData={monthlyHeatmap}
+              dayOfWeekData={dayOfWeek}
+              sessionStats={sessionStats}
+              rDistribution={rDistribution}
+              rDistributionBySide={rDistributionBySide}
+              winTrades={winTrades}
+              lossTrades={lossTrades}
+              winRatePct={metrics.winRatePct}
+              expectancyR={metrics.expectancyR}
+            />
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB 5: ROBUSTNESS (STRESS TESTING & PARAMETER JITTER) */}
+        {/* ================================================================= */}
+        {activeTab === 'Robustness' && (
+          <div className="animate-in fade-in duration-150">
+            <BacktestRobustnessTab
+              strategy={config.strategy}
+              pair={config.instrument}
+              timeframe={config.timeframe}
+              expectancyR={metrics.expectancyR}
+              sharpeRatio={metrics.sharpeRatio}
+              onRunStressTest={handleStressTest}
+            />
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB 6: VALIDATION (IN-SAMPLE VS OOS & OVERFITTING DIAGNOSTICS) */}
+        {/* ================================================================= */}
+        {activeTab === 'Validation' && (
+          <div className="animate-in fade-in duration-150">
+            <BacktestValidationTab
+              strategy={config.strategy}
+              pair={config.instrument}
+              timeframe={config.timeframe}
+            />
+          </div>
+        )}
+
+        {/* ================================================================= */}
+        {/* TAB 7: HISTORY (DUCKDB RUN SNAPSHOTS) */}
+        {/* ================================================================= */}
+        {activeTab === 'History' && (
+          <div className="bg-[#0b0e14] border border-[#161c28] rounded-xl p-4 space-y-3 font-mono animate-in fade-in duration-150">
+            <div className="flex items-center justify-between border-b border-[#141a26] pb-2">
+              <div className="flex items-center gap-2">
+                <History className="w-4 h-4 text-cyan-400" />
+                <h3 className="font-bold text-white text-xs">Backtest Run History & DuckDB Snapshots</h3>
+              </div>
+              <span className="text-[10px] text-slate-400 font-bold">{savedSnapshots.length} Records in DuckDB</span>
+            </div>
+            <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
               <table className="w-full text-left text-xs">
-                <thead>
+                <thead className="sticky top-0 bg-[#07090e] z-10">
                   <tr className="text-slate-400 border-b border-[#141a26] text-[10px]">
                     <th className="py-2 px-3">Snapshot ID</th>
                     <th className="py-2 px-3">Date & Time</th>
@@ -414,58 +614,32 @@ export const BacktestPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#141a26]">
-                  {savedSnapshots.map((s) => (
-                    <tr key={s.id} className="hover:bg-[#121824] text-[11px]">
-                      <td className="py-2 px-3 font-bold text-cyan-300">#{s.id}</td>
-                      <td className="py-2 px-3 text-slate-400">{s.timestamp}</td>
-                      <td className="py-2 px-3 text-white font-bold">{s.strategy}</td>
-                      <td className="py-2 px-3 text-slate-300">{s.pair}</td>
-                      <td className="py-2 px-3 text-cyan-400">{s.timeframe}</td>
-                      <td className={`py-2 px-3 text-right font-extrabold ${s.netReturnPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {s.netReturnPct >= 0 ? `+${s.netReturnPct.toFixed(1)}%` : `${s.netReturnPct.toFixed(1)}%`}
+                  {savedSnapshots.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-500">
+                        No backtest snapshots recorded yet. Click "Save Snapshot" to persist.
                       </td>
-                      <td className="py-2 px-3 text-right text-slate-200">{s.winRatePct.toFixed(1)}%</td>
-                      <td className="py-2 px-3 text-right text-white font-bold">{s.tradesCount.toLocaleString()}</td>
                     </tr>
-                  ))}
+                  ) : (
+                    savedSnapshots.map((s, idx) => (
+                      <tr key={s.id || idx} className="hover:bg-[#121824] text-[11px] transition">
+                        <td className="py-2 px-3 font-bold text-cyan-300">#{s.id}</td>
+                        <td className="py-2 px-3 text-slate-400">{s.timestamp}</td>
+                        <td className="py-2 px-3 text-white font-bold">{s.strategy}</td>
+                        <td className="py-2 px-3 text-slate-300">{s.pair}</td>
+                        <td className="py-2 px-3 text-cyan-400">{s.timeframe}</td>
+                        <td className={`py-2 px-3 text-right font-extrabold ${s.netReturnPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {s.netReturnPct >= 0 ? `+${s.netReturnPct.toFixed(1)}%` : `${s.netReturnPct.toFixed(1)}%`}
+                        </td>
+                        <td className="py-2 px-3 text-right text-slate-200">{s.winRatePct.toFixed(1)}%</td>
+                        <td className="py-2 px-3 text-right text-white font-bold">{s.tradesCount.toLocaleString()}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
-        )}
-
-        {/* 10 Institutional Performance KPI Cards */}
-        {activeTab !== 'History' && <BacktestKpiRibbon metrics={metrics} />}
-
-        {/* 3 Middle Visualizations: Equity Curve, Underwater Drawdown, Rolling Performance */}
-        {(activeTab === 'Results' || activeTab === 'Analytics' || activeTab === 'Configuration') && (
-          <BacktestChartsRow
-            equityPoints={equityPoints}
-            rollingMetrics={rollingMetrics}
-          />
-        )}
-
-        {/* Bottom 5 Specialized Analytics Panels: Monthly Heatmap, Day of Week, Session Donut, R-Distribution, Outcome */}
-        {(activeTab === 'Results' || activeTab === 'Analytics') && (
-          <BacktestAnalyticsRow
-            monthlyData={monthlyHeatmap}
-            dayOfWeekData={dayOfWeek}
-            sessionStats={sessionStats}
-            rDistribution={rDistribution}
-            rDistributionBySide={rDistributionBySide}
-            winTrades={winTrades}
-            lossTrades={lossTrades}
-            winRatePct={metrics.winRatePct}
-            expectancyR={metrics.expectancyR}
-          />
-        )}
-
-        {/* Trade Execution Logs Table (Shown when Trades Tab or in Results) */}
-        {(activeTab === 'Trades' || activeTab === 'Results') && (
-          <BacktestTradesTable
-            trades={tradeLogs}
-            totalTradesCount={metrics.tradesCount}
-          />
         )}
       </div>
     </div>

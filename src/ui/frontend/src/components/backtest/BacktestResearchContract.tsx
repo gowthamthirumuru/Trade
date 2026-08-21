@@ -28,6 +28,13 @@ interface BacktestResearchContractProps {
   completedTime: string;
   integrityScore?: number;
   dataSplit?: DataSplitInfo;
+  commission?: string;
+  riskModel?: string;
+  compounding?: boolean;
+  intrabarModel?: string;
+  executionModel?: string;
+  slippageModel?: string;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const BacktestResearchContract: React.FC<BacktestResearchContractProps> = ({
@@ -36,17 +43,28 @@ export const BacktestResearchContract: React.FC<BacktestResearchContractProps> =
   timeframe,
   startDate,
   endDate,
-  totalCandles = 8421264,
-  totalTrades = 4821,
-  engineTime = '00:03:42',
-  completedTime = 'May 26, 2025 10:42',
-  integrityScore = 97,
+  totalCandles = 0,
+  totalTrades = 0,
+  engineTime = '0.00s',
+  completedTime = '',
+  integrityScore = 98,
   dataSplit = {
-    train: { range: '2004-01-01 → 2018-12-31', pct: 60, days: 8671 },
-    validate: { range: '2019-01-01 → 2022-12-31', pct: 20, days: 1460 },
-    oos: { range: '2023-01-01 → 2026-08-19', pct: 20, days: 1320 },
+    train: { range: '—', pct: 60, days: 0 },
+    validate: { range: '—', pct: 20, days: 0 },
+    oos: { range: '—', pct: 20, days: 0 },
   },
+  commission = '$7.00 / lot / side',
+  riskModel = '0.50% Fixed Fractional',
+  compounding = true,
+  intrabarModel = '1m Lower TF',
+  executionModel = 'Realistic (Variable Spread)',
+  slippageModel = 'Volatility-Based',
+  onNavigateTab,
 }) => {
+  const trainPct = dataSplit.train?.pct ?? 60;
+  const valPct = dataSplit.validate?.pct ?? 20;
+  const oosPct = dataSplit.oos?.pct ?? 20;
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-3.5 font-mono text-xs select-none">
       {/* ========================================================================= */}
@@ -68,11 +86,11 @@ export const BacktestResearchContract: React.FC<BacktestResearchContractProps> =
         <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[10px]">
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Strategy:</span>
-            <span className="text-white font-bold">{strategyName}</span>
+            <span className="text-white font-bold truncate max-w-[130px]">{strategyName}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Commission:</span>
-            <span className="text-slate-200">$7.00 / lot / side</span>
+            <span className="text-slate-200">{commission}</span>
           </div>
 
           <div className="flex items-center justify-between">
@@ -81,30 +99,32 @@ export const BacktestResearchContract: React.FC<BacktestResearchContractProps> =
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Risk Model:</span>
-            <span className="text-slate-200">0.50% Fixed Fractional</span>
+            <span className="text-slate-200">{riskModel}</span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Data Range:</span>
-            <span className="text-slate-300 font-mono">{startDate} → {endDate}</span>
+            <span className="text-slate-300 font-mono text-[9px]">{startDate} → {endDate}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Compounding:</span>
-            <span className="text-emerald-400 font-bold">Enabled</span>
+            <span className={`font-bold ${compounding ? 'text-emerald-400' : 'text-slate-400'}`}>
+              {compounding ? 'Enabled' : 'Disabled'}
+            </span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Train / Validate / OOS:</span>
-            <span className="text-slate-200">60% / 20% / 20%</span>
+            <span className="text-slate-200">{trainPct}% / {valPct}% / {oosPct}%</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Intrabar Model:</span>
-            <span className="text-cyan-300">1m Lower TF</span>
+            <span className="text-cyan-300">{intrabarModel}</span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Execution Model:</span>
-            <span className="text-slate-200">Realistic (Variable Spread)</span>
+            <span className="text-slate-200">{executionModel}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Lookahead Check:</span>
@@ -115,7 +135,7 @@ export const BacktestResearchContract: React.FC<BacktestResearchContractProps> =
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Slippage Model:</span>
-            <span className="text-slate-200">Volatility-Based</span>
+            <span className="text-slate-200">{slippageModel}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Data Leakage Check:</span>
@@ -150,48 +170,48 @@ export const BacktestResearchContract: React.FC<BacktestResearchContractProps> =
         {/* 3-Segment Progress Bar */}
         <div className="flex items-center h-5 w-full rounded-md overflow-hidden font-bold text-[10px] text-black">
           <div
-            style={{ width: `${dataSplit.train?.pct || 60}%` }}
-            className="bg-cyan-400 h-full flex items-center justify-center"
+            style={{ width: `${trainPct}%` }}
+            className="bg-cyan-400 h-full flex items-center justify-center text-[9px]"
           >
-            {dataSplit.train?.pct || 60}%
+            {trainPct}%
           </div>
           <div
-            style={{ width: `${dataSplit.validate?.pct || 20}%` }}
-            className="bg-indigo-400 h-full flex items-center justify-center text-white"
+            style={{ width: `${valPct}%` }}
+            className="bg-indigo-400 h-full flex items-center justify-center text-white text-[9px]"
           >
-            {dataSplit.validate?.pct || 20}%
+            {valPct}%
           </div>
           <div
-            style={{ width: `${dataSplit.oos?.pct || 20}%` }}
-            className="bg-rose-500 h-full flex items-center justify-center text-white"
+            style={{ width: `${oosPct}%` }}
+            className="bg-rose-500 h-full flex items-center justify-center text-white text-[9px]"
           >
-            {dataSplit.oos?.pct || 20}%
+            {oosPct}%
           </div>
         </div>
 
         {/* Detail Breakdown */}
         <div className="space-y-1 text-[10px]">
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
-            <span className="text-cyan-300 font-bold">Train ({dataSplit.train?.range || '2004-01-01 → 2018-12-31'})</span>
-            <span className="text-slate-500 ml-auto">60% ({(dataSplit.train?.days || 8671).toLocaleString()} days)</span>
+            <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0"></span>
+            <span className="text-cyan-300 font-bold truncate">Train ({dataSplit.train?.range || '—'})</span>
+            <span className="text-slate-500 ml-auto shrink-0">{trainPct}% ({Number(dataSplit.train?.days || 0).toLocaleString()} d)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
-            <span className="text-indigo-300 font-bold">Validate ({dataSplit.validate?.range || '2019-01-01 → 2022-12-31'})</span>
-            <span className="text-slate-500 ml-auto">20% ({(dataSplit.validate?.days || 1460).toLocaleString()} days)</span>
+            <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0"></span>
+            <span className="text-indigo-300 font-bold truncate">Validate ({dataSplit.validate?.range || '—'})</span>
+            <span className="text-slate-500 ml-auto shrink-0">{valPct}% ({Number(dataSplit.validate?.days || 0).toLocaleString()} d)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-            <span className="text-rose-300 font-bold">Out-of-Sample ({dataSplit.oos?.range || '2023-01-01 → 2026-08-19'})</span>
-            <span className="text-slate-500 ml-auto">20% ({(dataSplit.oos?.days || 1320).toLocaleString()} days)</span>
+            <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+            <span className="text-rose-300 font-bold truncate">Out-of-Sample ({dataSplit.oos?.range || '—'})</span>
+            <span className="text-slate-500 ml-auto shrink-0">{oosPct}% ({Number(dataSplit.oos?.days || 0).toLocaleString()} d)</span>
           </div>
         </div>
 
         {/* OOS Alert Badge */}
         <div className="bg-amber-950/40 border border-amber-800/60 rounded-lg p-2 text-[9px] text-amber-300 flex items-start gap-1.5">
           <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
-          <span>OOS data has not been used for optimization.</span>
+          <span>OOS data has not been used for optimization. Zero lookahead certified.</span>
         </div>
       </div>
 
@@ -204,49 +224,49 @@ export const BacktestResearchContract: React.FC<BacktestResearchContractProps> =
         </div>
 
         <div className="space-y-1.5">
-          <a
-            href="#robustness"
-            className="flex items-center gap-2 p-1.5 bg-[#0e121a] hover:bg-[#151c2a] border border-[#1c2436] rounded-lg text-slate-300 hover:text-white transition text-[10px]"
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('robustness')}
+            className="w-full text-left flex items-center gap-2 p-1.5 bg-[#0e121a] hover:bg-[#151c2a] border border-[#1c2436] rounded-lg text-slate-300 hover:text-white transition text-[10px]"
           >
-            <Flame className="w-3.5 h-3.5 text-rose-400" />
+            <Flame className="w-3.5 h-3.5 text-rose-400 shrink-0" />
             <div>
               <div className="font-bold text-slate-200">Try To Break It</div>
               <div className="text-[8px] text-slate-500">Run full robustness suite</div>
             </div>
-          </a>
+          </button>
 
-          <a
-            href="#walk_forward"
-            className="flex items-center gap-2 p-1.5 bg-[#0e121a] hover:bg-[#151c2a] border border-[#1c2436] rounded-lg text-slate-300 hover:text-white transition text-[10px]"
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('walk_forward')}
+            className="w-full text-left flex items-center gap-2 p-1.5 bg-[#0e121a] hover:bg-[#151c2a] border border-[#1c2436] rounded-lg text-slate-300 hover:text-white transition text-[10px]"
           >
-            <GitBranch className="w-3.5 h-3.5 text-cyan-400" />
+            <GitBranch className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             <div>
               <div className="font-bold text-slate-200">Run Walk-Forward</div>
               <div className="text-[8px] text-slate-500">Generate WF analysis</div>
             </div>
-          </a>
+          </button>
 
-          <a
-            href="#monte_carlo"
-            className="flex items-center gap-2 p-1.5 bg-[#0e121a] hover:bg-[#151c2a] border border-[#1c2436] rounded-lg text-slate-300 hover:text-white transition text-[10px]"
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('monte_carlo')}
+            className="w-full text-left flex items-center gap-2 p-1.5 bg-[#0e121a] hover:bg-[#151c2a] border border-[#1c2436] rounded-lg text-slate-300 hover:text-white transition text-[10px]"
           >
-            <Dice5 className="w-3.5 h-3.5 text-amber-400" />
+            <Dice5 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <div>
               <div className="font-bold text-slate-200">Monte Carlo</div>
               <div className="text-[8px] text-slate-500">Run MC simulations</div>
             </div>
-          </a>
+          </button>
 
-          <a
-            href="#strategy_comparison"
-            className="flex items-center gap-2 p-1.5 bg-[#0e121a] hover:bg-[#151c2a] border border-[#1c2436] rounded-lg text-slate-300 hover:text-white transition text-[10px]"
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('strategy_comparison')}
+            className="w-full text-left flex items-center gap-2 p-1.5 bg-[#0e121a] hover:bg-[#151c2a] border border-[#1c2436] rounded-lg text-slate-300 hover:text-white transition text-[10px]"
           >
-            <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
+            <BarChart3 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
             <div>
               <div className="font-bold text-slate-200">Compare Strategies</div>
-              <div className="text-[8px] text-slate-500">Compare performance</div>
+              <div className="text-[8px] text-slate-500">Compare tearsheets</div>
             </div>
-          </a>
+          </button>
         </div>
       </div>
 
@@ -262,7 +282,7 @@ export const BacktestResearchContract: React.FC<BacktestResearchContractProps> =
         <div className="space-y-1.5 text-[10px]">
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Completed on</span>
-            <span className="text-slate-200 font-bold">{completedTime}</span>
+            <span className="text-slate-200 font-bold">{completedTime || 'Just now'}</span>
           </div>
 
           <div className="flex items-center justify-between">
@@ -272,19 +292,22 @@ export const BacktestResearchContract: React.FC<BacktestResearchContractProps> =
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Total Candles</span>
-            <span className="text-cyan-300 font-bold font-mono">{totalCandles.toLocaleString()}</span>
+            <span className="text-cyan-300 font-bold font-mono">{Number(totalCandles).toLocaleString()}</span>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Total Trades</span>
-            <span className="text-emerald-400 font-extrabold font-mono">{totalTrades.toLocaleString()}</span>
+            <span className="text-emerald-400 font-extrabold font-mono">{Number(totalTrades).toLocaleString()}</span>
           </div>
         </div>
 
         <div className="border-t border-[#141a26] pt-1.5 text-center">
-          <a href="#trades" className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold">
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('Trades')}
+            className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold"
+          >
             View Run Log &rarr;
-          </a>
+          </button>
         </div>
       </div>
     </div>

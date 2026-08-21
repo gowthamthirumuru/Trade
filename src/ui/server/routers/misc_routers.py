@@ -10,11 +10,15 @@ from pydantic import BaseModel, Field
 
 
 from src.ui.server.services.live_data_engine import LiveDataEngine
+from src.ui.server.services.performance_engine import PerformanceEngine
 
 logger = logging.getLogger(__name__)
 
 def get_engine() -> LiveDataEngine:
     return LiveDataEngine()
+
+def get_performance_engine() -> PerformanceEngine:
+    return PerformanceEngine()
 
 
 # =============================================================================
@@ -24,216 +28,87 @@ analysis_router = APIRouter(prefix="/api/v1/analysis", tags=["Analysis"])
 
 
 @analysis_router.get("/performance")
-def get_performance_tearsheet() -> Dict[str, Any]:
-    """Returns comprehensive performance metrics, monthly returns matrix, and rolling Sharpe from DuckDB."""
-    con = get_engine().get_connection()
-    perf_rows = []
-    dow_rows = []
-    try:
-        perf_rows = con.execute("""
-            SELECT 
-                strftime('%Y', entry_time) as y,
-                strftime('%b', entry_time) as m,
-                ROUND(SUM(pnl_quote) / 1000.0, 1) as m_ret
-            FROM trades
-            WHERE entry_time IS NOT NULL
-            GROUP BY strftime('%Y', entry_time), strftime('%b', entry_time)
-            ORDER BY y DESC, m ASC
-        """).fetchall()
-    except Exception:
-        pass
-
-    try:
-        dow_rows = con.execute("""
-            SELECT 
-                CASE day_of_week
-                    WHEN 1 THEN 'Monday'
-                    WHEN 2 THEN 'Tuesday'
-                    WHEN 3 THEN 'Wednesday'
-                    WHEN 4 THEN 'Thursday'
-                    WHEN 5 THEN 'Friday'
-                    ELSE 'Weekend'
-                END as dow_name,
-                ROUND(AVG(pnl_r), 2) as avg_r,
-                COUNT(*) as tr_count
-            FROM trades
-            GROUP BY day_of_week
-            ORDER BY day_of_week ASC
-        """).fetchall()
-    except Exception:
-        pass
-    con.close()
+def get_performance_tearsheet(
+    strategy: str = Query("ALL STRATEGIES"),
+    pair: str = Query("ALL PORTFOLIO"),
+    timeframe: str = Query("15m"),
+    benchmark: str = Query("Zero / Risk-Free"),
+) -> Dict[str, Any]:
+    """Returns comprehensive performance metrics, monthly returns matrix, and rolling Sharpe from DuckDB and Parquet."""
+    engine = get_performance_engine()
+    return engine.run_performance_suite(
+        strategy_name=strategy,
+        pair=pair,
+        timeframe=timeframe,
+        benchmark=benchmark,
+    )
 
 
-    monthly_dict: Dict[str, Dict[str, float]] = {"2026": {}, "2025": {}, "2024": {}}
-    for pr in perf_rows:
-        y_str = str(pr[0])
-        m_str = str(pr[1])
-        r_val = float(pr[2] or 0.0)
-        if y_str not in monthly_dict:
-            monthly_dict[y_str] = {}
-        monthly_dict[y_str][m_str] = r_val
+from src.ui.server.services.trade_analytics_engine import TradeAnalyticsEngine
 
-    # Ensure baseline fallback months populated
-    if not monthly_dict.get("2026"):
-        monthly_dict["2026"] = {"Jan": 4.8, "Feb": 3.4, "Mar": 5.1, "Apr": 4.2, "May": 6.8, "Jun": 3.1, "Jul": 5.4, "Aug": 2.9}
-        monthly_dict["2025"] = {"Jan": 4.2, "Feb": 3.1, "Mar": 6.8, "Apr": 2.4, "May": 5.1, "Jun": 3.9, "Jul": 4.8, "Aug": 1.9, "Sep": 5.4, "Oct": 6.2, "Nov": 3.8, "Dec": 4.5}
-        monthly_dict["2024"] = {"Jan": 5.1, "Feb": 2.8, "Mar": -1.2, "Apr": 4.6, "May": 7.2, "Jun": 3.4, "Jul": 5.0, "Aug": 1.8, "Sep": 4.2, "Oct": 6.1, "Nov": 3.7, "Dec": 4.8}
-
-    dow_list = []
-    for d in dow_rows:
-        if d[0] != 'Weekend':
-            dow_list.append({"day": str(d[0]), "return_pct": float(d[1] or 0.5), "trades": int(d[2])})
-
-    if not dow_list:
-        dow_list = [
-            {"day": "Monday", "return_pct": 0.42, "trades": 840},
-            {"day": "Tuesday", "return_pct": 1.28, "trades": 1280},
-            {"day": "Wednesday", "return_pct": 0.95, "trades": 1150},
-            {"day": "Thursday", "return_pct": 0.88, "trades": 1100},
-            {"day": "Friday", "return_pct": -0.15, "trades": 451},
-        ]
-
-    return {
-        "cagr_pct": 38.4,
-        "sharpe_ratio": 2.18,
-        "sortino_ratio": 3.42,
-        "calmar_ratio": 4.57,
-        "max_drawdown_pct": 8.4,
-        "win_rate_pct": 62.4,
-        "profit_factor": 2.18,
-        "recovery_factor": 6.84,
-        "ulcer_index": 1.42,
-        "monthly_returns": monthly_dict,
-        "day_of_week_returns": dow_list,
-    }
+def get_trade_analytics_engine() -> TradeAnalyticsEngine:
+    return TradeAnalyticsEngine()
 
 
 @analysis_router.get("/trades")
-def get_trade_analytics() -> Dict[str, Any]:
-    """Returns win/loss distributions, MAE vs MFE scatter data, and execution cost drag from DuckDB."""
-    con = get_engine().get_connection()
-    cost_row = con.execute("""
-        SELECT 
-            SUM(pnl_quote) as gross,
-            SUM(fees) as total_fees,
-            SUM(slippage) as total_slip
-        FROM trades
-    """).fetchone()
+def get_trade_analytics(
+    strategy: str = Query("ALL STRATEGIES"),
+    pair: str = Query("ALL PORTFOLIO"),
+    timeframe: str = Query("15m"),
+    direction: str = Query("ALL"),
+) -> Dict[str, Any]:
+    """Returns win/loss distributions, MAE vs MFE scatter data, and execution cost drag calculated on real trades."""
+    engine = get_trade_analytics_engine()
+    return engine.run_trade_analytics_suite(
+        strategy_name=strategy,
+        pair=pair,
+        timeframe=timeframe,
+        direction=direction,
+    )
 
-    scatter_rows = con.execute("""
-        SELECT trade_id, mae_pct, mfe_pct, pnl_r
-        FROM trades
-        WHERE mae_pct IS NOT NULL AND mfe_pct IS NOT NULL
-        LIMIT 20
-    """).fetchall()
-    con.close()
 
-    gross_val = float(cost_row[0] or 38450.0)
-    fees_val = float(cost_row[1] or 2410.5)
-    slip_val = float(cost_row[2] or 964.2)
-    drag_val = fees_val + slip_val
+from src.ui.server.services.stats_lab_engine import StatsLabEngine
 
-    mae_mfe_points = []
-    for sr in scatter_rows:
-        mae_mfe_points.append({
-            "trade_id": int(sr[0]),
-            "mae_pct": float(sr[1]),
-            "mfe_pct": float(sr[2]),
-            "pnl_r": float(sr[3]),
-            "result": "WIN" if float(sr[3]) > 0 else "LOSS",
-        })
-
-    if not mae_mfe_points:
-        mae_mfe_points = [
-            {"trade_id": 101, "mae_pct": 0.42, "mfe_pct": 2.85, "pnl_r": 2.4, "result": "WIN"},
-            {"trade_id": 102, "mae_pct": 1.10, "mfe_pct": 0.35, "pnl_r": -1.0, "result": "LOSS"},
-            {"trade_id": 103, "mae_pct": 0.28, "mfe_pct": 3.40, "pnl_r": 3.0, "result": "WIN"},
-            {"trade_id": 104, "mae_pct": 0.65, "mfe_pct": 1.95, "pnl_r": 1.8, "result": "WIN"},
-            {"trade_id": 105, "mae_pct": 1.05, "mfe_pct": 0.15, "pnl_r": -1.0, "result": "LOSS"},
-            {"trade_id": 106, "mae_pct": 0.35, "mfe_pct": 2.20, "pnl_r": 2.0, "result": "WIN"},
-            {"trade_id": 107, "mae_pct": 0.50, "mfe_pct": 3.10, "pnl_r": 2.9, "result": "WIN"},
-            {"trade_id": 108, "mae_pct": 0.95, "mfe_pct": 0.40, "pnl_r": -1.0, "result": "LOSS"},
-        ]
-
-    r_bins = [
-        {"r_range": "< -1.5R", "count": 42},
-        {"r_range": "-1.5R to -0.5R", "count": 1771},
-        {"r_range": "-0.5R to 0.5R", "count": 210},
-        {"r_range": "0.5R to 1.5R", "count": 1140},
-        {"r_range": "1.5R to 2.5R", "count": 1240},
-        {"r_range": "2.5R to 3.5R", "count": 510},
-        {"r_range": "> 3.5R", "count": 108},
-    ]
-
-    return {
-        "r_distribution": r_bins,
-        "mae_mfe_scatter": mae_mfe_points,
-        "cost_audit": {
-            "gross_profit_usd": gross_val,
-            "net_profit_usd": gross_val - drag_val,
-            "taker_fees_paid_usd": fees_val,
-            "slippage_paid_usd": slip_val,
-            "total_drag_usd": drag_val,
-            "drag_pct_of_gross": round(min(12.8, max(3.2, (drag_val / max(gross_val, 1.0)) * 100.0 if gross_val > drag_val else 8.4)), 2),
-        },
-    }
+def get_stats_lab_engine() -> StatsLabEngine:
+    return StatsLabEngine()
 
 
 @analysis_router.get("/stats")
-def get_stats_lab(strategy: Optional[str] = Query(None)) -> Dict[str, Any]:
-    """Returns rigorous statistical hypothesis tests on strategy returns directly from DuckDB."""
-    return get_engine().get_real_stats_lab(strategy=strategy)
+def get_stats_lab(
+    strategy: str = Query("ALL STRATEGIES"),
+    pair: str = Query("ALL PORTFOLIO"),
+    timeframe: str = Query("15m"),
+    alpha_level: float = Query(0.05),
+) -> Dict[str, Any]:
+    """Returns rigorous statistical hypothesis tests on strategy returns directly from DuckDB and Parquet."""
+    engine = get_stats_lab_engine()
+    return engine.run_stats_lab_suite(
+        strategy_name=strategy,
+        pair=pair,
+        timeframe=timeframe,
+        alpha_level=alpha_level,
+    )
+
+
+from src.ui.server.services.strategy_comparison_engine import StrategyComparisonEngine
+
+def get_strategy_comparison_engine() -> StrategyComparisonEngine:
+    return StrategyComparisonEngine()
 
 
 @analysis_router.get("/compare")
-def get_strategy_comparison() -> Dict[str, Any]:
+def get_strategy_comparison(
+    pair: str = Query("XAUUSD"),
+    timeframe: str = Query("15m"),
+    benchmark: str = Query("Zero / Risk-Free"),
+) -> Dict[str, Any]:
     """Returns multi-strategy comparison radar and metrics table."""
-    con = get_engine().get_connection()
-    strat_rows = con.execute("""
-        SELECT 
-            strategy,
-            ROUND(AVG(pnl_r), 2) as exp_r,
-            ROUND(SUM(CASE WHEN pnl_quote > 0 THEN pnl_quote ELSE 0 END) / NULLIF(ABS(SUM(CASE WHEN pnl_quote < 0 THEN pnl_quote ELSE 0 END)), 0), 2) as pf,
-            ROUND(SUM(CASE WHEN pnl_r > 0 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0), 1) as win_pct
-        FROM trades
-        GROUP BY strategy
-        ORDER BY COUNT(*) DESC
-        LIMIT 4
-    """).fetchall()
-    con.close()
-
-    strategies = []
-    for idx, sr in enumerate(strat_rows):
-        s_name = str(sr[0])
-        s_pf = float(sr[2] or 1.5)
-        s_win = float(sr[3] or 55.0)
-        strategies.append({
-            "name": s_name,
-            "sharpe": 2.18 - idx * 0.15,
-            "profit_factor": s_pf,
-            "win_rate": s_win,
-            "max_dd": 8.4 + idx * 0.8,
-            "wfer": 81.4 - idx * 2.0,
-            "smoothness": 88.5 - idx * 2.5,
-        })
-
-    defaults = [
-        {"name": "BB Reversion v4", "sharpe": 2.18, "profit_factor": 2.18, "win_rate": 62.4, "max_dd": 8.4, "wfer": 81.4, "smoothness": 88.5},
-        {"name": "Order Block v4", "sharpe": 1.92, "profit_factor": 1.92, "win_rate": 64.4, "max_dd": 9.1, "wfer": 78.2, "smoothness": 84.0},
-        {"name": "Liquidity Sweep v3", "sharpe": 1.81, "profit_factor": 1.81, "win_rate": 58.7, "max_dd": 10.2, "wfer": 75.6, "smoothness": 81.5},
-        {"name": "London Breakout v2", "sharpe": 1.72, "profit_factor": 1.72, "win_rate": 54.1, "max_dd": 7.6, "wfer": 83.1, "smoothness": 86.2},
-    ]
-
-    seen_names = {s["name"] for s in strategies}
-    for d in defaults:
-        if len(strategies) >= 4:
-            break
-        if d["name"] not in seen_names:
-            strategies.append(d)
-            seen_names.add(d["name"])
-
-    return {"strategies": strategies}
+    engine = get_strategy_comparison_engine()
+    return engine.run_strategy_comparison_suite(
+        pair=pair,
+        timeframe=timeframe,
+        benchmark=benchmark,
+    )
 
 
 # =============================================================================
@@ -368,9 +243,12 @@ def get_replay_session() -> Dict[str, Any]:
 
 
 # =============================================================================
-# 3. INTELLIGENCE ROUTER
-# =============================================================================
 intelligence_router = APIRouter(prefix="/api/v1/intelligence", tags=["Intelligence"])
+
+from src.ui.server.services.research_reports_engine import ResearchReportsEngine
+
+def get_research_reports_engine() -> ResearchReportsEngine:
+    return ResearchReportsEngine()
 
 
 class ChatRequest(BaseModel):
@@ -396,6 +274,42 @@ def ai_chat_assistant(req: ChatRequest) -> Dict[str, Any]:
     return {"reply": reply, "confidence": 0.94, "sources": ["DuckDB Trades DB", "Regime Classifier Layer 11"]}
 
 
+from src.ui.server.services.market_insights_engine import MarketInsightsEngine
+
+def get_market_insights_engine() -> MarketInsightsEngine:
+    return MarketInsightsEngine()
+
+
+@intelligence_router.get("/reports")
+def get_research_reports(
+    strategy: str = Query("BB Reversion v4"),
+    pair: str = Query("XAUUSD"),
+    timeframe: str = Query("15m"),
+) -> List[Dict[str, Any]]:
+    """Returns dynamic institutional quantitative research reports and validation certificates."""
+    engine = get_research_reports_engine()
+    return engine.get_all_research_reports(
+        strategy_name=strategy,
+        pair=pair,
+        timeframe=timeframe,
+    )
+
+
+@intelligence_router.get("/insights")
+def get_market_insights(
+    category: str = Query("ALL"),
+    severity: str = Query("ALL"),
+    pair: str = Query("ALL"),
+) -> Dict[str, Any]:
+    """Returns dynamic market intelligence insights, volatility alerts, and alpha degradation warnings."""
+    engine = get_market_insights_engine()
+    return engine.get_all_market_insights(
+        category=category,
+        severity=severity,
+        pair=pair,
+    )
+
+
 # =============================================================================
 # 4. SYSTEM ROUTER
 # =============================================================================
@@ -416,69 +330,22 @@ def get_system_settings() -> Dict[str, Any]:
     }
 
 
+from src.ui.server.services.data_sources_engine import DataSourcesEngine
+
+def get_data_sources_engine() -> DataSourcesEngine:
+    return DataSourcesEngine()
+
+
 @system_router.get("/sources")
-def get_data_sources() -> List[Dict[str, Any]]:
-    """Returns real data source feeds, partition candle counts, and status."""
-    summary = get_engine().get_real_data_lake_summary()
-    tot_c = summary.get("total_candles", 12800000)
-    return [
-        {
-            "name": "Binance CCXT Archive (20 Crypto Symbols)",
-            "type": "Crypto Archive",
-            "status": "ACTIVE",
-            "candles": f"{tot_c:,} bars",
-            "ping": "18ms",
-            "last_sync": "Continuous",
-            "instruments_count": len(summary.get("instruments", [])),
-        },
-        {
-            "name": "Dukascopy Forex & Metals (Ticks & 1m)",
-            "type": "Forex/Metals Archive",
-            "status": "ACTIVE",
-            "candles": "7.3M bars",
-            "ping": "24ms",
-            "last_sync": "Hourly UTC",
-            "instruments_count": 3,
-        },
-        {
-            "name": "DuckDB Unified Parquet Store",
-            "type": "Local Storage",
-            "status": "MOUNTED",
-            "candles": f"{tot_c:,} bars",
-            "ping": "0.1ms",
-            "last_sync": "Continuous Zero-Copy",
-            "instruments_count": len(summary.get("instruments", [])),
-        },
-        {
-            "name": "Macro Economic Calendar (ForexFactory)",
-            "type": "Macro Events",
-            "status": "ACTIVE",
-            "candles": "14,200 events",
-            "ping": "42ms",
-            "last_sync": "Daily 00:00 UTC",
-            "instruments_count": 1,
-        },
-    ]
+def get_data_sources() -> Dict[str, Any]:
+    """Returns dynamic data source feeds, partition candle counts, storage metrics, and partitions ledger."""
+    engine = get_data_sources_engine()
+    return engine.get_all_data_sources_summary()
 
 
 @system_router.get("/sources/latency")
 def test_feed_latencies() -> Dict[str, Any]:
-    """Measures real latency pings for data feeds."""
-    import time
-    t0 = time.perf_counter()
-    # Quick DuckDB ping
-    con = get_engine().get_connection()
-    con.execute("SELECT 1").fetchone()
-    con.close()
-    duckdb_lat = round((time.perf_counter() - t0) * 1000, 2)
-
-    return {
-        "status": "HEALTHY",
-        "binance_ping_ms": 18.4,
-        "dukascopy_ping_ms": 23.8,
-        "duckdb_ping_ms": duckdb_lat,
-        "macro_calendar_ping_ms": 41.2,
-        "timestamp": "2026-08-18 UTC",
-        "message": f"✓ All feeds online & healthy. Binance: 18ms | Dukascopy: 24ms | DuckDB: {duckdb_lat}ms.",
-    }
+    """Measures precise live latencies across DuckDB, Parquet columnar storage, and feed endpoints."""
+    engine = get_data_sources_engine()
+    return engine.measure_live_latencies()
 

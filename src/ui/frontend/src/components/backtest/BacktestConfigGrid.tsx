@@ -50,14 +50,47 @@ export interface BacktestConfig {
 interface BacktestConfigGridProps {
   config: BacktestConfig;
   onUpdateConfig: (updated: Partial<BacktestConfig>) => void;
+  strategiesList?: Array<{ id: string; name: string; family?: string; version?: string; description?: string }>;
+  instrumentsList?: Array<{ pair: string; type?: string; quality?: number }>;
+  dataQualityPct?: number;
+  onStressTest?: () => void;
 }
 
 export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
   config,
   onUpdateConfig,
+  strategiesList = [],
+  instrumentsList = [],
+  dataQualityPct = 99.8,
+  onStressTest,
 }) => {
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagText, setNewTagText] = useState('');
+
+  // Default institutional universe if list is empty
+  const defaultStrategies = [
+    { id: 'bb_reversion_v4', name: 'BB Reversion v4', family: 'Mean Reversion', version: '4.0.0', description: 'Bollinger Band reversion strategy with trend and volatility filter.' },
+    { id: 'order_block_v4', name: 'Order Block v4', family: 'Institutional SMC', version: '4.2.0', description: 'High-volume order block rejection with fair value gap confluence.' },
+    { id: 'liquidity_sweep_v3', name: 'Liquidity Sweep v3', family: 'Liquidity Sweep', version: '3.1.0', description: 'Asia / London liquidity sweep with rapid mean-reverting entry.' },
+    { id: 'london_breakout_v2', name: 'London Breakout v2', family: 'Breakout & Momentum', version: '2.0.0', description: 'Session open range expansion with volatility breakout triggers.' },
+    { id: 'strategy_T04_F02', name: 'strategy_T04_F02', family: 'Mean Reversion', version: '1.0.0', description: 'DuckDB registered mean reversion algorithm with RSI filter.' },
+    { id: 'strategy_T09_F08', name: 'strategy_T09_F08', family: 'Trend Following', version: '1.0.0', description: 'Institutional trend-following momentum rule with ATR sizing.' },
+    { id: 'strategy_T01_F01', name: 'strategy_T01_F01', family: 'Breakout', version: '1.0.0', description: 'Volatility breakout trigger with dynamic stop-loss trailing.' },
+  ];
+
+  const availableStrategies = strategiesList.length > 0 ? strategiesList : defaultStrategies;
+
+  const defaultInstruments = [
+    { pair: 'XAUUSD', type: 'Forex/Metals', quality: 99.8 },
+    { pair: 'EURUSD', type: 'Forex', quality: 99.9 },
+    { pair: 'GBPUSD', type: 'Forex', quality: 99.7 },
+    { pair: 'USDJPY', type: 'Forex', quality: 99.8 },
+    { pair: 'BTCUSDT', type: 'Crypto', quality: 100.0 },
+    { pair: 'ETHUSDT', type: 'Crypto', quality: 100.0 },
+    { pair: 'SOLUSDT', type: 'Crypto', quality: 100.0 },
+  ];
+
+  const availableInstruments = instrumentsList.length > 0 ? instrumentsList : defaultInstruments;
 
   const handleAddTag = () => {
     if (newTagText.trim() && !config.tags.includes(newTagText.trim())) {
@@ -69,6 +102,16 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
 
   const handleRemoveTag = (tagToRemove: string) => {
     onUpdateConfig({ tags: config.tags.filter((t) => t !== tagToRemove) });
+  };
+
+  const handleStrategyChange = (stratName: string) => {
+    const matched = availableStrategies.find((s) => s.name === stratName);
+    onUpdateConfig({
+      strategy: stratName,
+      version: matched?.version || '1.0.0',
+      family: matched?.family || 'Institutional Quant',
+      description: matched?.description || config.description,
+    });
   };
 
   return (
@@ -102,15 +145,14 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
           </div>
           <select
             value={config.strategy}
-            onChange={(e) => onUpdateConfig({ strategy: e.target.value })}
+            onChange={(e) => handleStrategyChange(e.target.value)}
             className="w-full bg-[#07090e] border border-[#1a2232] rounded-lg px-2 py-1.5 text-white font-bold outline-none focus:border-cyan-500 cursor-pointer"
           >
-            <option value="BB Reversion v4">BB Reversion v4</option>
-            <option value="Order Block v4">Order Block v4</option>
-            <option value="Liquidity Sweep v3">Liquidity Sweep v3</option>
-            <option value="London Breakout v2">London Breakout v2</option>
-            <option value="strategy_T04_F02">strategy_T04_F02</option>
-            <option value="strategy_T09_F08">strategy_T09_F08</option>
+            {availableStrategies.map((s) => (
+              <option key={s.id || s.name} value={s.name}>
+                {s.name}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -122,14 +164,14 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
           </div>
           <div className="flex items-center gap-2 text-cyan-400">
             <a href="#strategy_lab" className="hover:underline flex items-center gap-0.5">
-              <span>View Strategy</span>
+              <span>View Block</span>
               <ExternalLink className="w-2.5 h-2.5" />
             </a>
           </div>
         </div>
 
         {/* Description */}
-        <div className="bg-[#07090e] border border-[#141a26] rounded-lg p-2 text-[10px] text-slate-300 line-clamp-2 leading-relaxed">
+        <div className="bg-[#07090e] border border-[#141a26] rounded-lg p-2 text-[10px] text-slate-300 line-clamp-2 leading-relaxed min-h-[38px]">
           {config.description}
         </div>
 
@@ -145,7 +187,7 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
                 <span>{tag}</span>
                 <button
                   onClick={() => handleRemoveTag(tag)}
-                  className="hover:text-white text-cyan-400"
+                  className="hover:text-white text-cyan-400 font-bold"
                 >
                   ×
                 </button>
@@ -182,12 +224,12 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
         {/* Metadata Footer */}
         <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-500 border-t border-[#141a26] pt-1.5">
           <div>
-            <span>Created:</span>
-            <div className="text-slate-300">May 12, 2024</div>
+            <span>Engine:</span>
+            <div className="text-slate-300 font-bold">VectorBT Pro</div>
           </div>
           <div>
-            <span>Last Modified:</span>
-            <div className="text-slate-300">May 26, 2025</div>
+            <span>Point-In-Time:</span>
+            <div className="text-emerald-400 font-bold">Zero Lookahead</div>
           </div>
         </div>
       </div>
@@ -203,7 +245,7 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
           </h3>
           <div className="flex items-center gap-1 text-[10px]">
             <span className="text-slate-400">Quality:</span>
-            <span className="text-emerald-400 font-bold">99.8%</span>
+            <span className="text-emerald-400 font-bold">{dataQualityPct}%</span>
           </div>
         </div>
 
@@ -216,13 +258,11 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
               onChange={(e) => onUpdateConfig({ instrument: e.target.value })}
               className="w-full bg-[#07090e] border border-[#1a2232] rounded-lg px-2 py-1 text-white font-bold outline-none focus:border-cyan-500 cursor-pointer"
             >
-              <option value="XAUUSD">XAUUSD</option>
-              <option value="EURUSD">EURUSD</option>
-              <option value="GBPUSD">GBPUSD</option>
-              <option value="USDJPY">USDJPY</option>
-              <option value="BTCUSDT">BTCUSDT</option>
-              <option value="ETHUSDT">ETHUSDT</option>
-              <option value="SOLUSDT">SOLUSDT</option>
+              {availableInstruments.map((inst) => (
+                <option key={inst.pair} value={inst.pair}>
+                  {inst.pair}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -232,6 +272,8 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
               onChange={(e) => onUpdateConfig({ timeframe: e.target.value })}
               className="w-full bg-[#07090e] border border-[#1a2232] rounded-lg px-2 py-1 text-cyan-300 font-bold outline-none focus:border-cyan-500 cursor-pointer"
             >
+              <option value="1m">1m</option>
+              <option value="5m">5m</option>
               <option value="15m">15m</option>
               <option value="1h">1H</option>
               <option value="4h">4H</option>
@@ -249,7 +291,7 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
             </div>
           </div>
           <div>
-            <label className="text-slate-400 block mb-0.5">Dataset Version</label>
+            <label className="text-slate-400 block mb-0.5">Dataset Partition</label>
             <div className="bg-[#07090e] border border-[#1a2232] rounded px-2 py-1 text-slate-400 truncate">
               {config.datasetVersion}
             </div>
@@ -339,9 +381,9 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
               onChange={(e) => onUpdateConfig({ slippageModel: e.target.value })}
               className="bg-[#07090e] border border-[#1a2232] rounded px-1.5 py-0.5 text-slate-200 outline-none text-[10px]"
             >
-              <option value="Volatility-Based">Volatility-Based</option>
-              <option value="Fixed (0.5 pips)">Fixed (0.5 pips)</option>
-              <option value="Zero Slippage">Zero Slippage</option>
+              <option value="Volatility-Based">Volatility-Based (2.0 bps)</option>
+              <option value="Fixed (0.5 pips)">Fixed (5.0 bps)</option>
+              <option value="Zero Slippage">Zero Slippage (0.0 bps)</option>
             </select>
           </div>
 
@@ -374,7 +416,10 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
         </div>
 
         {/* Execution Stress Test Button */}
-        <button className="w-full py-1 bg-[#101522] hover:bg-[#182030] border border-[#1e273a] rounded-lg text-slate-300 hover:text-white text-[10px] font-bold transition flex items-center justify-center gap-1">
+        <button
+          onClick={onStressTest}
+          className="w-full py-1 bg-[#101522] hover:bg-[#182030] border border-[#1e273a] rounded-lg text-slate-300 hover:text-white text-[10px] font-bold transition flex items-center justify-center gap-1 active:scale-95"
+        >
           <Zap className="w-3 h-3 text-cyan-400" />
           <span>Execution Stress Test</span>
         </button>
@@ -395,9 +440,16 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
         <div className="space-y-1.5 text-[10px]">
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Initial Capital</span>
-            <span className="bg-[#07090e] border border-[#1a2232] rounded px-2 py-0.5 text-emerald-400 font-bold">
-              ${config.initialCapital.toLocaleString()}
-            </span>
+            <div className="flex items-center gap-1 bg-[#07090e] border border-[#1a2232] rounded px-1.5 py-0.5">
+              <span className="text-slate-500 font-bold">$</span>
+              <input
+                type="number"
+                value={config.initialCapital}
+                step={1000}
+                onChange={(e) => onUpdateConfig({ initialCapital: parseFloat(e.target.value) || 10000 })}
+                className="w-16 bg-transparent text-emerald-400 font-bold font-mono outline-none text-right"
+              />
+            </div>
           </div>
 
           <div className="flex items-center justify-between">
@@ -428,17 +480,32 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-slate-400">Max Concurrent Positions</span>
-            <span className="bg-[#07090e] border border-[#1a2232] rounded px-2 py-0.5 text-white font-bold">
-              {config.maxConcurrentPositions}
-            </span>
+            <span className="text-slate-400">Max Concurrent</span>
+            <select
+              value={config.maxConcurrentPositions}
+              onChange={(e) => onUpdateConfig({ maxConcurrentPositions: parseInt(e.target.value) || 3 })}
+              className="bg-[#07090e] border border-[#1a2232] rounded px-1.5 py-0.5 text-white font-bold outline-none text-[10px]"
+            >
+              <option value={1}>1 Position</option>
+              <option value={2}>2 Positions</option>
+              <option value={3}>3 Positions</option>
+              <option value={5}>5 Positions</option>
+              <option value={10}>10 Positions</option>
+            </select>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Max Portfolio Risk</span>
-            <span className="bg-[#07090e] border border-[#1a2232] rounded px-2 py-0.5 text-rose-400 font-bold">
-              {config.maxPortfolioRiskPct}%
-            </span>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                value={config.maxPortfolioRiskPct}
+                step={0.5}
+                onChange={(e) => onUpdateConfig({ maxPortfolioRiskPct: parseFloat(e.target.value) || 1.5 })}
+                className="w-12 bg-[#07090e] border border-[#1a2232] rounded px-1 py-0.5 text-right text-rose-400 font-bold outline-none"
+              />
+              <span className="text-slate-400">%</span>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">
@@ -476,16 +543,28 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
         <div className="space-y-1.5 text-[10px]">
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Mode</span>
-            <span className="bg-[#07090e] border border-[#1a2232] rounded px-2 py-0.5 text-slate-200">
-              {config.portfolioMode}
-            </span>
+            <select
+              value={config.portfolioMode}
+              onChange={(e) => onUpdateConfig({ portfolioMode: e.target.value })}
+              className="bg-[#07090e] border border-[#1a2232] rounded px-1.5 py-0.5 text-slate-200 outline-none text-[10px]"
+            >
+              <option value="Single Strategy">Single Strategy</option>
+              <option value="Multi-Asset Blend">Multi-Asset Blend</option>
+              <option value="Risk Parity">Risk Parity</option>
+            </select>
           </div>
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Capital Allocation</span>
-            <span className="bg-[#07090e] border border-[#1a2232] rounded px-2 py-0.5 text-slate-200">
-              {config.capitalAllocation}
-            </span>
+            <select
+              value={config.capitalAllocation}
+              onChange={(e) => onUpdateConfig({ capitalAllocation: e.target.value })}
+              className="bg-[#07090e] border border-[#1a2232] rounded px-1.5 py-0.5 text-slate-200 outline-none text-[10px]"
+            >
+              <option value="Equal">Equal Allocation</option>
+              <option value="Volatility Inverted">Volatility Inverted</option>
+              <option value="Kelly Weighted">Kelly Weighted</option>
+            </select>
           </div>
 
           <div className="flex items-center justify-between">
@@ -522,9 +601,16 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
 
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Benchmark</span>
-            <span className="bg-[#07090e] border border-[#1a2232] rounded px-2 py-0.5 text-slate-400">
-              {config.benchmark}
-            </span>
+            <select
+              value={config.benchmark}
+              onChange={(e) => onUpdateConfig({ benchmark: e.target.value })}
+              className="bg-[#07090e] border border-[#1a2232] rounded px-1.5 py-0.5 text-slate-200 outline-none text-[10px]"
+            >
+              <option value="None">None</option>
+              <option value="Buy & Hold">Buy & Hold Asset</option>
+              <option value="SPY 500">SPY 500 Benchmark</option>
+              <option value="BTC Index">BTC Index</option>
+            </select>
           </div>
         </div>
 
@@ -534,11 +620,11 @@ export const BacktestConfigGrid: React.FC<BacktestConfigGridProps> = ({
             <span className="text-slate-400 font-bold">Backtest Engine</span>
             <span className="text-emerald-400 font-bold flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              <span>Engine Ready</span>
+              <span>VectorBT Ready</span>
             </span>
           </div>
           <div className="text-[10px] text-cyan-300 font-bold flex items-center gap-1">
-            <span>VectorBT (Vectorized Matrix)</span>
+            <span>DuckDB Parquet Zero-Copy Pushdown</span>
           </div>
         </div>
       </div>

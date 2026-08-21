@@ -37,8 +37,8 @@ class LiveDataEngine:
         self.root_path = get_project_root()
 
     def get_connection(self) -> duckdb.DuckDBPyConnection:
-        """Returns a read-only DuckDB connection."""
-        return duckdb.connect(str(self.db_path), read_only=True)
+        """Returns a DuckDB connection."""
+        return duckdb.connect(str(self.db_path))
 
     # -------------------------------------------------------------------------
     # 1. OVERVIEW DASHBOARD & KPIS (100% REAL DUCKDB)

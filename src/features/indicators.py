@@ -156,8 +156,8 @@ def compute_all_indicators(df: pd.DataFrame) -> pd.DataFrame:
     close = df["close"]
     high = df["high"]
     low = df["low"]
-    volume = df["volume"]
-    quote_vol = df["quote_vol"]
+    volume = df["volume"] if "volume" in df.columns else pd.Series(0.0, index=df.index)
+    quote_vol = df["quote_vol"] if "quote_vol" in df.columns else (volume * close)
 
     # 1. Momentum Group
     for rsi_len in [2, 7, 14, 21]:

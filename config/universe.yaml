@@ -1,8 +1,31 @@
 # Project APEX Universe & Data Lake Configuration (Master Plan §9.6 & Chapter 23)
 pairs:
   - BTCUSDT
+  - ETHUSDT
+  - BNBUSDT
+  - SOLUSDT
+  - XRPUSDT
+  - DOGEUSDT
+  - ADAUSDT
+  - AVAXUSDT
+  - LINKUSDT
+  - DOTUSDT
+  - MATICUSDT
+  - NEARUSDT
+  - UNIUSDT
+  - LTCUSDT
+  - ATOMUSDT
+  - ETCUSDT
+  - XMRUSDT
+  - BCHUSDT
+  - ICPUSDT
+  - APTUSDT
 
-forex_pairs: []
+forex_pairs:
+  - EURUSD
+  - GBPUSD
+  - USDJPY
+  - XAUUSD
 
 base_timeframe: "1m"
 derived_timeframes:

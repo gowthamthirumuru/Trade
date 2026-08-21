@@ -48,48 +48,24 @@ interface BacktestAnalyticsRowProps {
 }
 
 export const BacktestAnalyticsRow: React.FC<BacktestAnalyticsRowProps> = ({
-  monthlyData = [
-    { year: 2025, months: [1.2, -0.4, 2.1, 0.8, 1.4, -0.6, 1.8, 0.9, 1.1, -0.2, 1.5, 0.7], ytd: 10.3 },
-    { year: 2024, months: [0.8, 1.5, -0.8, 1.4, 2.2, 0.5, -0.3, 1.7, 0.6, 1.2, -0.5, 1.8], ytd: 10.1 },
-    { year: 2023, months: [1.4, 0.6, 1.8, -0.5, 0.9, 1.2, -0.7, 0.8, 1.5, 2.0, 0.4, 1.1], ytd: 10.5 },
-    { year: 2022, months: [-0.6, 1.1, 2.4, 0.8, -0.4, 1.5, 0.9, -0.8, 1.2, 0.7, 1.6, -0.3], ytd: 8.1 },
-    { year: 2021, months: [0.9, -0.5, 1.2, 1.6, 0.7, -0.3, 1.4, 2.1, -0.6, 0.8, 1.3, 0.9], ytd: 9.5 },
-    { year: 2020, months: [1.6, 2.4, -1.2, 1.8, 0.9, 1.1, 0.5, -0.4, 1.7, 0.8, 1.4, 1.2], ytd: 11.8 },
-  ],
-  dayOfWeekData = [
-    { day: 'Mon', r: 0.31, width: 35, positive: true },
-    { day: 'Tue', r: 1.02, width: 95, positive: true },
-    { day: 'Wed', r: 0.84, width: 78, positive: true },
-    { day: 'Thu', r: 0.72, width: 68, positive: true },
-    { day: 'Fri', r: -0.18, width: 22, positive: false },
-  ],
+  monthlyData = [],
+  dayOfWeekData = [],
   sessionStats = {
-    london_r: 0.92,
-    london_pct: 41,
-    ny_r: 0.61,
-    ny_pct: 33,
-    overlap_r: 1.04,
-    overlap_pct: 16,
-    asia_r: 0.14,
-    asia_pct: 10,
+    london_r: 0.0,
+    london_pct: 0,
+    ny_r: 0.0,
+    ny_pct: 0,
+    overlap_r: 0.0,
+    overlap_pct: 0,
+    asia_r: 0.0,
+    asia_pct: 0,
   },
-  rDistribution = [
-    { label: '<-3R', count: 42, color: '#e11d48' },
-    { label: '-2R', count: 184, color: '#f43f5e' },
-    { label: '-1R', count: 1120, color: '#fb7185' },
-    { label: '-0.5R', count: 471, color: '#fda4af' },
-    { label: '0', count: 210, color: '#94a3b8' },
-    { label: '+0.5R', count: 680, color: '#6ee7b7' },
-    { label: '+1R', count: 1240, color: '#10b981' },
-    { label: '+2R', count: 620, color: '#059669' },
-    { label: '+3R', count: 190, color: '#047857' },
-    { label: '>+3R', count: 64, color: '#065f46' },
-  ],
+  rDistribution = [],
   rDistributionBySide = {},
-  winTrades = 3004,
-  lossTrades = 1817,
-  winRatePct = 62.4,
-  expectancyR = 0.91,
+  winTrades = 0,
+  lossTrades = 0,
+  winRatePct = 0,
+  expectancyR = 0,
 }) => {
   const [distFilter, setDistFilter] = useState<'All Trades' | 'Long Only' | 'Short Only'>('All Trades');
 
@@ -124,45 +100,53 @@ export const BacktestAnalyticsRow: React.FC<BacktestAnalyticsRowProps> = ({
 
         {/* Heatmap Grid */}
         <div className="overflow-x-auto">
-          <table className="w-full text-center text-[10px]">
-            <thead>
-              <tr className="text-slate-500 border-b border-[#141a26]">
-                <th className="py-1 text-left font-semibold">Yr</th>
-                {monthNames.map((m) => (
-                  <th key={m} className="py-1 px-0.5 font-normal">
-                    {m}
-                  </th>
-                ))}
-                <th className="py-1 px-1 font-bold text-cyan-400">YTD</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#141a26]">
-              {monthlyData.map((row) => (
-                <tr key={row.year}>
-                  <td className="py-1 text-left text-slate-400 font-bold">{row.year}</td>
-                  {row.months.map((val, mIdx) => {
-                    const isPos = val >= 0;
-                    return (
-                      <td key={mIdx} className="py-1 px-0.5">
-                        <span
-                          className={`inline-block w-full py-0.5 rounded text-[9px] font-bold ${
-                            isPos
-                              ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/60'
-                              : 'bg-rose-950/70 text-rose-300 border border-rose-800/60'
-                          }`}
-                        >
-                          {isPos ? `+${val.toFixed(1)}` : val.toFixed(1)}
-                        </span>
-                      </td>
-                    );
-                  })}
-                  <td className={`py-1 px-1 font-extrabold ${row.ytd >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {row.ytd >= 0 ? `+${row.ytd.toFixed(1)}` : row.ytd.toFixed(1)}
-                  </td>
+          {monthlyData.length > 0 ? (
+            <table className="w-full text-center text-[10px]">
+              <thead>
+                <tr className="text-slate-500 border-b border-[#141a26]">
+                  <th className="py-1 text-left font-semibold">Yr</th>
+                  {monthNames.map((m) => (
+                    <th key={m} className="py-1 px-0.5 font-normal">
+                      {m}
+                    </th>
+                  ))}
+                  <th className="py-1 px-1 font-bold text-cyan-400">YTD</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[#141a26]">
+                {monthlyData.map((row) => (
+                  <tr key={row.year}>
+                    <td className="py-1 text-left text-slate-400 font-bold">{row.year}</td>
+                    {row.months.map((val, mIdx) => {
+                      const isPos = val >= 0;
+                      return (
+                        <td key={mIdx} className="py-1 px-0.5">
+                          <span
+                            className={`inline-block w-full py-0.5 rounded text-[9px] font-bold ${
+                              val === 0
+                                ? 'bg-slate-900/60 text-slate-500 border border-slate-800/40'
+                                : isPos
+                                ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/60'
+                                : 'bg-rose-950/70 text-rose-300 border border-rose-800/60'
+                            }`}
+                          >
+                            {val === 0 ? '0.0' : isPos ? `+${val.toFixed(1)}` : val.toFixed(1)}
+                          </span>
+                        </td>
+                      );
+                    })}
+                    <td className={`py-1 px-1 font-extrabold ${row.ytd >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {row.ytd >= 0 ? `+${row.ytd.toFixed(1)}` : row.ytd.toFixed(1)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="h-28 flex items-center justify-center text-slate-500 text-xs">
+              Simulating monthly trade returns...
+            </div>
+          )}
         </div>
       </div>
 
@@ -180,25 +164,31 @@ export const BacktestAnalyticsRow: React.FC<BacktestAnalyticsRowProps> = ({
 
         {/* Horizontal Bars */}
         <div className="space-y-2 text-[10px]">
-          {dayOfWeekData.map((d) => (
-            <div key={d.day} className="space-y-0.5">
-              <div className="flex items-center justify-between text-slate-400">
-                <span className="font-bold">{d.day}</span>
-              </div>
-              <div className="h-4 w-full bg-[#07090e] rounded overflow-hidden flex items-center">
-                <div
-                  style={{ width: `${d.width}%` }}
-                  className={`h-full flex items-center px-1.5 font-extrabold text-[9px] rounded ${
-                    d.positive
-                      ? 'bg-emerald-500/80 text-black shadow-sm'
-                      : 'bg-rose-500/80 text-white shadow-sm'
-                  }`}
-                >
-                  {d.r >= 0 ? `+${d.r.toFixed(2)}` : d.r.toFixed(2)}
+          {dayOfWeekData.length > 0 ? (
+            dayOfWeekData.map((d) => (
+              <div key={d.day} className="space-y-0.5">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="font-bold">{d.day}</span>
+                </div>
+                <div className="h-4 w-full bg-[#07090e] rounded overflow-hidden flex items-center">
+                  <div
+                    style={{ width: `${Math.max(12, d.width)}%` }}
+                    className={`h-full flex items-center px-1.5 font-extrabold text-[9px] rounded ${
+                      d.positive
+                        ? 'bg-emerald-500/80 text-black shadow-sm'
+                        : 'bg-rose-500/80 text-white shadow-sm'
+                    }`}
+                  >
+                    {d.r >= 0 ? `+${d.r.toFixed(2)}` : d.r.toFixed(2)}
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="h-28 flex items-center justify-center text-slate-500 text-xs">
+              Calculating day of week stats...
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -312,21 +302,27 @@ export const BacktestAnalyticsRow: React.FC<BacktestAnalyticsRowProps> = ({
 
         {/* Histogram Columns */}
         <div className="h-20 flex items-end justify-between gap-1 pt-2">
-          {activeRDist.map((bar) => {
-            const heightPct = Math.max(8, Math.min(100, (bar.count / maxDistCount) * 100));
-            return (
-              <div key={bar.label} className="flex-1 flex flex-col items-center h-full justify-end group relative">
-                <div
-                  style={{ height: `${heightPct}%`, backgroundColor: bar.color }}
-                  className="w-full rounded-t transition hover:brightness-125"
-                ></div>
-                {/* Tooltip on hover */}
-                <div className="opacity-0 group-hover:opacity-100 transition absolute -top-5 bg-black border border-slate-700 px-1 py-0.5 rounded text-[8px] text-white z-10 pointer-events-none whitespace-nowrap">
-                  {bar.label}: {bar.count}
+          {activeRDist.length > 0 ? (
+            activeRDist.map((bar) => {
+              const heightPct = Math.max(8, Math.min(100, (bar.count / maxDistCount) * 100));
+              return (
+                <div key={bar.label} className="flex-1 flex flex-col items-center h-full justify-end group relative">
+                  <div
+                    style={{ height: `${heightPct}%`, backgroundColor: bar.color }}
+                    className="w-full rounded-t transition hover:brightness-125"
+                  ></div>
+                  {/* Tooltip on hover */}
+                  <div className="opacity-0 group-hover:opacity-100 transition absolute -top-5 bg-black border border-slate-700 px-1 py-0.5 rounded text-[8px] text-white z-10 pointer-events-none whitespace-nowrap">
+                    {bar.label}: {bar.count}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          ) : (
+            <div className="h-full w-full flex items-center justify-center text-slate-500 text-[10px]">
+              No trade distribution data
+            </div>
+          )}
         </div>
 
         {/* Histogram Labels */}
